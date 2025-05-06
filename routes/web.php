@@ -17,6 +17,7 @@ use App\Http\Controllers\Backend\Profile;
 use App\Http\Controllers\Backend\Category;
 use App\Http\Controllers\Backend\Notification;
 use App\Http\Controllers\Backend\Coupon;
+use App\Http\Controllers\Backend\Menu;
 // use App\Http\Controllers\Frontend\Home;
 // use App\Http\Controllers\Frontend\Common;
 
@@ -83,6 +84,8 @@ Route::post('/save-notification', [Notification::class, 'saveNotification'])->na
 //Profile
 Route::get('/my-profile', [Profile::class, 'index'])->name('admin.my-profile');
 Route::post('/save-profile', [Profile::class, 'saveProfile'])->name('admin.save-profile');
+//Menu
+Route::get('/assign-menu', [Menu::class, 'index'])->name('admin.assign-menu');
 //Ajax
 Route::post('/getSlug', [Ajax::class, 'index'])->name('admin.getSlug');
 Route::post('/deleteItem', [Ajax::class, 'deleteItem'])->name('admin.deleteItem');

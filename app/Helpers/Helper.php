@@ -179,4 +179,66 @@ if (!function_exists("getUserCurrency")) {
         }
     }
 }
-
+if (!function_exists('checkPayload')) {
+    function checkPayload() {
+        $response = [];
+        if ($_SERVER["REQUEST_METHOD"] != "POST") {
+            $response["status"] = false;
+            $response["message"] = "Bad Request";
+            echo json_encode($response);
+            exit();
+        }
+        //handle request data
+        $requestData = file_get_contents("php://input");
+        $post = json_decode($requestData, true);
+        if (empty($post)) {
+            $response["status"] = false;
+            $response["message"] = "No Payload";
+            echo json_encode($response);
+            exit();
+        }
+        $checkHeaders = checkHeaders();
+        if (empty($checkHeaders)) {
+            return $post;
+        }
+    }
+}
+if (!function_exists('checkHeaders')) {
+    function checkHeaders() {
+        $response = [];
+        $headersList = apache_request_headers();
+        // print_r($headersList['Content-Type']);die;
+        $xPid = explode(" ", $headersList['Authorization']);
+        $contentType = $headersList['Content-Type'];
+        if (strpos($contentType, 'application/json') !== false) {
+            $contentType = 'application/json';
+        }
+        $allowedXPID = trim($xPid[1]);
+        $MatchedHeaderList = [];
+        $allowedHeaders = ['CONTENT-TYPE', 'Authorization'];
+        $matchHeadersCount = 0;
+        foreach ($headersList as $key => $value) {
+            if (in_array(strtoupper($key), $allowedHeaders)) {
+                $MatchedHeaderList[strtoupper($key) ] = $value;
+                $matchHeadersCount+= 1;
+            }
+        }
+        if ($matchHeadersCount == 0 || $matchHeadersCount < 1) {
+            $response['status'] = false;
+            $response['message'] = 'Headers Not Available!';
+            echo json_encode($response);
+            exit;
+        }
+        if (in_array('CONTENT-TYPE', $allowedHeaders) && ($contentType != 'application/json')) {
+            $response['status'] = false;
+            $response['message'] = 'Invalid Auth Token1!';
+            echo json_encode($response);
+            exit;
+        } else if (in_array('Authorization', $allowedHeaders) && ($allowedXPID != '3d677482a0d52578ddca12375c374e24')) {
+            $response['status'] = false;
+            $response['message'] = 'Invalid Auth Token2!';
+            echo json_encode($response);
+            exit;
+        }
+    }
+}
