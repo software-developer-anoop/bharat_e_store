@@ -21,16 +21,16 @@ if (!function_exists("webSetting")) {
         return null; // Return null if no data found
     }
 }
-if (!function_exists("homeSetting")) {
-    function homeSetting($select) {
-        $home = DB::table('homesetting')->select($select)->first();
-        // Check if data is found before returning
-        if ($home) {
-            return $home;
-        }
-        return null; // Return null if no data found
-    }
-}
+// if (!function_exists("homeSetting")) {
+//     function homeSetting($select) {
+//         $home = DB::table('homesetting')->select($select)->first();
+//         // Check if data is found before returning
+//         if ($home) {
+//             return $home;
+//         }
+//         return null; // Return null if no data found
+//     }
+// }
 
 if (!function_exists('convertImageToWebp')) {
     function convertImageToWebp($folderPath, $uploaded_file_name, $new_webp_file) {

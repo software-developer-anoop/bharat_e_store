@@ -20,8 +20,10 @@ class GlobalViewServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $web = webSetting('*');
-        $home = homeSetting('*');
+        //$home = homeSetting('*');
         $userData = userData('*');
-        View::share(['web'=>$web,'home'=>$home,'userData'=>$userData]);
+        View::share(['web'=>$web,
+            //'home'=>$home,
+            'userData'=>$userData]);
     }
 }
