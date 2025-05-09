@@ -94,7 +94,7 @@ if (!function_exists("validate_slug")) {
 }
 
 function random_alphanumeric_string($length) {
-    $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#$&!=+';
+    $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     return substr(str_shuffle($chars), 0, $length);
 }
 function testInput($input) {
@@ -241,4 +241,50 @@ if (!function_exists('checkHeaders')) {
             exit;
         }
     }
+}
+function curlApis($url, $method = null, $postarray = null, $header = null, $time = null)
+{
+    $curl = curl_init();
+    $timeout = !empty($time) ? $time : 30;
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_HEADER, false);
+    curl_setopt($curl, CURLOPT_POST, false);
+    if ($method == 'POST') {
+        $jsonpostdata = json_encode($postarray);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $jsonpostdata);
+        curl_setopt($curl, CURLOPT_POST, true);
+    }
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+    if (!empty($header)) {
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+    }
+    $jsondata = curl_exec($curl);
+    curl_close($curl);
+    $data = json_decode($jsondata, true);
+    return $data;
+}
+
+function sendsms($mobile, $message, $restype = null, $callingcode = null)
+{
+    $str = urlencode($message);
+    $mobile = $callingcode . $mobile;
+    $apiurl = env('SMS_API_PATH')."rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . env('SMSKEY') . "&message=$str&senderId=" . env('SENDERID') . "&routeId=" . env('ROOTID') . "&mobileNos=$mobile&smsContentType=english";
+ 
+    $data = curlApis($apiurl);
+    $jsondata = json_encode($data, true);
+   // echo $jsondata;die;
+    $status = false;
+    $datastatus = !empty($data['responseCode']) ? $data['responseCode'] : false;
+    if ($datastatus == '3001') {$status = true;}
+    return (!empty($restype) ? $jsondata : $status);
+}
+function sendOtpPhone($mobile, $otp)
+{
+    $msg = "Your Login OTP " . $otp . " Don't Share with any one Thanks!";
+    $sent = sendsms($mobile, $msg);
+    return true;
 }

@@ -10,7 +10,7 @@ class Countrylist extends Controller
 {
     public function index() {
         $response = [];
-         checkHeaders();
+        checkHeaders();
         $countrylist = DB::table('country')->where('status','Active')->select('country_name','country_code','flag_image','id')->get();
         if (empty($countrylist)) {
             $response['status'] = false;

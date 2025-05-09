@@ -54,6 +54,18 @@
                   </select>
                 </div>
               </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="referral_code">Referral Code</label>
+                  <input type="text" class="form-control" id="referral_code" name="referral_code" placeholder="Referral Code" value="{{$data->referral_code??''}}"  autocomplete="off">
+                </div>
+              </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="referrer_code">Referrer Code</label>
+                  <input type="text" class="form-control" id="referrer_code" name="referrer_code" placeholder="Referral Code" value="{{$data->referrer_code??''}}"  autocomplete="off">
+                </div>
+              </div>
               </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>

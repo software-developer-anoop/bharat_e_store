@@ -6,9 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use App\Mail\CustomerVerificationMail;
-use Illuminate\Support\Facades\Mail;
-
 class Customer extends Controller
 {
     public function index(){
@@ -25,11 +22,20 @@ class Customer extends Controller
         $data = $request->all();
         $saveData = [];
         $id = $data['id']?trim($data['id']):'';
+        $checkData['customer_email'] = trim($data['customer_email']);
+        $checkData['customer_phone'] = trim($data['customer_phone']);
+        $duplicate = DB::table('customers')->where($checkData)->first();
+
+        if (!empty($duplicate)) {
+            if ($id === '' || $duplicate->id != $id) {
+                return redirect()->back()->with('error', 'Duplicate Entry');
+            }
+        }
+        $saveData = $checkData;
         $saveData['customer_name'] = $data['customer_name']?trim($data['customer_name']):'';
-        $saveData['customer_email'] = $data['customer_email']?trim($data['customer_email']):'';
-        $saveData['customer_phone'] = $data['customer_phone']?trim($data['customer_phone']):'';
         $saveData['customer_address'] = $data['customer_address']?trim($data['customer_address']):'';
         $saveData['customer_gender'] = $data['customer_gender']?trim($data['customer_gender']):'';
+        $saveData['referral_code'] = $data['referral_code']?trim($data['referral_code']):'';
         
         // if ($request->hasFile('Customer_image')) {
         //     $file = $request->file('Customer_image');
@@ -51,9 +57,12 @@ class Customer extends Controller
         // }
         if(empty($id)){
             $saveData['created_at'] = Carbon::now();
+            if(!empty(trim($data['referrer_code']))){
+            $saveData['referrer_code'] = $data['referrer_code'] ? trim($data['referrer_code']) : '';
+            }else{
+            $saveData['referrer_code'] = random_alphanumeric_string(10);
+            }
             $id = DB::table('customers')->insertGetId($saveData);
-            $data = ['name'=>$saveData['customer_name'],'id'=>base64_encode($id),'status'=>base64_encode('verified')];
-            Mail::to($saveData['customer_email'])->send(new CustomerVerificationMail($data));
             $msg = 'Customer Added successfully';
         }else{
             $saveData['updated_at'] = Carbon::now();
