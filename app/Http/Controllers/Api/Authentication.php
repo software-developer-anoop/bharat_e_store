@@ -44,9 +44,6 @@ class Authentication extends Controller {
         }
         return response()->json(['status' => true, 'message' => 'You are now registered. Please Verify With OTP', 'customer_id' => (string)$customer_id]);
     }
-    use Illuminate\Http\Request;
-    use Illuminate\Support\Facades\DB;
-    use Carbon\Carbon;
     public function verifyOtp(Request $request) {
         $post = checkPayload(); // Assuming this returns validated data
         $otp = trim($post['otp']??'');
