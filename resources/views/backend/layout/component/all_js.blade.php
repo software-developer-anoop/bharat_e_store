@@ -181,12 +181,16 @@
       });
     });
 
-    function getStates(country_id) {
+    @if(isset($data->country) && isset($data->state))
+    getStates(@json($data->country),@json($data->state));
+    @endif
+    function getStates(country_id,state=null) {
          $.ajax({
              url: "{{route('admin.getStates')}}",
              type: 'POST',
              data: {
                  'country_id': country_id,
+                 'state': state,
                  _token: '{{csrf_token()}}'
              },
              cache: false,
@@ -196,5 +200,95 @@
              }
          });
      }
+
+    @if(isset($data->category_id) && isset($data->subcategory_id))
+    getSubcategory(@json($data->category_id), @json($data->subcategory_id));
+    @endif
+
+    function getSubcategory(category_id, subcategory_id = null) {
+        $.ajax({
+            url: "{{ route('admin.getSubcategory') }}",
+            type: 'POST',
+            data: {
+                category_id: category_id,
+                subcategory_id: subcategory_id,
+                _token: '{{ csrf_token() }}'
+            },
+            cache: false,
+            dataType: 'json',
+            success: function(response) {
+                $('#subcategory_list').html(response.html);
+            }
+        });
+    }
+
+   function manageInventory(condition, product_id) {
+    $.ajax({
+        url: "{{ route('admin.manageInventory') }}",
+        type: 'POST',
+        data: {
+            condition: condition,
+            product_id: product_id,
+            _token: '{{ csrf_token() }}'
+        },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            Snackbar.show({
+                text: response.msg,
+                pos: 'top-right',
+                actionTextColor: '#fff',
+                backgroundColor: response.status ? '#8dbf42' : '#e7515a'
+            });
+        }
+    });
+}
+
+// Attach event listeners to all increment and decrement buttons
+document.querySelectorAll('.quantity-wrapper').forEach(wrapper => {
+    const product_id = wrapper.getAttribute('data-product-id');
+    const input = wrapper.querySelector('.quantity');
+    const incrementBtn = wrapper.querySelector('.increment');
+    const decrementBtn = wrapper.querySelector('.decrement');
+
+    incrementBtn.addEventListener('click', function () {
+        let current = parseInt(input.value) || 0;
+        current += 1;
+        input.value = current;
+        manageInventory('increment', product_id);
+    });
+
+    decrementBtn.addEventListener('click', function () {
+        let current = parseInt(input.value) || 1;
+        if (current > 1) {
+            current -= 1;
+            input.value = current;
+            manageInventory('decrement', product_id);
+        }
+    });
+});
+
+function setIsTrending(product_id){
+var checked = $('#check_' + product_id).prop('checked');
+$.ajax({
+        url: "{{ route('admin.setIsTrending') }}",
+        type: 'POST',
+        data: {
+            checked: checked,
+            product_id: product_id,
+            _token: '{{ csrf_token() }}'
+        },
+        cache: false,
+        dataType: 'json',
+        success: function(response) {
+            Snackbar.show({
+                text: response.msg,
+                pos: 'top-right',
+                actionTextColor: '#fff',
+                backgroundColor: response.status ? '#8dbf42' : '#e7515a'
+            });
+        }
+    });
+}
 </script>
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->

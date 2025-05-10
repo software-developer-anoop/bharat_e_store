@@ -25,9 +25,31 @@ class Homepage extends Controller
         }
         $returnData = [];
         foreach ($category as $key => $value) {
-            $return['id'] = (string)$value->id;
+            $return['category_id'] = (string)$value->id;
             $return['category_name'] = (string)$value->category_name;
             $return['category_image'] = url('uploads/' . $value->category_image);
+            array_push($returnData, $return);
+        }
+        $response['status'] = true;
+        $response['data'] = $returnData;
+        $response['message'] = "API Accessed Successfully!";
+        return response()->json($response);
+    }
+    public function subcategoryList(){
+        $post = checkPayload();
+        $category_id = trim($post['category_id']??'');
+        $subcategory = DB::table('subcategories')->where('status','Active')->select('subcategory_name','subcategory_image','id')->get();
+        if (empty($subcategory)) {
+            $response['status'] = false;
+            $response['message'] = "No Records Found";
+            return response()->json($response);
+        }
+        $returnData = [];
+        foreach ($subcategory as $key => $value) {
+            $return['subcategory_id'] = (string)$value->id;
+            $return['category_id'] = (string)$value->id;
+            $return['subcategory_name'] = (string)$value->subcategory_name;
+            $return['subcategory_image'] = url('uploads/' . $value->subcategory_image);
             array_push($returnData, $return);
         }
         $response['status'] = true;

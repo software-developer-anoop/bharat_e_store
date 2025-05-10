@@ -15,6 +15,7 @@ use App\Http\Controllers\Backend\User;
 use App\Http\Controllers\Backend\Product;
 use App\Http\Controllers\Backend\Profile;
 use App\Http\Controllers\Backend\Category;
+use App\Http\Controllers\Backend\Subcategory;
 use App\Http\Controllers\Backend\Notification;
 use App\Http\Controllers\Backend\Coupon;
 use App\Http\Controllers\Backend\Menu;
@@ -66,6 +67,11 @@ Route::get('/category-list', [Category::class, 'index'])->name('admin.category-l
 Route::get('/add-category', [Category::class, 'addCategory'])->name('admin.add-category');
 Route::get('/edit-category/{id}', [Category::class, 'addCategory'])->name('admin.edit-category');
 Route::post('/save-category', [Category::class, 'saveCategory'])->name('admin.save-category');
+//Subcategory Master
+Route::get('/subcategory-list', [Subcategory::class, 'index'])->name('admin.subcategory-list');
+Route::get('/add-subcategory', [Subcategory::class, 'addSubcategory'])->name('admin.add-subcategory');
+Route::get('/edit-subcategory/{id}', [Subcategory::class, 'addSubcategory'])->name('admin.edit-subcategory');
+Route::post('/save-subcategory', [Subcategory::class, 'saveSubcategory'])->name('admin.save-subcategory');
 //Product Master
 Route::get('/product-list', [Product::class, 'index'])->name('admin.product-list');
 Route::get('/add-product', [Product::class, 'addProduct'])->name('admin.add-product');
@@ -91,6 +97,9 @@ Route::post('/getSlug', [Ajax::class, 'index'])->name('admin.getSlug');
 Route::post('/deleteItem', [Ajax::class, 'deleteItem'])->name('admin.deleteItem');
 Route::post('/changeStatus', [Ajax::class, 'changeStatus'])->name('admin.changeStatus');
 Route::post('/getStates', [Ajax::class, 'getStates'])->name('admin.getStates');
+Route::post('/getSubcategory', [Ajax::class, 'getSubcategory'])->name('admin.getSubcategory');
+Route::post('/manageInventory', [Ajax::class, 'manageInventory'])->name('admin.manageInventory');
+Route::post('/setIsTrending', [Ajax::class, 'setIsTrending'])->name('admin.setIsTrending');
 Route::get('/logout', [Authentication::class, 'logout'])->name('admin.logout');
 });
 

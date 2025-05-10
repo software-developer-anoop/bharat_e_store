@@ -24,6 +24,7 @@ class Product extends Controller
         $saveData = [];
         $id = $data['id']?trim($data['id']):'';
         $checkData['category_id'] = trim($data['category']);
+        $checkData['subcategory_id'] = trim($data['subcategory']);
         $checkData['product_name'] = trim($data['product_name']);
         $duplicate = DB::table('products')->where($checkData)->first();
 
@@ -32,7 +33,7 @@ class Product extends Controller
                 return redirect()->back()->with('error', 'Duplicate Entry');
             }
         }
-
+        $saveData = $checkData;
         $filename = $data['old_product_image'];
         if ($request->hasFile('product_image')) {
             $file = $request->file('product_image');
@@ -52,6 +53,7 @@ class Product extends Controller
                 $saveData['product_image_webp'] = $webp_filename;
             }
         }
+        
         $saveData['product_name'] = $data['product_name']?trim($data['product_name']):'';
         $saveData['product_description'] = $data['product_description']?trim($data['product_description']):'';
         $saveData['product_size'] = $data['product_size']?trim($data['product_size']):'';

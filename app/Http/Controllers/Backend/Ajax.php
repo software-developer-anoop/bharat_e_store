@@ -51,7 +51,7 @@ class Ajax extends Controller
     public function getStates(Request $request)
     {
         $country_id = (int) $request->input('country_id');
-
+        $state_id = $request->input('state')?(int) $request->input('state'):'';
         $states = DB::table('states')
                     ->select('state_name', 'id')
                     ->where([
@@ -62,10 +62,75 @@ class Ajax extends Controller
 
         $html = '<option value="">Select State</option>';
         foreach ($states as $state) {
-            $html .= '<option value="' . $state->id . '">' . $state->state_name . '</option>';
+            $selected = !empty($state_id) && ($state_id==$state->id)?'selected':'';
+            $html .= '<option value="' . $state->id . '" '.$selected.'>' . $state->state_name . '</option>';
         }
         
         return response()->json(['html' => $html]);
+    }
+    public function getSubcategory(Request $request)
+    {
+        $category_id = (int) $request->input('category_id');
+        $subcategory_id = $request->input('subcategory_id')?(int) $request->input('subcategory_id'):'';
+        $subcategories = DB::table('subcategories')
+                    ->select('subcategory_name', 'id')
+                    ->where([
+                        ['category', '=', $category_id],
+                        ['status', '=', 'Active']
+                    ])
+                    ->get();
+
+        $html = '<option value="">Select Subcategory</option>';
+        foreach ($subcategories as $subcategory) {
+            $selected = !empty($subcategory_id) && ($subcategory_id==$subcategory->id)?'selected':'';
+            $html .= '<option value="' . $subcategory->id . '" '.$selected.'>' . $subcategory->subcategory_name . '</option>';
+
+        }
+        
+        return response()->json(['html' => $html]);
+    }
+    public function manageInventory(Request $request)
+    {
+        $condition = trim($request->condition ?? '');
+        $product_id = trim($request->product_id ?? '');
+
+        if (empty($condition)) {
+            return response()->json(['status' => false, 'msg' => 'Condition is blank']);
+        }
+
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'msg' => 'Product ID is blank']);
+        }
+
+        $changeAmount = 1; // Always change by 1
+
+        if ($condition === "increment") {
+            $change = "Increased";
+            DB::table('products')->where('id', $product_id)->increment('product_quantity', $changeAmount);
+        } elseif ($condition === "decrement") {
+            $change = "Decreased";
+            DB::table('products')->where('id', $product_id)->decrement('product_quantity', $changeAmount);
+        } else {
+            return response()->json(['status' => false, 'msg' => 'Invalid condition']);
+        }
+
+        return response()->json(['status' => true, 'msg' => "Quantity {$change}"]);
+    }
+    public function setIsTrending(Request $request)
+    {
+        $product_id = (int) $request->product_id;
+        $checked = filter_var($request->checked, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$product_id) {
+            return response()->json(['status' => false, 'msg' => 'Invalid Product ID']);
+        }
+
+        $msg = $checked ? "Set To Trending" : "Removed From Trending";
+        $trendingStatus = $checked ? 'yes' : 'no';
+
+        DB::table('products')->where('id', $product_id)->update(['is_trending' => $trendingStatus]);
+
+        return response()->json(['status' => true, 'msg' => $msg]);
     }
 
 

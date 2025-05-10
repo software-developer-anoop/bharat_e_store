@@ -19,20 +19,27 @@
             <input type="hidden" name="old_product_image" value="{{$data->product_image??''}}">
             <input type="hidden" name="old_product_image_webp" value="{{$data->product_image_webp??''}}">
             <div class="row">
-              <div class="col-lg-4 col-12">
+              <div class="col-lg-3 col-12">
                 <div class="form-group">
                   <label for="category">Category</label>
-                  <select name="category" id="category" class="form-control select2" required>
+                  <select name="category" id="category" class="form-control select2" onchange="return getSubcategory(this.value,{{$data->subcategory_id}})" required>
                     <option value="">Select Category</option>
                     @if(!empty($categories))
                     @foreach($categories as $key=>$value)
-                    <option value="{{$value->id}}" {{!empty($data->country) && ($data->category_id==$value->id)?'selected':''}}>{{$value->category_name}}</option>
+                    <option value="{{$value->id}}" {{!empty($data->category_id) && ($data->category_id==$value->id)?'selected':''}}>{{$value->category_name}}</option>
                     @endforeach
                     @endif
                   </select>
                 </div>
               </div>
-              <div class="col-lg-8 col-12">
+              <div class="col-lg-3 col-12">
+                <div class="form-group">
+                  <label for="subcategory">Subcategory</label>
+                  <select name="subcategory" id="subcategory_list" class="form-control select2" >
+                  </select>
+                </div>
+              </div>
+              <div class="col-lg-6 col-12">
                 <div class="form-group">
                   <label for="product_name">Product Name</label>
                   <input id="product_name" type="text" name="product_name" placeholder="Product Name" class="form-control ucwords" required value="{{$data->product_name??''}}" autocomplete="off">
