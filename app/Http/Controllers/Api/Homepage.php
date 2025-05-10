@@ -38,7 +38,10 @@ class Homepage extends Controller
     public function subcategoryList(){
         $post = checkPayload();
         $category_id = trim($post['category_id']??'');
-        $subcategory = DB::table('subcategories')->where('status','Active')->select('subcategory_name','subcategory_image','id')->get();
+        $where=[];
+        $where['status']='Active';
+        $where['category']=$category_id;
+        $subcategory = DB::table('subcategories')->where($where)->select('subcategory_name','subcategory_image','id')->get();
         if (empty($subcategory)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
