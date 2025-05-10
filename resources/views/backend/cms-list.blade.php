@@ -14,7 +14,7 @@
             <thead>
               <tr>
                 <th class="text-center">Page Name</th>
-                <th class="text-center">Page Slug</th>
+                <!-- <th class="text-center">Page Slug</th> -->
                 <th class="text-center">Status</th>
                 <th class="text-center">Created At</th>
                 <th class="text-center">Updated At</th>
@@ -26,7 +26,7 @@
               @foreach($data as $key => $value)
               <tr id="del_{{$value->id}}">
                 <td class="text-center">{{$value->page_name??''}}</td>
-                <td class="text-center"><a href="{{$value->page_slug?url($value->page_slug):'javascript:void(0)'}}" target="_anoop">{{$value->page_slug??'N/A'}}</a></td>
+                <!-- <td class="text-center"><a href="{{$value->page_slug?url($value->page_slug):'javascript:void(0)'}}" target="_anoop">{{$value->page_slug??'N/A'}}</a></td> -->
                 <td class="text-center">
                     <a href="javascript:void(0)" 
                        onclick="return changeStatus('{{ $value->status == 'Active' ? 'Inactive' : 'Active' }}', {{ $value->id }}, 'cms_pages')" 

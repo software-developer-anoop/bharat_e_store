@@ -18,6 +18,7 @@
           	<input type="hidden" name="old_logo" value="{{$web->logo??''}}">
           	<input type="hidden" name="old_logo_webp" value="{{$web->logo_webp??''}}">
           	<input type="hidden" name="old_favicon" value="{{$web->favicon??''}}">
+            <input type="hidden" name="old_banner" value="{{$web->banner??''}}">
             <div class="row">
               <div class="col-lg-3 col-12">
                 <div class="form-group">
@@ -105,6 +106,17 @@
               @if(!empty($web->favicon))
               <div class="col-lg-2 col-12 mt-4">
                 <img src="{{asset('uploads/'.$web->favicon)}}" height="70" width="70">
+              </div>
+              @endif
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="banner">Banner</label>
+                  <input id="banner" type="file" name="banner" accept="image/jpeg, image/png" class="form-control">
+                </div>
+              </div>
+              @if(!empty($web->banner))
+              <div class="col-lg-2 col-12 mt-4">
+                <img src="{{asset('uploads/'.$web->banner)}}" height="70" width="70">
               </div>
               @endif
             </div>

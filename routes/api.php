@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Countrylist;
 use App\Http\Controllers\Api\Authentication;
+use App\Http\Controllers\Api\Homepage;
+use App\Http\Controllers\Api\Cmspage;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -25,3 +27,7 @@ Route::post('verify-otp', [Authentication::class, 'verifyOtp'])->name('api.verif
 Route::post('resend-otp', [Authentication::class, 'resendOtp'])->name('api.resend-otp');
 Route::post('customer-login', [Authentication::class, 'customerLogin'])->name('api.customer-login');
 Route::post('autologin', [Authentication::class, 'autoLogin'])->name('api.autologin');
+Route::post('logout', [Authentication::class, 'logOut'])->name('api.logout');
+Route::post('banner', [Homepage::class, 'index'])->name('api.banner');
+Route::post('category-list', [Homepage::class, 'categoryList'])->name('api.category-list');
+Route::post('cms-page', [Cmspage::class, 'index'])->name('api.cms-page');

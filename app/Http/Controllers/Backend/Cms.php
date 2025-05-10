@@ -31,36 +31,36 @@ class Cms extends Controller
             }
         }
 
-        $filename = $data['old_bg_image_jpg'];
-        if ($request->hasFile('bg_image_jpg')) {
-            $file = $request->file('bg_image_jpg');
-            if ($file->isValid()) { 
-                $filename = $file->hashName();
-                $file->move(public_path('uploads'), $filename);
-                if($data['old_bg_image_jpg']){
-                    removeImage($data['old_bg_image_jpg']);
-                }
-                if($data['old_bg_image_webp']){
-                    removeImage($data['old_bg_image_webp']);
-                }
-                $webp_filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
-                $webp_path = public_path('uploads/' . $webp_filename);
-                $webp_image = convertImageToWebp(public_path('uploads/'), $filename, $webp_filename);
-                $saveData['bg_image_jpg'] = $filename;
-                $saveData['bg_image_webp'] = $webp_filename;
-            }
-        }
-        $saveData['page_name'] = $data['page_name']?trim($data['page_name']):'';
-        $saveData['page_slug'] = $data['page_slug']?trim($data['page_slug']):'';
-        $saveData['h1_heading'] = $data['h1_heading']?trim($data['h1_heading']):'';
-        $saveData['short_description'] = $data['short_description']?trim($data['short_description']):'';
-        $saveData['first_description'] = $data['first_description']?trim($data['first_description']):'';
-        $saveData['second_description'] = $data['second_description']?trim($data['second_description']):'';
-        $saveData['meta_title'] = $data['meta_title']?trim($data['meta_title']):'';
-        $saveData['meta_description'] = $data['meta_description']?trim($data['meta_description']):'';
-        $saveData['meta_keyword'] = $data['meta_keyword']?trim($data['meta_keyword']):'';
-        $saveData['bg_image_alt'] = $data['bg_image_alt']?trim($data['bg_image_alt']):'';
-        $saveData['meta_schema'] = empty(($data['meta_schema'])) ? generateProductSchema(trim($data['page_name']), $filename, trim($data['meta_description'])) : trim($data['meta_schema']);
+        // $filename = $data['old_bg_image_jpg'];
+        // if ($request->hasFile('bg_image_jpg')) {
+        //     $file = $request->file('bg_image_jpg');
+        //     if ($file->isValid()) { 
+        //         $filename = $file->hashName();
+        //         $file->move(public_path('uploads'), $filename);
+        //         if($data['old_bg_image_jpg']){
+        //             removeImage($data['old_bg_image_jpg']);
+        //         }
+        //         if($data['old_bg_image_webp']){
+        //             removeImage($data['old_bg_image_webp']);
+        //         }
+        //         $webp_filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+        //         $webp_path = public_path('uploads/' . $webp_filename);
+        //         $webp_image = convertImageToWebp(public_path('uploads/'), $filename, $webp_filename);
+        //         $saveData['bg_image_jpg'] = $filename;
+        //         $saveData['bg_image_webp'] = $webp_filename;
+        //     }
+        // }
+        // $saveData['page_name'] = $data['page_name']?trim($data['page_name']):'';
+        // $saveData['page_slug'] = $data['page_slug']?trim($data['page_slug']):'';
+        // $saveData['h1_heading'] = $data['h1_heading']?trim($data['h1_heading']):'';
+        // $saveData['short_description'] = $data['short_description']?trim($data['short_description']):'';
+        $saveData['description'] = $data['description']?trim($data['description']):'';
+        // $saveData['second_description'] = $data['second_description']?trim($data['second_description']):'';
+        // $saveData['meta_title'] = $data['meta_title']?trim($data['meta_title']):'';
+        // $saveData['meta_description'] = $data['meta_description']?trim($data['meta_description']):'';
+        // $saveData['meta_keyword'] = $data['meta_keyword']?trim($data['meta_keyword']):'';
+        // $saveData['bg_image_alt'] = $data['bg_image_alt']?trim($data['bg_image_alt']):'';
+        // $saveData['meta_schema'] = empty(($data['meta_schema'])) ? generateProductSchema(trim($data['page_name']), $filename, trim($data['meta_description'])) : trim($data['meta_schema']);
         
         if(empty($id)){
             $saveData['created_at'] = Carbon::now();

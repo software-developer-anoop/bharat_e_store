@@ -44,57 +44,57 @@ class Authentication extends Controller {
         }
         return response()->json(['status' => true, 'message' => 'You are now registered. Please Verify With OTP', 'customer_id' => (string)$customer_id]);
     }
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\DB;
+    use Carbon\Carbon;
     public function verifyOtp(Request $request) {
-        $post = checkPayload(); // Assuming this gets validated data
+        $post = checkPayload(); // Assuming this returns validated data
         $otp = trim($post['otp']??'');
-        $customer_id = trim($post['customer_id']??'');
-        $device_id = trim($post['device_id']??'');
-        $fcm_token = trim($post['fcm_token']??'');
-        if (empty($otp)) {
+        $customerId = trim($post['customer_id']??'');
+        $deviceId = trim($post['device_id']??'');
+        $fcmToken = trim($post['fcm_token']??'');
+        // Basic validations
+        if (!$otp) {
             return response()->json(['status' => false, 'message' => 'OTP is blank']);
         }
-        if (empty($customer_id)) {
+        if (strlen($otp) < 4) {
+            return response()->json(['status' => false, 'message' => 'Please enter a four-digit OTP']);
+        }
+        if (!$customerId) {
             return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
         }
-        if (strlen($otp) < 4) {
-            return response()->json(['status' => false, 'message' => 'Please Enter a four-digit OTP']);
-        }
-        if (empty($device_id)) {
+        if (!$deviceId) {
             return response()->json(['status' => false, 'message' => 'Device ID is blank']);
         }
-        if (empty($fcm_token)) {
+        if (!$fcmToken) {
             return response()->json(['status' => false, 'message' => 'FCM Token is blank']);
         }
-        $customer = DB::table('customers')->where('id', $customer_id)->first();
+        $customer = DB::table('customers')->where('id', $customerId)->first();
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
         }
         if ($customer->otp !== $otp) {
             return response()->json(['status' => false, 'message' => 'Incorrect OTP']);
         }
-        $currentTime = strtotime(now());
-        $validTill = strtotime($customer->otp_sent_at . ' +10 minutes');
-        if ($currentTime > $validTill) {
+        // OTP expiration check using Carbon
+        $otpSentAt = Carbon::parse($customer->otp_sent_at);
+        if (Carbon::now()->greaterThan($otpSentAt->addMinutes(10))) {
             return response()->json(['status' => false, 'message' => 'OTP expired']);
         }
-        $referralCustomer = DB::table('customers')->where('referrer_code', $customer->referral_code)->first();
-        $referralHistory = [];
-        $referralHistory['referrer_customer_id']=$customer->id;
-        $referralHistory['referrer_code']=$customer->referrer_code;
-        $referralHistory['referral_customer_id']=$referralCustomer->id;
-        $referralHistory['referral_code']=$referralCustomer->referrer_code;
-        $referralHistory['points']=10;
-        DB::table('referral_history')->insert($referralHistory);
-        //Prepared the customer data for Updating
-        $updateData = ['profile_status' => 'Active', 'email_status' => 'Verified', 'otp' => '', 'device_id' => $device_id, 'fcm_token' => $fcm_token];
-        //Updated the customer data
-
-        DB::table('customers')->where('id', $customer_id)->update($updateData);
-        DB::table('customers')->where('id', $referralCustomer->id)->increment('wallet_points', 10);
-        //Fetch the customer data after updating
-        $customer = DB::table('customers')->find($customer_id);
-        $return = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token, ];
-        return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $return, ]);
+        // Handle referral if exists
+        if (!empty($customer->referral_code)) {
+            $referralCustomer = DB::table('customers')->where('referrer_code', $customer->referral_code)->first();
+            if ($referralCustomer) {
+                DB::table('referral_history')->insert(['referrer_customer_id' => $customer->id, 'referrer_code' => $customer->referrer_code, 'referral_customer_id' => $referralCustomer->id, 'referral_code' => $referralCustomer->referrer_code, 'points' => 10, ]);
+                DB::table('customers')->where('id', $referralCustomer->id)->increment('wallet_points', 10);
+            }
+        }
+        // Update customer status and device info
+        DB::table('customers')->where('id', $customerId)->update(['profile_status' => 'Active', 'email_status' => 'Verified', 'otp' => '', 'device_id' => $deviceId, 'fcm_token' => $fcmToken, ]);
+        // Fetch updated customer info
+        $customer = DB::table('customers')->find($customerId);
+        $data = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token, ];
+        return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
     public function resendOtp(Request $request) {
         $post = checkPayload();
@@ -117,7 +117,7 @@ class Authentication extends Controller {
         }
         return response()->json(['status' => true, 'message' => 'OTP Resent']);
     }
-    public function autoLogin(){
+    public function autoLogin() {
         $post = checkPayload();
         $device_id = trim($post['device_id']??'');
         $fcm_token = trim($post['fcm_token']??'');
@@ -127,42 +127,40 @@ class Authentication extends Controller {
         if (empty($fcm_token)) {
             return response()->json(['status' => false, 'message' => 'FCM Token is blank']);
         }
-        $where=[];
-        $where['device_id']=$device_id;
-        $where['fcm_token']=$fcm_token;
+        $where = [];
+        $where['device_id'] = $device_id;
+        $where['fcm_token'] = $fcm_token;
         $customer = DB::table('customers')->where($where)->first();
         if (empty($customer)) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
-        if ($customer->profile_status=="Inactive") {
+        if ($customer->profile_status == "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
         $return = [];
-        $return['customer_id']  = (string)$customer->id;
-        $return['customer_name']  = (string)$customer->customer_name;
-        $return['customer_email']  = (string)$customer->customer_email;
-        $return['customer_phone']  = (string)$customer->customer_phone;
-        $return['customer_address']  = (string)$customer->customer_address;
-        $return['customer_gender']  = (string)$customer->customer_gender;
-        $return['profile_status']  = (string)$customer->profile_status;
-        $return['email_status']  = (string)$customer->email_status;
-        $return['referral_code']  = (string)$customer->referral_code;
-        $return['referrer_code']  = (string)$customer->referrer_code;
-        $return['country_name']  = (string)$customer->country_name;
-        $return['country_code']  = (string)$customer->country_code;
-        $return['device_id']  = (string)$customer->device_id;
-        $return['fcm_token']  = (string)$customer->fcm_token;
-
-        return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return ]);
+        $return['customer_id'] = (string)$customer->id;
+        $return['customer_name'] = (string)$customer->customer_name;
+        $return['customer_email'] = (string)$customer->customer_email;
+        $return['customer_phone'] = (string)$customer->customer_phone;
+        $return['customer_address'] = (string)$customer->customer_address;
+        $return['customer_gender'] = (string)$customer->customer_gender;
+        $return['profile_status'] = (string)$customer->profile_status;
+        $return['email_status'] = (string)$customer->email_status;
+        $return['referral_code'] = (string)$customer->referral_code;
+        $return['referrer_code'] = (string)$customer->referrer_code;
+        $return['country_name'] = (string)$customer->country_name;
+        $return['country_code'] = (string)$customer->country_code;
+        $return['device_id'] = (string)$customer->device_id;
+        $return['fcm_token'] = (string)$customer->fcm_token;
+        return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return]);
     }
-    public function customerLogin(Request $request){
+    public function customerLogin(Request $request) {
         $post = checkPayload();
         $countryCode = trim($post['country_code']??'');
         $mobileNumber = trim($post['mobile_number']??'');
         $email = trim($post['email']??'');
         $device_id = trim($post['device_id']??'');
         $fcm_token = trim($post['fcm_token']??'');
-
         if (empty($countryCode)) {
             return response()->json(['status' => false, 'message' => 'Please Select Country', ]);
         }
@@ -172,7 +170,6 @@ class Authentication extends Controller {
         if (empty($fcm_token)) {
             return response()->json(['status' => false, 'message' => 'FCM Token is blank']);
         }
-
         $country = DB::table('country')->select('country_name', 'country_code', 'country_currency_symbol', 'flag_image')->where([['status', '=', 'Active'], ['country_code', '=', $countryCode]])->first();
         if (!$country) {
             return response()->json(['status' => false, 'message' => 'Invalid Country Selected']);
@@ -189,7 +186,7 @@ class Authentication extends Controller {
         if (empty($customer)) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
-        if ($customer->profile_status=="Inactive") {
+        if ($customer->profile_status == "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
         //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
@@ -204,5 +201,21 @@ class Authentication extends Controller {
             Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
         }
         return response()->json(['status' => true, 'message' => 'OTP Sent Successfully']);
+    }
+    public function logOut(Request $request) {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
+        }
+        $customer = DB::table('customers')->where('id', $customer_id)->first();
+        if (empty($customer)) {
+            return response()->json(['status' => false, 'message' => 'No Record Found']);
+        }
+        if ($customer->profile_status == "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+        DB::table('customers')->where('id', $customer_id)->update(['fcm_token' => '', 'device_id' => '']);
+        return response()->json(['status' => true, 'message' => 'Logout Successfully']);
     }
 }
