@@ -32,3 +32,4 @@ Route::post('banner', [Homepage::class, 'index'])->name('api.banner');
 Route::post('category-list', [Homepage::class, 'categoryList'])->name('api.category-list');
 Route::post('cms-page', [Cmspage::class, 'index'])->name('api.cms-page');
 Route::post('subcategory-list', [Homepage::class, 'subcategoryList'])->name('api.subcategory-list');
+Route::get('trending-products', [Homepage::class, 'trendingProducts'])->name('api.trending-products');

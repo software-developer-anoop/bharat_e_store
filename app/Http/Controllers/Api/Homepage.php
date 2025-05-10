@@ -60,4 +60,29 @@ class Homepage extends Controller
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
+    public function trendingProducts(){
+        checkHeaders();
+        $where=[];
+        $where['status']='Active';
+        $where['is_trending']='yes';
+        $products = DB::table('products')->where($where)->get();
+        if (empty($products)) {
+            $response['status'] = false;
+            $response['message'] = "No Records Found";
+            return response()->json($response);
+        }
+        $returnData = [];
+        foreach ($products as $key => $value) {
+            $return['category_id'] = (string)$value->category_id;
+            $return['subcategory_id'] = (string)$value->subcategory_id;
+            $return['product_name'] = (string)$value->product_name;
+            $return['product_rating'] = (string)$value->product_rating;
+            $return['product_image'] = url('uploads/' . $value->product_image);
+            array_push($returnData, $return);
+        }
+        $response['status'] = true;
+        $response['data'] = $returnData;
+        $response['message'] = "API Accessed Successfully!";
+        return response()->json($response);
+    }
 }
