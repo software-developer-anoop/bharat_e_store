@@ -156,17 +156,11 @@ class Authentication extends Controller {
         $countryCode = trim($post['country_code']??'');
         $mobileNumber = trim($post['mobile_number']??'');
         $email = trim($post['email']??'');
-        $device_id = trim($post['device_id']??'');
-        $fcm_token = trim($post['fcm_token']??'');
+
         if (empty($countryCode)) {
             return response()->json(['status' => false, 'message' => 'Please Select Country', ]);
         }
-        if (empty($device_id)) {
-            return response()->json(['status' => false, 'message' => 'Device ID is blank']);
-        }
-        if (empty($fcm_token)) {
-            return response()->json(['status' => false, 'message' => 'FCM Token is blank']);
-        }
+        
         $country = DB::table('country')->select('country_name', 'country_code', 'country_currency_symbol', 'flag_image')->where([['status', '=', 'Active'], ['country_code', '=', $countryCode]])->first();
         if (!$country) {
             return response()->json(['status' => false, 'message' => 'Invalid Country Selected']);
@@ -197,7 +191,7 @@ class Authentication extends Controller {
         } else {
             Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
         }
-        return response()->json(['status' => true, 'message' => 'OTP Sent Successfully']);
+        return response()->json(['status' => true, 'message' => 'OTP Sent Successfully','customer_id'=>(string)$customer->id]);
     }
     public function logOut(Request $request) {
         $post = checkPayload();

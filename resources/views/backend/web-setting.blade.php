@@ -111,14 +111,23 @@
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="banner">Banner</label>
-                  <input id="banner" type="file" name="banner" accept="image/jpeg, image/png" class="form-control">
+                  <input id="banner" type="file" name="banner[]" accept="image/jpeg, image/png" class="form-control" multiple>
                 </div>
               </div>
-              @if(!empty($web->banner))
-              <div class="col-lg-2 col-12 mt-4">
-                <img src="{{asset('uploads/'.$web->banner)}}" height="70" width="70">
-              </div>
-              @endif
+              @php
+                $images = !empty($web->banner) ? json_decode($web->banner, true) : [];
+                @endphp
+
+                @if (!empty($images))
+                    <div class="col-sm-12 mt-2">
+                        @foreach ($images as $image)
+                            <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
+                                <img src="{{ asset('uploads/' . $image['image']) }}" height="70px" width="100px" alt="Logo">
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>

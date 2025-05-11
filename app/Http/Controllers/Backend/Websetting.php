@@ -55,15 +55,16 @@ class Websetting extends Controller
                 $saveData['favicon'] = $filename;
             }
         }
-        if ($file = $request->file('banner')) {
-            if ($file->isValid()) {
+        $img_data = [];
+        if ($request->hasFile('banner')) {
+            foreach ($request->file('banner') as $file) {
                 $filename = $file->hashName();
-                if (is_file(public_path('uploads/' . $data['old_banner']))) {
-                    @unlink(public_path('uploads/' . $data['old_banner']));
-                }
-                $file->move(public_path('uploads/'), $filename);
-                $saveData['banner'] = $filename;
+                $file->move(public_path('uploads'), $filename);
+                $imgdata = []; // Initialize $imgdata as an empty array for each iteration
+                $imgdata['image'] = $filename;
+                $img_data[] = $imgdata;
             }
+            $saveData['banner'] = !empty($img_data) ? json_encode($img_data) : [];
         }
         if(empty($id)){
             $saveData['created_at'] = Carbon::now();

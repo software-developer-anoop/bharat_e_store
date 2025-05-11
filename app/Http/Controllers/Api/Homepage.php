@@ -7,14 +7,30 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class Homepage extends Controller
 {
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         checkHeaders();
-        $banner = webSetting('banner');
+
+        $record = DB::table('websetting')->select('banner')->first();
+
+        $banner = !empty($record->banner)?json_decode($record->banner):[];
+        if (empty($banner)) {
+            $response['status'] = false;
+            $response['message'] = "No Records Found";
+            return response()->json($response);
+        }
+        $returnData = [];
+        foreach ($banner as $key => $value) {
+            $return['image'] = url('uploads/' . $value->image);
+            array_push($returnData, $return);
+        }
         return response()->json([
-            'status'=>true,
-            'banner'=>url('uploads/' . $banner->banner),
-            'message'=>'Api Accessed Successfully']);
+            'status' => true,
+            'banner' => $returnData,
+            'message' => 'API Accessed Successfully'
+        ]);
     }
+
     public function categoryList(){
         checkHeaders();
         $category = DB::table('categories')->where('status','Active')->select('category_name','category_image','id')->get();
