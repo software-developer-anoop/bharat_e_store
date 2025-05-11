@@ -50,7 +50,7 @@ class Homepage extends Controller
         $returnData = [];
         foreach ($subcategory as $key => $value) {
             $return['subcategory_id'] = (string)$value->id;
-            $return['category_id'] = (string)$value->id;
+            $return['category_id'] = (string)$value->category;
             $return['subcategory_name'] = (string)$value->subcategory_name;
             $return['subcategory_image'] = url('uploads/' . $value->subcategory_image);
             array_push($returnData, $return);
@@ -61,11 +61,24 @@ class Homepage extends Controller
         return response()->json($response);
     }
     public function trendingProducts(){
-        checkHeaders();
+        $post = checkPayload();
+        $condition = trim($post['condition']??'');
         $where=[];
         $where['status']='Active';
         $where['is_trending']='yes';
-        $products = DB::table('products')->where($where)->get();
+        if($condition && $condition !== "all"){
+            $response['status'] = false;
+            $response['message'] = "Invalid Condition";
+            return response()->json($response);
+        }
+        $query = DB::table('products')->where($where);
+
+        if (empty($condition)) {
+            $query->limit(8);
+        }
+
+        $products = $query->get();
+
         if (empty($products)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -73,6 +86,7 @@ class Homepage extends Controller
         }
         $returnData = [];
         foreach ($products as $key => $value) {
+            $return['product_id'] = (string)$value->id;
             $return['category_id'] = (string)$value->category_id;
             $return['subcategory_id'] = (string)$value->subcategory_id;
             $return['product_name'] = (string)$value->product_name;

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Countrylist;
 use App\Http\Controllers\Api\Authentication;
 use App\Http\Controllers\Api\Homepage;
 use App\Http\Controllers\Api\Cmspage;
+use App\Http\Controllers\Api\Wishlist;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,4 +33,7 @@ Route::post('banner', [Homepage::class, 'index'])->name('api.banner');
 Route::post('category-list', [Homepage::class, 'categoryList'])->name('api.category-list');
 Route::post('cms-page', [Cmspage::class, 'index'])->name('api.cms-page');
 Route::post('subcategory-list', [Homepage::class, 'subcategoryList'])->name('api.subcategory-list');
-Route::get('trending-products', [Homepage::class, 'trendingProducts'])->name('api.trending-products');
+Route::post('trending-products', [Homepage::class, 'trendingProducts'])->name('api.trending-products');
+Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
+Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
+Route::post('remove-from-wishlist', [Wishlist::class, 'removeFromWishlist'])->name('api.remove-from-wishlist');
