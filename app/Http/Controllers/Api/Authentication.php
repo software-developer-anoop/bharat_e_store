@@ -16,6 +16,9 @@ class Authentication extends Controller {
         if (empty($countryCode)) {
             return response()->json(['status' => false, 'message' => 'Please Select Country', ]);
         }
+        if (strlen($referralCode) > 10) {
+            return response()->json(['status' => false, 'message' => 'Invalid Referral Code.It Must Be Of 10 Characters', ]);
+        }
         $country = DB::table('country')->select('country_name', 'country_code', 'country_currency_symbol', 'flag_image')->where([['status', '=', 'Active'], ['country_code', '=', $countryCode]])->first();
         if (!$country) {
             return response()->json(['status' => false, 'message' => 'Invalid Country Selected', ]);
