@@ -17,6 +17,9 @@ class Cmspage extends Controller
         $where['status']='Active';
         $where['page_name']=$page;
         $content = DB::table('cms_pages')->where($where)->select('description')->first();
+        if (empty($content)) {
+            return response()->json(['status' => false, 'message' => 'Page Not Found']);
+        }
         return response()->json([
             'status'=>true,
             'content'=>$content->description,
