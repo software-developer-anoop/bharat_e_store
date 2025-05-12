@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Authentication;
 use App\Http\Controllers\Api\Homepage;
 use App\Http\Controllers\Api\Cmspage;
 use App\Http\Controllers\Api\Wishlist;
+use App\Http\Controllers\Api\Couponlist;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -37,3 +38,4 @@ Route::post('trending-products', [Homepage::class, 'trendingProducts'])->name('a
 Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
 Route::post('remove-from-wishlist', [Wishlist::class, 'removeFromWishlist'])->name('api.remove-from-wishlist');
+Route::get('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list');
