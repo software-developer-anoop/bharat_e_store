@@ -50,6 +50,7 @@ class Cms extends Controller
         //         $saveData['bg_image_webp'] = $webp_filename;
         //     }
         // }
+        $saveData = $checkData;
         // $saveData['page_name'] = $data['page_name']?trim($data['page_name']):'';
         // $saveData['page_slug'] = $data['page_slug']?trim($data['page_slug']):'';
         // $saveData['h1_heading'] = $data['h1_heading']?trim($data['h1_heading']):'';
