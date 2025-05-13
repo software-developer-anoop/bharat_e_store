@@ -10,7 +10,15 @@ class Product extends Controller
 {
     public function index(){
         $page_name = 'Product List';
-        $data = DB::table('products')->get();
+        $data = $data = DB::table('products')
+                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+                ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
+                ->select(
+                    'products.*',
+                    'categories.category_name as category_name',
+                    'subcategories.subcategory_name as subcategory_name'
+                )
+                ->get();
         return view('backend.product-list',compact('page_name','data'));
     }
     public function addProduct($id=null){

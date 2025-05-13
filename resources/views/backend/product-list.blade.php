@@ -31,7 +31,8 @@
           <table id="alter_pagination" class="table table-hover" style="width:100%">
             <thead>
               <tr>
-                <th class="text-center">Category / <br> Product Name / <br> Cost Price / <br> Selling Price</th>
+                <th class="text-center">Category / <br> Subcategory/ <br> Product</th>
+                <th class="text-center">Cost Price / <br> Selling Price</th>
                 <th class="text-center">Size / <br> Colors</th>
                 <th class="text-center">Quantity / <br> Availability</th>
                 <th class="text-center">Status</th>
@@ -45,7 +46,8 @@
               @if(!empty($data))
               @foreach($data as $key => $value)
               <tr id="del_{{$value->id}}">
-                <td class="text-center">{{$value->category_id??''}} / <br> {{$value->product_name??''}} / <br> {{$value->product_cost_price??''}} / <br> {{$value->product_selling_price??''}}</td>
+                <td class="text-center">{{$value->category_name??''}} / <br> {{$value->subcategory_name??''}} / <br> {{$value->product_name??''}} </td>
+                <td class="text-center">{{$value->product_cost_price??''}} / <br> {{$value->product_selling_price??''}}</td>
                 <td class="text-center">{{$value->product_size??''}} / <br> {{$value->product_colors??''}}</td>
                 <td class="text-center">{{$value->product_quantity??''}} / <br> {{$value->product_availability??''}}</td>
                 <td class="text-center">

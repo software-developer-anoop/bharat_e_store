@@ -36,7 +36,7 @@ class Authentication extends Controller {
         $checkField = $isIndia ? ['customer_phone' => $mobileNumber] : ['customer_email' => $email];
         $duplicate = DB::table('customers')->where($checkField)->first();
         if ($duplicate) {
-            return response()->json(['status' => false, 'message' => 'Duplicate Entry', ]);
+            return response()->json(['status' => false, 'message' => 'Duplicate Entry']);
         }
         //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
         $otp = 1234;

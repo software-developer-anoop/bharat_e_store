@@ -87,6 +87,7 @@ Route::get('/notification-list', [Notification::class, 'index'])->name('admin.no
 Route::get('/add-notification', [Notification::class, 'addNotification'])->name('admin.add-notification');
 Route::get('/edit-notification/{id}', [Notification::class, 'addNotification'])->name('admin.edit-notification');
 Route::post('/save-notification', [Notification::class, 'saveNotification'])->name('admin.save-notification');
+Route::post('/push-notification', [Notification::class, 'pushNotification'])->name('admin.push-notification');
 //Profile
 Route::get('/my-profile', [Profile::class, 'index'])->name('admin.my-profile');
 Route::post('/save-profile', [Profile::class, 'saveProfile'])->name('admin.save-profile');

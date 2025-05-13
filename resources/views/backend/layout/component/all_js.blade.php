@@ -290,5 +290,35 @@ $.ajax({
         }
     });
 }
+
+function broadCastNotification(id) {
+    $.ajax({
+        url: "{{route('admin.push-notification')}}",
+        type: "POST",
+        data: { 
+            id: id,
+            _token: '{{ csrf_token() }}'
+        },
+        async: true,
+        crossDomain: true,
+        dataType: "json",
+        success: function (obj) {
+            if (obj.status) {
+                var nid = obj.id;
+                var nstart = obj.start;
+                var nlimit = obj.limit;
+                setTimeout(function () {
+                    sendNotifications(nid);
+                }, 300);
+            } else {
+               // window.location.href = "{{route('admin.notification-list')}}";
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Notification send failed:", error);
+        }
+    });
+}
+
 </script>
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->

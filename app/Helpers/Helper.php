@@ -9,6 +9,7 @@ if (!function_exists("userData")) {
             return $userData;
         }
         return null; // Return null if no data found
+        
     }
 }
 if (!function_exists("webSetting")) {
@@ -19,6 +20,7 @@ if (!function_exists("webSetting")) {
             return $web;
         }
         return null; // Return null if no data found
+        
     }
 }
 // if (!function_exists("homeSetting")) {
@@ -31,7 +33,6 @@ if (!function_exists("webSetting")) {
 //         return null; // Return null if no data found
 //     }
 // }
-
 if (!function_exists('convertImageToWebp')) {
     function convertImageToWebp($folderPath, $uploaded_file_name, $new_webp_file) {
         $source = $folderPath . '/' . $uploaded_file_name;
@@ -92,7 +93,6 @@ if (!function_exists("validate_slug")) {
         return empty($text) ? 'n-a' : $text;
     }
 }
-
 function random_alphanumeric_string($length) {
     $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     return substr(str_shuffle($chars), 0, $length);
@@ -107,10 +107,10 @@ if (!function_exists("generateProductSchema")) {
     function generateProductSchema($name = false, $image = false, $description = false) {
         // $ratingValue = random_int(40, 50) / 10;
         $ratingValue = (int)4;
-        $settingData = webSetting(['logo','site_name']);
+        $settingData = webSetting(['logo', 'site_name']);
         $brandname = $settingData->site_name;
         if (!empty($image)) {
-           $imagePath = asset('uploads/' . $image);
+            $imagePath = asset('uploads/' . $image);
         } else {
             $imagePath = asset('uploads/' . $settingData->logo);
         }
@@ -242,8 +242,7 @@ if (!function_exists('checkHeaders')) {
         }
     }
 }
-function curlApis($url, $method = null, $postarray = null, $header = null, $time = null)
-{
+function curlApis($url, $method = null, $postarray = null, $header = null, $time = null) {
     $curl = curl_init();
     $timeout = !empty($time) ? $time : 30;
     curl_setopt($curl, CURLOPT_URL, $url);
@@ -267,24 +266,93 @@ function curlApis($url, $method = null, $postarray = null, $header = null, $time
     $data = json_decode($jsondata, true);
     return $data;
 }
-
-function sendsms($mobile, $message, $restype = null, $callingcode = null)
-{
+function sendsms($mobile, $message, $restype = null, $callingcode = null) {
     $str = urlencode($message);
     $mobile = $callingcode . $mobile;
-    $apiurl = env('SMS_API_PATH')."rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . env('SMSKEY') . "&message=$str&senderId=" . env('SENDERID') . "&routeId=" . env('ROOTID') . "&mobileNos=$mobile&smsContentType=english";
- 
+    $apiurl = env('SMS_API_PATH') . "rest/services/sendSMS/sendGroupSms?AUTH_KEY=" . env('SMSKEY') . "&message=$str&senderId=" . env('SENDERID') . "&routeId=" . env('ROOTID') . "&mobileNos=$mobile&smsContentType=english";
     $data = curlApis($apiurl);
     $jsondata = json_encode($data, true);
-   // echo $jsondata;die;
+    // echo $jsondata;die;
     $status = false;
     $datastatus = !empty($data['responseCode']) ? $data['responseCode'] : false;
-    if ($datastatus == '3001') {$status = true;}
+    if ($datastatus == '3001') {
+        $status = true;
+    }
     return (!empty($restype) ? $jsondata : $status);
 }
-function sendOtpPhone($mobile, $otp)
-{
+function sendOtpPhone($mobile, $otp) {
     $msg = "Your Login OTP " . $otp . " Don't Share with any one Thanks!";
     $sent = sendsms($mobile, $msg);
     return true;
+}
+function sendPushNotification($fields, $key = null) {
+    $fcmurl = 'https://fcm.googleapis.com/fcm/send';
+    $firebasekey = (!is_null($key) && !empty($key)) ? $key : FIREBASE_API_KEY;
+    $headers = array('Authorization: key=' . $firebasekey, 'Content-Type: application/json');
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $fcmurl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    $result = curl_exec($ch);
+    if ($result === FALSE) {
+        die('Curl failed: ' . curl_error($ch));
+    }
+    curl_close($ch);
+    return $result;
+}
+// sending push message to single user by firebase reg id
+function send($to, $message, $key) {
+    $fields = array('to' => $to, 'notification' => $message['data'],);
+    return sendPushNotification($fields, $key);
+}
+// Sending message to a topic by topic name
+function sendToTopic($to, $message, $key) {
+    $fields = array('to' => '/topics/' . $to, 'notification' => $message['data'],);
+    return sendPushNotification($fields, $key);
+}
+// sending push message to multiple users by firebase registration ids
+function sendMultiple($registration_ids, $message, $key) {
+    if (is_array($registration_ids)) {
+        $fields = array('registration_ids' => $registration_ids, 'notification' => $message['data'],);
+    } else {
+        $fields = array('to' => $registration_ids, 'notification' => $message['data'],);
+    }
+    return sendPushNotification($fields, $key);
+}
+function getPush($arraydata) {
+    $res = array();
+    $res['data']['title'] = $arraydata['title'];
+    $res['data']['is_background'] = !empty($arraydata['image']) ? TRUE : FALSE;
+    $res['data']['body'] = $arraydata['message'];
+    $res['data']['image'] = $arraydata['image'];
+    $res['data']['payload'] = array('team' => 'India', 'score' => '3x1');
+    $res['data']['timestamp'] = date('Y-m-d G:i:s');
+    $res['data']['priority'] = 'high';
+    // isset($arraydata['custom']) && !empty( $arraydata['custom'] ) ? ( $res['data']['custom'] = $arraydata['custom'] ) : '';
+    $res['data']['custom'] = isset($arraydata['custom']) && !empty($arraydata['custom']) ? $arraydata['custom'] : '';
+    $res['data']['manual_data'] = isset($arraydata['manual_data']) && !empty($arraydata['manual_data']) ? $arraydata['manual_data'] : array();
+    return $res;
+}
+function pushnotifications($regids, $msgarray, $key = null) {
+    $regids = rtrim($regids, ',');
+    $idsinarray = explode(',', $regids);
+    $idsinarray = array_unique($idsinarray);
+    $countids = count($idsinarray);
+    $push_type = $countids > 1 ? 'multiple' : 'individual';
+    $firebaseRegids = $countids == 1 ? $regids : $idsinarray;
+    $json = '';
+    $response = '';
+    $json = getPush($msgarray);
+    if ($push_type == 'topic' && !empty($firebaseRegids)) {
+        $response = sendToTopic('global', $json, $key);
+    } else if ($push_type == 'individual' && !empty($firebaseRegids)) {
+        $response = send($firebaseRegids, $json, $key);
+    } else if ($push_type == 'multiple' && !empty($firebaseRegids)) {
+        $response = sendMultiple($firebaseRegids, $json, $key);
+    }
+    $responsearray = json_decode($response, true);
+    return !empty($responsearray['success']) ? $responsearray['success'] : '';
 }

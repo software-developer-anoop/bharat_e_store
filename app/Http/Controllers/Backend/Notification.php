@@ -57,4 +57,83 @@ class Notification extends Controller
         }
         return redirect(route('admin.notification-list'))->with('success',$msg);
     }
+    public function pushNotification(Request $request)
+    {
+        $id = trim($request->input('id', ''));
+        $start = (int)trim($request->input('start', 0));
+        $limit = (int)trim($request->input('limit', 10));
+
+        if (empty($id)) {
+            return response()->json(['error' => 'ID is blank'], 400);
+        }
+
+        $notificationData = DB::table('notifications')->find($id);
+        if (!$notificationData) {
+            return response()->json(['error' => 'Notification not found'], 404);
+        }
+
+        $data = [
+            'status' => false,
+            'id' => (string) $id,
+            'start' => (string) ($start + 1),
+            'limit' => (string) $limit,
+            'ids' => '',
+        ];
+
+        $serverkey = env('FIREBASE_API_KEY');
+
+        $where = [
+            ['fcm_token', '!=', ''],
+            ['profile_status', '=', 'Active'],
+            ['email_status', '=', 'Verified']
+        ];
+
+        $offset = $start * $limit;
+        $customers = DB::table('customers')
+            ->where($where)
+            ->select('id', 'fcm_token')
+            ->orderBy('id', 'DESC')
+            ->offset($offset)
+            ->limit($limit)
+            ->get();
+
+        $msgarray = [
+            'title' => ucwords($notificationData->title),
+            'message' => !empty($notificationData->descrption) ? $notificationData->descrption : $notificationData->title,
+            'image' => !empty($notificationData->image) ? url('uploads/' . $notificationData->image) : ''
+        ];
+
+        if ($customers->isNotEmpty()) {
+            $data['status'] = true;
+            $saveRecords = [];
+            $tokens = [];
+
+            foreach ($customers as $customer) {
+                if (!empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
+                    $tokens[] = $customer->fcm_token;
+
+                    $saveRecords[] = [
+                        'customer_id' => $customer->id,
+                        'notification_id' => $id,
+                        'title' => $msgarray['title'],
+                        'description' => $msgarray['message'],
+                        'image_path' => $msgarray['image'],
+                        'created_at' => now(),
+                    ];
+                }
+            }
+
+            if (!empty($saveRecords)) {
+                DB::table('push_notifications')->insert($saveRecords);
+            }
+
+            if (!empty($tokens)) {
+                $firebaseids = implode(',', $tokens);
+                pushnotifications($firebaseids, $msgarray, $serverkey);
+            }
+        }
+
+        return response()->json($data);
+    }
+
 }
