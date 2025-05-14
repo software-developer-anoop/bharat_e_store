@@ -36,25 +36,17 @@ class Customer extends Controller
         $saveData['customer_address'] = $data['customer_address']?trim($data['customer_address']):'';
         $saveData['customer_gender'] = $data['customer_gender']?trim($data['customer_gender']):'';
         $saveData['referral_code'] = $data['referral_code']?trim($data['referral_code']):'';
-        
-        // if ($request->hasFile('Customer_image')) {
-        //     $file = $request->file('Customer_image');
-        //     if ($file->isValid()) { 
-        //         $filename = $file->hashName();
-        //         $file->move(public_path('uploads'), $filename);
-        //         if($data['old_Customer_image']){
-        //             removeImage($data['old_Customer_image']);
-        //         }
-        //         if($data['old_Customer_image_webp']){
-        //             removeImage($data['old_Customer_image_webp']);
-        //         }
-        //         $webp_filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
-        //         $webp_path = public_path('uploads/' . $webp_filename);
-        //         $webp_image = convertImageToWebp(public_path('uploads/'), $filename, $webp_filename);
-        //         $saveData['Customer_image'] = $filename;
-        //         $saveData['Customer_image_webp'] = $webp_filename;
-        //     }
-        // }
+
+        if ($file = $request->file('customer_profile_image')) {
+            if ($file->isValid()) {
+                $filename = $file->hashName();
+                if (is_file(public_path('uploads/' . $data['old_customer_profile_image']))) {
+                    @unlink(public_path('uploads/' . $data['old_customer_profile_image']));
+                }
+                $file->move(public_path('uploads/'), $filename);
+                $saveData['customer_profile_image'] = $filename;
+            }
+        }
         if(empty($id)){
             $saveData['created_at'] = Carbon::now();
             if(!empty(trim($data['referrer_code']))){

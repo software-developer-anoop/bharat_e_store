@@ -311,7 +311,7 @@ function broadCastNotification(id) {
                     sendNotifications(nid);
                 }, 300);
             } else {
-               // window.location.href = "{{route('admin.notification-list')}}";
+               window.location.href = "{{route('admin.notification-list')}}";
             }
         },
         error: function (xhr, status, error) {

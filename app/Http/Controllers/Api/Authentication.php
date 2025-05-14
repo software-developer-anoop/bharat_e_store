@@ -215,4 +215,57 @@ class Authentication extends Controller {
         DB::table('customers')->where('id', $customer_id)->update(['fcm_token' => '', 'device_id' => '']);
         return response()->json(['status' => true, 'message' => 'Logout Successfully']);
     }
+    public function editProfile(Request $request){
+        // Reusable request validation
+        if ($error = validateApiRequest($request)) {
+            return $error;
+        }
+
+        // Proceed with normal logic
+        $customer_id = $request->input('customer_id');
+        $customer_name = $request->input('customer_name');
+        $customer_email = $request->input('customer_email');
+        $customer_phone = $request->input('customer_phone');
+        $customer_address = $request->input('customer_address');
+        $customer_gender = $request->input('customer_gender');
+        $old_customer_profile_image = $request->input('old_customer_profile_image');
+        $customer_profile_image = $request->file('customer_profile_image');
+
+        $customer = DB::table('customers')->where('id', $customer_id)->first();
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'No Record Found']);
+        }
+
+        if ($customer->profile_status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+
+        $updateData = [
+            'customer_name' => $customer_name,
+            'customer_email' => $customer_email,
+            'customer_phone' => $customer_phone,
+            'customer_address' => $customer_address,
+            'customer_gender' => $customer_gender,
+        ];
+
+        if ($customer_profile_image && $customer_profile_image->isValid()) {
+            $filename = $customer_profile_image->hashName();
+
+            if ($old_customer_profile_image && is_file(public_path('uploads/' . $old_customer_profile_image))) {
+                @unlink(public_path('uploads/' . $old_customer_profile_image));
+            }
+
+            $customer_profile_image->move(public_path('uploads/'), $filename);
+            $updateData['customer_profile_image'] = $filename;
+        }
+
+        $updated = DB::table('customers')->where('id', $customer_id)->update($updateData);
+
+        return response()->json([
+            'status' => $updated ? true : false,
+            'message' => $updated ? 'Profile Updated Successfully' : 'Something Went Wrong'
+        ]);
+    }
+
+
 }

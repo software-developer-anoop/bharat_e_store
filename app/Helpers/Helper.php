@@ -356,3 +356,31 @@ function pushnotifications($regids, $msgarray, $key = null) {
     $responsearray = json_decode($response, true);
     return !empty($responsearray['success']) ? $responsearray['success'] : '';
 }
+if (!function_exists('validateApiRequest')) {
+    /**
+     * Validates that the request is POST and contains a valid Authorization header.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string|null $expectedToken
+     * @return \Illuminate\Http\JsonResponse|null
+     */
+    function validateApiRequest($request, $expectedToken = '3d677482a0d52578ddca12375c374e24')
+    {
+        if (!$request->isMethod('post')) {
+            return response()->json(['status' => false, 'message' => 'Bad Request'], 400);
+        }
+
+        $authHeader = $request->header('Authorization');
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return response()->json(['status' => false, 'message' => 'Missing or malformed Auth Token!'], 401);
+        }
+
+        $token = trim(str_replace('Bearer', '', $authHeader));
+        if ($token !== $expectedToken) {
+            return response()->json(['status' => false, 'message' => 'Invalid Auth Token!'], 401);
+        }
+
+        // Valid request
+        return null;
+    }
+}

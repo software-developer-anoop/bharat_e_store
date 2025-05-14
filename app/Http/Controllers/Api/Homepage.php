@@ -115,4 +115,58 @@ class Homepage extends Controller
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
+    public function search()
+    {
+        $post = checkPayload();
+        $keyword = trim($post['keyword'] ?? '');
+
+        if (empty($keyword)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Keyword is blank"
+            ]);
+        }
+
+        $products = DB::table('products')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
+            ->where(function ($query) use ($keyword) {
+                $query->where('products.product_name', 'like', "%{$keyword}%")
+                    ->orWhere('products.product_description', 'like', "%{$keyword}%")
+                    ->orWhere('categories.category_name', 'like', "%{$keyword}%")
+                    ->orWhere('subcategories.subcategory_name', 'like', "%{$keyword}%");
+            })
+            ->select(
+                'products.*',
+                'categories.category_name as category_name',
+                'subcategories.subcategory_name as subcategory_name'
+            )
+            ->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => "No record found"
+            ]);
+        }
+
+        $returnData = [];
+
+        foreach ($products as $product) {
+            $return['product_id'] = (string)$product->id;
+            $return['category_id'] = (string)$product->category_id;
+            $return['subcategory_id'] = (string)$product->subcategory_id;
+            $return['product_name'] = (string)$product->product_name;
+            $return['product_rating'] = (string)$product->product_rating;
+            $return['product_image'] = url('uploads/' . $product->product_image);
+            array_push($returnData,$return);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $returnData,
+            'message' => "API accessed successfully!"
+        ]);
+    }
+
 }

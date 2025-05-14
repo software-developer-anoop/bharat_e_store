@@ -16,8 +16,8 @@
           <form method="post" action="{{route('admin.save-customer')}}" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="id" value="{{$data->id??''}}">
-            <!-- <input type="hidden" name="old_member_image" value="{{$data->member_image??''}}">
-            <input type="hidden" name="old_member_image_webp" value="{{$data->member_image_webp??''}}"> -->
+            <input type="hidden" name="old_customer_profile_image" value="{{$data->customer_profile_image??''}}">
+            
             <div class="row">
               <div class="col-lg-4 col-12">
                 <div class="form-group">
@@ -66,6 +66,17 @@
                   <input type="text" class="form-control" id="referrer_code" name="referrer_code" placeholder="Referral Code" value="{{$data->referrer_code??''}}"  autocomplete="off">
                 </div>
               </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="customer_profile_image">Profile Image</label>
+                  <input id="customer_profile_image" type="file" name="customer_profile_image" accept="image/jpeg, image/png" class="form-control">
+                </div>
+              </div>
+              @if(!empty($data->customer_profile_image))
+              <div class="col-lg-2 col-12 mt-4">
+                <img src="{{asset('uploads/'.$data->customer_profile_image)}}" height="70" width="70">
+              </div>
+              @endif
               </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>

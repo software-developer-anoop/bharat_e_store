@@ -8,16 +8,6 @@ use App\Http\Controllers\Api\Homepage;
 use App\Http\Controllers\Api\Cmspage;
 use App\Http\Controllers\Api\Wishlist;
 use App\Http\Controllers\Api\Couponlist;
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -39,3 +29,5 @@ Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wis
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
 Route::post('remove-from-wishlist', [Wishlist::class, 'removeFromWishlist'])->name('api.remove-from-wishlist');
 Route::get('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list');
+Route::post('search', [Homepage::class, 'search'])->name('api.search');
+Route::post('edit-profile', [Authentication::class, 'editProfile'])->name('api.edit-profile');
