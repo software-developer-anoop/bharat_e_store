@@ -35,7 +35,7 @@ Route::post('remove-from-wishlist', [Wishlist::class, 'removeFromWishlist'])->na
 Route::post('my-address', [Address::class, 'index'])->name('api.my-address');
 Route::post('add-edit-address', [Address::class, 'addEditAddress'])->name('api.add-edit-address');
 Route::post('delete-address', [Address::class, 'deleteAddress'])->name('api.delete-address');
-
+Route::post('referral-history', [Homepage::class, 'referralHistory'])->name('api.referral-history');
 Route::get('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list');
 Route::post('search', [Homepage::class, 'search'])->name('api.search');
 Route::post('edit-profile', [Authentication::class, 'editProfile'])->name('api.edit-profile');

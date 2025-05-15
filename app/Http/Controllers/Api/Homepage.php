@@ -1,19 +1,13 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-class Homepage extends Controller
-{
-    public function index(Request $request)
-    {
+class Homepage extends Controller {
+    public function index(Request $request) {
         checkHeaders();
-
         $record = DB::table('websetting')->select('banner')->first();
-
-        $banner = !empty($record->banner)?json_decode($record->banner):[];
+        $banner = !empty($record->banner) ? json_decode($record->banner) : [];
         if (empty($banner)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -24,16 +18,11 @@ class Homepage extends Controller
             $return['image'] = url('uploads/' . $value->image);
             array_push($returnData, $return);
         }
-        return response()->json([
-            'status' => true,
-            'banner' => $returnData,
-            'message' => 'API Accessed Successfully'
-        ]);
+        return response()->json(['status' => true, 'banner' => $returnData, 'message' => 'API Accessed Successfully']);
     }
-
-    public function categoryList(){
+    public function categoryList() {
         checkHeaders();
-        $category = DB::table('categories')->where('status','Active')->select('category_name','category_image','id')->get();
+        $category = DB::table('categories')->where('status', 'Active')->select('category_name', 'category_image', 'id')->get();
         if (empty($category)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -51,13 +40,13 @@ class Homepage extends Controller
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
-    public function subcategoryList(){
+    public function subcategoryList() {
         $post = checkPayload();
         $category_id = trim($post['category_id']??'');
-        $where=[];
-        $where['status']='Active';
-        $where['category']=$category_id;
-        $subcategory = DB::table('subcategories')->where($where)->select('subcategory_name','subcategory_image','id','category')->get();
+        $where = [];
+        $where['status'] = 'Active';
+        $where['category'] = $category_id;
+        $subcategory = DB::table('subcategories')->where($where)->select('subcategory_name', 'subcategory_image', 'id', 'category')->get();
         if (empty($subcategory)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -76,105 +65,51 @@ class Homepage extends Controller
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
-    public function trendingProducts()
-{
-    $post = checkPayload();
-
-    $condition = trim($post['condition'] ?? '');
-    $per_page_limit = intval($post['per_page_limit'] ?? 8); // Default to 8 if not set
-    $page_no = intval($post['page_no'] ?? 1); // Default to 1 if not set
-
-    // Validate condition
-    if ($condition && $condition !== 'all') {
-        return response()->json([
-            'status' => false,
-            'message' => "Invalid Condition"
-        ]);
-    }
-
-    // Define base query filters
-    $where = [
-        'status' => 'Active',
-        'is_trending' => 'yes',
-    ];
-
-    $query = DB::table('products')->where($where);
-
-    // Pagination
-    if (empty($condition)) {
-        $query->limit(8); // Default trending products if no condition
-    } else {
-        $offset = ($page_no - 1) * $per_page_limit;
-        $query->limit($per_page_limit)->offset($offset);
-    }
-
-    $products = $query->get();
-
-    // Handle no products
-    if ($products->isEmpty()) {
-        return response()->json([
-            'status' => false,
-            'message' => "No Records Found"
-        ]);
-    }
-
-    // Format return data
-    $returnData = $products->map(function ($value) {
-        return [
-            'product_id' => (string)$value->id,
-            'category_id' => (string)$value->category_id,
-            'subcategory_id' => (string)$value->subcategory_id,
-            'product_name' => (string)$value->product_name,
-            'product_rating' => (string)$value->product_rating,
-            'product_image' => url('uploads/' . $value->product_image),
-        ];
-    });
-
-    // Final response
-    return response()->json([
-        'status' => true,
-        'data' => $returnData,
-        'message' => "API Accessed Successfully!",
-    ]);
-}
-
-    public function search()
-    {
+    public function trendingProducts() {
         $post = checkPayload();
-        $keyword = trim($post['keyword'] ?? '');
-
-        if (empty($keyword)) {
-            return response()->json([
-                'status' => false,
-                'message' => "Keyword is blank"
-            ]);
+        $condition = trim($post['condition']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10 if not set
+        $page_no = intval($post['page_no']??1); // Default to 1 if not set
+        // Validate condition
+        if ($condition && $condition !== 'all') {
+            return response()->json(['status' => false, 'message' => "Invalid Condition"]);
         }
-
-        $products = DB::table('products')
-            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-            ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
-            ->where(function ($query) use ($keyword) {
-                $query->where('products.product_name', 'like', "%{$keyword}%")
-                    ->orWhere('products.product_description', 'like', "%{$keyword}%")
-                    ->orWhere('categories.category_name', 'like', "%{$keyword}%")
-                    ->orWhere('subcategories.subcategory_name', 'like', "%{$keyword}%");
-            })
-            ->select(
-                'products.*',
-                'categories.category_name as category_name',
-                'subcategories.subcategory_name as subcategory_name'
-            )
-            ->get();
-
+        // Define base query filters
+        $where = ['status' => 'Active', 'is_trending' => 'yes', ];
+        $query = DB::table('products')->where($where);
+        // Pagination
+        if (empty($condition)) {
+            $query->limit(10); // Default trending products if no condition
+            
+        } else {
+            $offset = ($page_no - 1) * $per_page_limit;
+            $query->limit($per_page_limit)->offset($offset);
+        }
+        $products = $query->get();
+        // Handle no products
         if ($products->isEmpty()) {
-            return response()->json([
-                'status' => false,
-                'message' => "No record found"
-            ]);
+            return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
-
+        // Format return data
+        $returnData = $products->map(function ($value) {
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_image' => url('uploads/' . $value->product_image), ];
+        });
+        // Final response
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
+    }
+    public function search() {
+        $post = checkPayload();
+        $keyword = trim($post['keyword']??'');
+        if (empty($keyword)) {
+            return response()->json(['status' => false, 'message' => "Keyword is blank"]);
+        }
+        $products = DB::table('products')->leftJoin('categories', 'products.category_id', '=', 'categories.id')->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')->where(function ($query) use ($keyword) {
+            $query->where('products.product_name', 'like', "%{$keyword}%")->orWhere('products.product_description', 'like', "%{$keyword}%")->orWhere('categories.category_name', 'like', "%{$keyword}%")->orWhere('subcategories.subcategory_name', 'like', "%{$keyword}%");
+        })->select('products.*', 'categories.category_name as category_name', 'subcategories.subcategory_name as subcategory_name')->get();
+        if ($products->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No record found"]);
+        }
         $returnData = [];
-
         foreach ($products as $product) {
             $return['product_id'] = (string)$product->id;
             $return['category_id'] = (string)$product->category_id;
@@ -182,44 +117,33 @@ class Homepage extends Controller
             $return['product_name'] = (string)$product->product_name;
             $return['product_rating'] = (string)$product->product_rating;
             $return['product_image'] = url('uploads/' . $product->product_image);
-            array_push($returnData,$return);
+            array_push($returnData, $return);
         }
-
-        return response()->json([
-            'status' => true,
-            'data' => $returnData,
-            'message' => "API accessed successfully!"
-        ]);
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API accessed successfully!"]);
     }
-    public function referralHistory(){
+    public function referralHistory() {
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
+        $page_no = intval($post['page_no']??1); // Default to 1
         if (empty($customer_id)) {
-            return response()->json([
-                'status' => false,
-                'message' => "Customer ID is blank",
-            ]);
+            return response()->json(['status' => false, 'message' => "Customer ID is blank", ]);
         }
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
         }
-        if ($customer->profile_status == "Inactive") {
+        if ($customer->profile_status === "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
-        $referralHistory = DB::table('referral_history')
-            ->join('customers', 'referral_history.referral_customer_id', '=', 'customers.id')
-            ->where('referral_history.referrer_customer_id', $customer_id)
-            ->select('referral_history.referral_customer_id', 'customers.customer_name')
-            ->get();
-
+        $offset = ($page_no - 1) * $per_page_limit;
+        $referralHistory = DB::table('referral_history')->join('customers', 'referral_history.referral_customer_id', '=', 'customers.id')->where('referral_history.referral_customer_id', $customer_id)->select('referral_history.id as referral_id', 'customers.customer_name', 'referral_history.points')->limit($per_page_limit)->offset($offset)->get();
         if ($referralHistory->isEmpty()) {
-            return response()->json([
-                'status' => false,
-                'message' => "No records found",
-            ]);
+            return response()->json(['status' => false, 'message' => "No records found", ]);
         }
-
+        $returnData = $referralHistory->map(function ($value) {
+            return ['referral_history_id' => (string)$value->referral_id, 'customer_name' => (string)$value->customer_name, 'points' => (string)$value->points, ];
+        });
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
-
 }
