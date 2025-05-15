@@ -19,9 +19,7 @@ use App\Http\Controllers\Backend\Subcategory;
 use App\Http\Controllers\Backend\Notification;
 use App\Http\Controllers\Backend\Coupon;
 use App\Http\Controllers\Backend\Menu;
-// use App\Http\Controllers\Frontend\Home;
-// use App\Http\Controllers\Frontend\Common;
-
+use App\Http\Controllers\Backend\Address;
 
 Route::get('/login', [Authentication::class, 'index'])->name('login');
 Route::post('/authenticate', [Authentication::class, 'authenticate'])->name('authenticate');
@@ -88,6 +86,11 @@ Route::get('/add-notification', [Notification::class, 'addNotification'])->name(
 Route::get('/edit-notification/{id}', [Notification::class, 'addNotification'])->name('admin.edit-notification');
 Route::post('/save-notification', [Notification::class, 'saveNotification'])->name('admin.save-notification');
 Route::post('/push-notification', [Notification::class, 'pushNotification'])->name('admin.push-notification');
+//Address Master
+Route::get('/address-list', [Address::class, 'index'])->name('admin.address-list');
+Route::get('/add-address', [Address::class, 'addAddress'])->name('admin.add-address');
+Route::get('/edit-address/{id}', [Address::class, 'addAddress'])->name('admin.edit-address');
+Route::post('/save-address', [Address::class, 'saveAddress'])->name('admin.save-address');
 //Profile
 Route::get('/my-profile', [Profile::class, 'index'])->name('admin.my-profile');
 Route::post('/save-profile', [Profile::class, 'saveProfile'])->name('admin.save-profile');
