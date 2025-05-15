@@ -57,7 +57,7 @@ class Homepage extends Controller
         $where=[];
         $where['status']='Active';
         $where['category']=$category_id;
-        $subcategory = DB::table('subcategories')->where($where)->select('subcategory_name','subcategory_image','id')->get();
+        $subcategory = DB::table('subcategories')->where($where)->select('subcategory_name','subcategory_image','id','category')->get();
         if (empty($subcategory)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
