@@ -16,7 +16,7 @@ class Authentication extends Controller {
         if (empty($countryCode)) {
             return response()->json(['status' => false, 'message' => 'Please Select Country', ]);
         }
-        if (strlen($referralCode) !== 10) {
+        if (!empty($referralCode) && strlen($referralCode) !== 10) {
             return response()->json([
                 'status' => false,
                 'message' => 'Invalid referral code. It must be exactly 10 characters long.'
