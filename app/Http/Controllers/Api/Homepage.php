@@ -76,45 +76,68 @@ class Homepage extends Controller
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
-    public function trendingProducts(){
-        $post = checkPayload();
-        $condition = trim($post['condition']??'');
-        $where=[];
-        $where['status']='Active';
-        $where['is_trending']='yes';
-        if($condition && $condition !== "all"){
-            $response['status'] = false;
-            $response['message'] = "Invalid Condition";
-            return response()->json($response);
-        }
-        $query = DB::table('products')->where($where);
+    public function trendingProducts()
+{
+    $post = checkPayload();
 
-        if (empty($condition)) {
-            $query->limit(8);
-        }
+    $condition = trim($post['condition'] ?? '');
+    $per_page_limit = intval($post['per_page_limit'] ?? 8); // Default to 8 if not set
+    $page_no = intval($post['page_no'] ?? 1); // Default to 1 if not set
 
-        $products = $query->get();
-
-        if (empty($products)) {
-            $response['status'] = false;
-            $response['message'] = "No Records Found";
-            return response()->json($response);
-        }
-        $returnData = [];
-        foreach ($products as $key => $value) {
-            $return['product_id'] = (string)$value->id;
-            $return['category_id'] = (string)$value->category_id;
-            $return['subcategory_id'] = (string)$value->subcategory_id;
-            $return['product_name'] = (string)$value->product_name;
-            $return['product_rating'] = (string)$value->product_rating;
-            $return['product_image'] = url('uploads/' . $value->product_image);
-            array_push($returnData, $return);
-        }
-        $response['status'] = true;
-        $response['data'] = $returnData;
-        $response['message'] = "API Accessed Successfully!";
-        return response()->json($response);
+    // Validate condition
+    if ($condition && $condition !== 'all') {
+        return response()->json([
+            'status' => false,
+            'message' => "Invalid Condition"
+        ]);
     }
+
+    // Define base query filters
+    $where = [
+        'status' => 'Active',
+        'is_trending' => 'yes',
+    ];
+
+    $query = DB::table('products')->where($where);
+
+    // Pagination
+    if (empty($condition)) {
+        $query->limit(8); // Default trending products if no condition
+    } else {
+        $offset = ($page_no - 1) * $per_page_limit;
+        $query->limit($per_page_limit)->offset($offset);
+    }
+
+    $products = $query->get();
+
+    // Handle no products
+    if ($products->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => "No Records Found"
+        ]);
+    }
+
+    // Format return data
+    $returnData = $products->map(function ($value) {
+        return [
+            'product_id' => (string)$value->id,
+            'category_id' => (string)$value->category_id,
+            'subcategory_id' => (string)$value->subcategory_id,
+            'product_name' => (string)$value->product_name,
+            'product_rating' => (string)$value->product_rating,
+            'product_image' => url('uploads/' . $value->product_image),
+        ];
+    });
+
+    // Final response
+    return response()->json([
+        'status' => true,
+        'data' => $returnData,
+        'message' => "API Accessed Successfully!",
+    ]);
+}
+
     public function search()
     {
         $post = checkPayload();
@@ -167,6 +190,36 @@ class Homepage extends Controller
             'data' => $returnData,
             'message' => "API accessed successfully!"
         ]);
+    }
+    public function referralHistory(){
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        if (empty($customer_id)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Customer ID is blank",
+            ]);
+        }
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+        if ($customer->profile_status == "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+        $referralHistory = DB::table('referral_history')
+            ->join('customers', 'referral_history.referral_customer_id', '=', 'customers.id')
+            ->where('referral_history.referrer_customer_id', $customer_id)
+            ->select('referral_history.referral_customer_id', 'customers.customer_name')
+            ->get();
+
+        if ($referralHistory->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => "No records found",
+            ]);
+        }
+
     }
 
 }
