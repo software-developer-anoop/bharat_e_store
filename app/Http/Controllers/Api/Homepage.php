@@ -65,72 +65,41 @@ class Homepage extends Controller {
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
-    public function trendingProducts()
-{
-    $post = checkPayload();
-    $customer_id = trim($post['customer_id'] ?? '');
-    $condition = trim($post['condition'] ?? '');
-    $per_page_limit = intval($post['per_page_limit'] ?? 10); // Default to 10
-    $page_no = intval($post['page_no'] ?? 1); // Default to 1
-
-    if (empty($customer_id)) {
-        return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
+    public function trendingProducts() {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        $condition = trim($post['condition']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
+        $page_no = intval($post['page_no']??1); // Default to 1
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
+        }
+        $customerCurrency = getUserCurrency($customer_id) ??'';
+        // Validate condition
+        if (!empty($condition) && $condition !== 'all') {
+            return response()->json(['status' => false, 'message' => "Invalid Condition"]);
+        }
+        // Base query
+        $where = ['products.status' => 'Active', 'products.is_trending' => 'yes', ];
+        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        // Pagination
+        if (!empty($condition)) {
+            $offset = ($page_no - 1) * $per_page_limit;
+            $query->limit($per_page_limit)->offset($offset);
+        } else {
+            $query->limit(10); // Default trending products if no condition
+            
+        }
+        $products = $query->get();
+        if ($products->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No Records Found"]);
+        }
+        // Format data
+        $returnData = $products->map(function ($value) use ($customerCurrency) {
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => url('uploads/' . $value->product_image), ];
+        });
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
-
-    $customerCurrency = getUserCurrency($customer_id) ?? '';
-
-    // Validate condition
-    if (!empty($condition) && $condition !== 'all') {
-        return response()->json(['status' => false, 'message' => "Invalid Condition"]);
-    }
-
-    // Base query
-    $where = [
-        'products.status' => 'Active',
-        'products.is_trending' => 'yes',
-    ];
-
-    $query = DB::table('products')
-        ->join('categories', 'categories.id', '=', 'products.category_id')
-        ->where($where)
-        ->select('products.*', 'categories.category_name');
-
-    // Pagination
-    if (!empty($condition)) {
-        $offset = ($page_no - 1) * $per_page_limit;
-        $query->limit($per_page_limit)->offset($offset);
-    } else {
-        $query->limit(10); // Default trending products if no condition
-    }
-
-    $products = $query->get();
-
-    if ($products->isEmpty()) {
-        return response()->json(['status' => false, 'message' => "No Records Found"]);
-    }
-
-    // Format data
-    $returnData = $products->map(function ($value) use ($customerCurrency) {
-        return [
-            'product_id' => (string) $value->id,
-            'category_id' => (string) $value->category_id,
-            'subcategory_id' => (string) $value->subcategory_id,
-            'product_name' => (string) $value->product_name,
-            'product_rating' => (string) $value->product_rating,
-            'product_selling_price' => $customerCurrency . (string) $value->product_selling_price,
-            'product_cost_price' => $customerCurrency . (string) $value->product_cost_price,
-            'category_name' => (string) $value->category_name,
-            'product_image' => url('uploads/' . $value->product_image),
-        ];
-    });
-
-    return response()->json([
-        'status' => true,
-        'data' => $returnData,
-        'message' => "API Accessed Successfully!",
-    ]);
-}
-
     public function search() {
         $post = checkPayload();
         $keyword = trim($post['keyword']??'');
@@ -179,5 +148,60 @@ class Homepage extends Controller {
             return ['referral_history_id' => (string)$value->referral_id, 'customer_name' => (string)$value->customer_name, 'points' => (string)$value->points, ];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
+    }
+    public function productDetail(){
+        $post = checkPayload();
+        $product_id = trim($post['product_id']??'');
+        $customer_id = trim($post['customer_id']??'');
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => "Product ID is blank", ]);
+        }
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => "Customer ID is blank", ]);
+        }
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+        if ($customer->profile_status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+        $customerCurrency = getUserCurrency($customer_id);
+        $where = [];
+        $where['products.status']='Active';
+        $where['products.id']=$product_id;
+        $product = DB::table('products')
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')
+            ->where($where)
+            ->select(
+                'products.*',
+                'categories.category_name',
+                'subcategories.subcategory_name'
+            )
+            ->first();
+
+        if (empty($product)) {
+            return response()->json(['status' => false, 'message' => "Product Not Found"]);
+        }
+        $returnData = [];
+
+        $returnData['product_id']=(string)$product->id;
+        $returnData['category_name']=(string)$product->category_name;
+        $returnData['subcategory_name']=(string)$product->subcategory_name;
+        $returnData['product_name']=(string)$product->product_name;
+        $returnData['product_description']=(string)$product->product_description;
+        $returnData['product_size']=(string)$product->product_size;
+        $returnData['product_colors']=(string)$product->product_colors;
+        $returnData['product_image']=(string)(url('uploads/'.$product->product_image));
+        $returnData['product_selling_price']=$customerCurrency.(string)$product->product_selling_price;
+        $returnData['product_cost_price']=$customerCurrency.(string)$product->product_cost_price;
+        $returnData['product_quantity']=(string)$product->product_quantity;
+        $returnData['product_availability']=(string)$product->product_availability;
+        $returnData['product_rating']=(string)$product->product_rating;
+        $returnData['is_trending']=(string)$product->is_trending;
+        $returnData['product_status']=(string)$product->status;
+        
+        return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
 }

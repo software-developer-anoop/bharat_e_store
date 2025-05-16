@@ -39,3 +39,5 @@ Route::post('referral-history', [Homepage::class, 'referralHistory'])->name('api
 Route::get('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list');
 Route::post('search', [Homepage::class, 'search'])->name('api.search');
 Route::post('edit-profile', [Authentication::class, 'editProfile'])->name('api.edit-profile');
+
+Route::post('product-detail', [Homepage::class, 'productDetail'])->name('api.product-detail');
