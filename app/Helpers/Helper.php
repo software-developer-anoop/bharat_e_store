@@ -171,14 +171,31 @@ if (!function_exists('currentUrl')) {
     }
 }
 if (!function_exists("getUserCurrency")) {
-    function getUserCurrency() {
+    function getUserCurrency($id = null) {
+        $userCountry = null;
+
+        if (!empty($id)) {
+            $userCountry = DB::table('customers')
+                ->where('id', $id)
+                ->value('country_code');
+
+            return DB::table('country')
+                ->where('country_code', $userCountry)
+                ->value('country_currency_symbol');
+        }
+
         if (Auth::check()) {
             $userCountry = Auth::user()->country;
-            $currency = DB::table('country')->where('country_name', $userCountry)->value('country_currency_symbol');
-            return $currency;
+
+            return DB::table('country')
+                ->where('country_name', $userCountry)
+                ->value('country_currency_symbol');
         }
+
+        return null; // fallback return
     }
 }
+
 if (!function_exists('checkPayload')) {
     function checkPayload() {
         $response = [];

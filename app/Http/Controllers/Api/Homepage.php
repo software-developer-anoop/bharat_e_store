@@ -65,38 +65,72 @@ class Homepage extends Controller {
         $response['message'] = "API Accessed Successfully!";
         return response()->json($response);
     }
-    public function trendingProducts() {
-        $post = checkPayload();
-        $condition = trim($post['condition']??'');
-        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10 if not set
-        $page_no = intval($post['page_no']??1); // Default to 1 if not set
-        // Validate condition
-        if ($condition && $condition !== 'all') {
-            return response()->json(['status' => false, 'message' => "Invalid Condition"]);
-        }
-        // Define base query filters
-        $where = ['status' => 'Active', 'is_trending' => 'yes', ];
-        $query = DB::table('products')->where($where);
-        // Pagination
-        if (empty($condition)) {
-            $query->limit(10); // Default trending products if no condition
-            
-        } else {
-            $offset = ($page_no - 1) * $per_page_limit;
-            $query->limit($per_page_limit)->offset($offset);
-        }
-        $products = $query->get();
-        // Handle no products
-        if ($products->isEmpty()) {
-            return response()->json(['status' => false, 'message' => "No Records Found"]);
-        }
-        // Format return data
-        $returnData = $products->map(function ($value) {
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_image' => url('uploads/' . $value->product_image), ];
-        });
-        // Final response
-        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
+    public function trendingProducts()
+{
+    $post = checkPayload();
+    $customer_id = trim($post['customer_id'] ?? '');
+    $condition = trim($post['condition'] ?? '');
+    $per_page_limit = intval($post['per_page_limit'] ?? 10); // Default to 10
+    $page_no = intval($post['page_no'] ?? 1); // Default to 1
+
+    if (empty($customer_id)) {
+        return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
     }
+
+    $customerCurrency = getUserCurrency($customer_id) ?? '';
+
+    // Validate condition
+    if (!empty($condition) && $condition !== 'all') {
+        return response()->json(['status' => false, 'message' => "Invalid Condition"]);
+    }
+
+    // Base query
+    $where = [
+        'products.status' => 'Active',
+        'products.is_trending' => 'yes',
+    ];
+
+    $query = DB::table('products')
+        ->join('categories', 'categories.id', '=', 'products.category_id')
+        ->where($where)
+        ->select('products.*', 'categories.category_name');
+
+    // Pagination
+    if (!empty($condition)) {
+        $offset = ($page_no - 1) * $per_page_limit;
+        $query->limit($per_page_limit)->offset($offset);
+    } else {
+        $query->limit(10); // Default trending products if no condition
+    }
+
+    $products = $query->get();
+
+    if ($products->isEmpty()) {
+        return response()->json(['status' => false, 'message' => "No Records Found"]);
+    }
+
+    // Format data
+    $returnData = $products->map(function ($value) use ($customerCurrency) {
+        return [
+            'product_id' => (string) $value->id,
+            'category_id' => (string) $value->category_id,
+            'subcategory_id' => (string) $value->subcategory_id,
+            'product_name' => (string) $value->product_name,
+            'product_rating' => (string) $value->product_rating,
+            'product_selling_price' => $customerCurrency . (string) $value->product_selling_price,
+            'product_cost_price' => $customerCurrency . (string) $value->product_cost_price,
+            'category_name' => (string) $value->category_name,
+            'product_image' => url('uploads/' . $value->product_image),
+        ];
+    });
+
+    return response()->json([
+        'status' => true,
+        'data' => $returnData,
+        'message' => "API Accessed Successfully!",
+    ]);
+}
+
     public function search() {
         $post = checkPayload();
         $keyword = trim($post['keyword']??'');
