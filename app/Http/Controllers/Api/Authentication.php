@@ -96,7 +96,7 @@ class Authentication extends Controller {
         DB::table('customers')->where('id', $customerId)->update(['profile_status' => 'Active', 'email_status' => 'Verified', 'otp' => '', 'device_id' => $deviceId, 'fcm_token' => $fcmToken, ]);
         // Fetch updated customer info
         $customer = DB::table('customers')->find($customerId);
-        $data = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token, ];
+        $data = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token,'wallet_points' => (string)$customer->wallet_points ];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
     public function resendOtp(Request $request) {
@@ -155,6 +155,7 @@ class Authentication extends Controller {
         $return['country_code'] = (string)$customer->country_code;
         $return['device_id'] = (string)$customer->device_id;
         $return['fcm_token'] = (string)$customer->fcm_token;
+        $return['wallet_points'] = (string)$customer->wallet_points;
         return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return]);
     }
     public function customerLogin(Request $request) {
