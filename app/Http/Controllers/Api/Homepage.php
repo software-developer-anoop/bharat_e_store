@@ -96,7 +96,7 @@ class Homepage extends Controller {
         }
         // Format data
         $returnData = $products->map(function ($value) use ($customerCurrency) {
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => url('uploads/' . $value->product_image), ];
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => url('uploads/' . $value->product_image),'added_to_wishlist'=>(boolean)$value->added_to_wishlist ];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }

@@ -36,6 +36,7 @@ class Wishlist extends Controller
         $saveData['created_at']=Carbon::now();
 
         DB::table('wishlist')->insert($saveData);
+        DB::table('products')->where('id', $product_id)->update(['added_to_wishlist' => 'true']);
         return response()->json(['status' => true, 'message' => 'Added To Wishlist']);
     }
     public function myWishlist(){
@@ -101,6 +102,7 @@ class Wishlist extends Controller
         $where['customer_id']=$customer_id;
         $where['product_id']=$product_id;
         DB::table('wishlist')->where($where)->delete();
+        DB::table('products')->where('id', $product_id)->update(['added_to_wishlist' => 'false']);
         return response()->json(['status' => true, 'message' => 'Removed From Wishlist']);
     }
 }
