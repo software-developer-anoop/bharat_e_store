@@ -22,7 +22,7 @@
               <div class="col-lg-3 col-12">
                 <div class="form-group">
                   <label for="category">Category</label>
-                  <select name="category" id="category" class="form-control select2" onchange="return getSubcategory(this.value,{{$data->subcategory_id}})" required>
+                  <select name="category" id="category" class="form-control select2" onchange="return getSubcategory(this.value,{{$data->subcategory_id??null}})" required>
                     <option value="">Select Category</option>
                     @if(!empty($categories))
                     @foreach($categories as $key=>$value)
