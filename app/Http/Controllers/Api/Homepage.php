@@ -259,4 +259,104 @@ class Homepage extends Controller {
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
+    public function categoryProducts() {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        $category_id = trim($post['category_id']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
+        $page_no = intval($post['page_no']??1); // Default to 1
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
+        }
+        // Validate condition
+        if (empty($category_id)) {
+            return response()->json(['status' => false, 'message' => "Category Id Is Blank"]);
+        }
+        $customerCurrency = getUserCurrency($customer_id) ??'';
+        
+        // Base query
+        $where = ['products.status' => 'Active', 'products.category_id' => $category_id];
+        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        // Pagination
+        $offset = ($page_no - 1) * $per_page_limit;
+        $query->limit($per_page_limit)->offset($offset);
+
+        $products = $query->get();
+        if ($products->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No Records Found"]);
+        }
+        // Format data
+        $returnData = $products->map(function ($value) use ($customerCurrency) {
+            $images = json_decode($value->product_image, true); // decode as array
+            $imageUrls = [];
+            foreach ($images as $imageArray) {
+                if (isset($imageArray['image'])) {
+                    $imageUrls[] = url('uploads/' . $imageArray['image']);
+                }
+            }
+            return ['product_id' => (string)$value->id, 
+                    'category_id' => (string)$value->category_id, 
+                    'subcategory_id' => (string)$value->subcategory_id,
+                    'product_name' => (string)$value->product_name, 
+                    'product_rating' => (string)$value->product_rating, 
+                    'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 
+                    'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
+                    'category_name' => (string)$value->category_name, 
+                    'product_image' => $imageUrls, 
+                    'added_to_wishlist' => (bool)$value->added_to_wishlist];
+        });
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
+    }
+    public function subCategoryProducts() {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        $category_id = trim($post['category_id']??'');
+        $subcategory_id = trim($post['subcategory_id']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
+        $page_no = intval($post['page_no']??1); // Default to 1
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
+        }
+        // Validate condition
+        if (empty($category_id)) {
+            return response()->json(['status' => false, 'message' => "Category Id Is Blank"]);
+        }
+        if (empty($subcategory_id)) {
+            return response()->json(['status' => false, 'message' => "Subcategory Id Is Blank"]);
+        }
+        $customerCurrency = getUserCurrency($customer_id) ??'';
+        
+        // Base query
+        $where = ['products.status' => 'Active', 'products.category_id' => $category_id,'products.subcategory_id' => $subcategory_id];
+        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        // Pagination
+        $offset = ($page_no - 1) * $per_page_limit;
+        $query->limit($per_page_limit)->offset($offset);
+
+        $products = $query->get();
+        if ($products->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No Records Found"]);
+        }
+        // Format data
+        $returnData = $products->map(function ($value) use ($customerCurrency) {
+            $images = json_decode($value->product_image, true); // decode as array
+            $imageUrls = [];
+            foreach ($images as $imageArray) {
+                if (isset($imageArray['image'])) {
+                    $imageUrls[] = url('uploads/' . $imageArray['image']);
+                }
+            }
+            return ['product_id' => (string)$value->id, 
+                    'category_id' => (string)$value->category_id, 
+                    'subcategory_id' => (string)$value->subcategory_id,
+                    'product_name' => (string)$value->product_name, 
+                    'product_rating' => (string)$value->product_rating, 
+                    'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 
+                    'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
+                    'category_name' => (string)$value->category_name, 
+                    'product_image' => $imageUrls, 
+                    'added_to_wishlist' => (bool)$value->added_to_wishlist];
+        });
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
+    }
 }
