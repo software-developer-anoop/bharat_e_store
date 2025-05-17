@@ -116,9 +116,9 @@
               </div>
               @php
                 $images = !empty($web->banner) ? json_decode($web->banner, true) : [];
-                @endphp
+              @endphp
 
-                @if (!empty($images))
+              @if (!empty($images))
                     <div class="col-sm-12 mt-2">
                         @foreach ($images as $image)
                             <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
@@ -126,8 +126,7 @@
                             </a>
                         @endforeach
                     </div>
-                @endif
-
+              @endif
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>
