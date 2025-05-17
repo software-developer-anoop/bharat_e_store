@@ -42,24 +42,16 @@ class Product extends Controller
             }
         }
         $saveData = $checkData;
-        $filename = $data['old_product_image'];
+        $img_data = [];
         if ($request->hasFile('product_image')) {
-            $file = $request->file('product_image');
-            if ($file->isValid()) { 
+            foreach ($request->file('product_image') as $file) {
                 $filename = $file->hashName();
                 $file->move(public_path('uploads'), $filename);
-                if($data['old_product_image']){
-                    removeImage($data['old_product_image']);
-                }
-                if($data['old_product_image_webp']){
-                    removeImage($data['old_product_image_webp']);
-                }
-                $webp_filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
-                $webp_path = public_path('uploads/' . $webp_filename);
-                $webp_image = convertImageToWebp(public_path('uploads/'), $filename, $webp_filename);
-                $saveData['product_image'] = $filename;
-                $saveData['product_image_webp'] = $webp_filename;
+                $imgdata = []; // Initialize $imgdata as an empty array for each iteration
+                $imgdata['image'] = $filename;
+                $img_data[] = $imgdata;
             }
+            $saveData['product_image'] = !empty($img_data) ? json_encode($img_data) : [];
         }
         
         $saveData['product_name'] = $data['product_name']?trim($data['product_name']):'';

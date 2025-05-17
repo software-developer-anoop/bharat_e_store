@@ -16,8 +16,6 @@
           <form method="post" action="{{route('admin.save-product')}}" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="id" value="{{$data->id??''}}">
-            <input type="hidden" name="old_product_image" value="{{$data->product_image??''}}">
-            <input type="hidden" name="old_product_image_webp" value="{{$data->product_image_webp??''}}">
             <div class="row">
               <div class="col-lg-3 col-12">
                 <div class="form-group">
@@ -122,13 +120,21 @@
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="product_image">Product Image</label>
-                  <input id="product_image" type="file" name="product_image" accept="image/jpeg, image/png" class="form-control">
+                  <input id="product_image" type="file" name="product_image[]" accept="image/jpeg, image/png" class="form-control" multiple>
                 </div>
               </div>
-              @if(!empty($data->product_image))
-              <div class="col-lg-2 col-12 mt-4">
-                <img src="{{asset('uploads/'.$data->product_image)}}" height="70" width="100">
-              </div>
+              @php
+                $images = !empty($data->product_image) ? json_decode($data->product_image, true) : [];
+              @endphp
+
+              @if (!empty($images))
+                    <div class="col-sm-12 mt-2">
+                        @foreach ($images as $image)
+                            <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
+                                <img src="{{ asset('uploads/' . $image['image']) }}" height="70px" width="100px" alt="Logo">
+                            </a>
+                        @endforeach
+                    </div>
               @endif
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
