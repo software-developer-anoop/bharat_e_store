@@ -84,6 +84,7 @@ class Authentication extends Controller {
         if (Carbon::now()->greaterThan($otpSentAt->addMinutes(10))) {
             return response()->json(['status' => false, 'message' => 'OTP expired']);
         }
+        $customerCurrency = getUserCurrency($customerId) ??'';
         // Handle referral if exists
         if (!empty($customer->referral_code)) {
             $referralCustomer = DB::table('customers')->where('referrer_code', $customer->referral_code)->first();
@@ -96,7 +97,7 @@ class Authentication extends Controller {
         DB::table('customers')->where('id', $customerId)->update(['profile_status' => 'Active', 'email_status' => 'Verified', 'otp' => '', 'device_id' => $deviceId, 'fcm_token' => $fcmToken, ]);
         // Fetch updated customer info
         $customer = DB::table('customers')->find($customerId);
-        $data = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token,'wallet_points' => (string)$customer->wallet_points ];
+        $data = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token,'wallet_points' => (string)$customer->wallet_points,'currency'=>$customerCurrency ];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
     public function resendOtp(Request $request) {
@@ -140,6 +141,7 @@ class Authentication extends Controller {
         if ($customer->profile_status == "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
+        $customerCurrency = getUserCurrency($customer->id) ??'';
         $return = [];
         $return['customer_id'] = (string)$customer->id;
         $return['customer_name'] = (string)$customer->customer_name;
@@ -156,6 +158,7 @@ class Authentication extends Controller {
         $return['device_id'] = (string)$customer->device_id;
         $return['fcm_token'] = (string)$customer->fcm_token;
         $return['wallet_points'] = (string)$customer->wallet_points;
+        $return['currency'] = (string)$customerCurrency;
         return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return]);
     }
     public function customerLogin(Request $request) {
