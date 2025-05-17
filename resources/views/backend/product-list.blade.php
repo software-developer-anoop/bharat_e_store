@@ -37,7 +37,7 @@
                 <th class="text-center">Quantity / <br> Availability</th>
                 <th class="text-center">Status</th>
                 <th class="text-center">Inventory</th>
-                <th class="text-center">Trending</th>
+                <th class="text-center">Is Trending / Is Hot Deal</th>
                 <th class="text-center">Created At / <br> Updated At</th>
                 <th class="text-center">Action</th>
               </tr>
@@ -64,7 +64,7 @@
                       <button class="increment">+</button>
                   </div>
                 </td>
-                <td class="text-center"><input type="checkbox" id="check_{{ $value->id }}" onchange="return setIsTrending({{ $value->id }})" {{$value->is_trending=="yes"?"checked":""}}></td>
+                <td class="text-center"><input type="checkbox" id="is_trending_{{ $value->id }}" onchange="return setIsTrendingHotDeal({{ $value->id }},'is_trending')" {{$value->is_trending=="yes"?"checked":""}}> / <input type="checkbox" id="is_hot_deal_{{ $value->id }}" onchange="return setIsTrendingHotDeal({{ $value->id }},'is_hot_deal')" {{$value->is_hot_deal=="yes"?"checked":""}}></td>
                 <td class="text-center">{{$value->created_at??'N/A'}} / <br>{{$value->updated_at??'N/A'}}</td>
                 <td class="text-center">
                   <a href="{{route('admin.edit-product',$value->id)}}" class="bs-tooltip" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit">

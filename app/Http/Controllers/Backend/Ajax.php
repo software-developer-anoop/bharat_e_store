@@ -116,22 +116,25 @@ class Ajax extends Controller
 
         return response()->json(['status' => true, 'msg' => "Quantity {$change}"]);
     }
-    public function setIsTrending(Request $request)
+    public function setIsTrendingHotDeal(Request $request)
     {
         $product_id = (int) $request->product_id;
-        $checked = filter_var($request->checked, FILTER_VALIDATE_BOOLEAN);
+        $key = $request->key;
+        $checked = filter_var($request->checked, FILTER_VALIDATE_BOOLEAN); // true or false
 
-        if (!$product_id) {
-            return response()->json(['status' => false, 'msg' => 'Invalid Product ID']);
+        if (!$product_id || !in_array($key, ['is_trending', 'is_hot_deal'])) {
+            return response()->json(['status' => false, 'msg' => 'Invalid parameters']);
         }
 
-        $msg = $checked ? "Set To Trending" : "Removed From Trending";
-        $trendingStatus = $checked ? 'yes' : 'no';
+        $label = $key === 'is_trending' ? 'Trending' : 'Hot Deal';
+        $msg = $checked ? "Set to $label" : "Removed from $label";
+        $status = $checked ? 'yes' : 'no';
 
-        DB::table('products')->where('id', $product_id)->update(['is_trending' => $trendingStatus]);
+        DB::table('products')->where('id', $product_id)->update([$key => $status]);
 
         return response()->json(['status' => true, 'msg' => $msg]);
     }
+
 
 
 }

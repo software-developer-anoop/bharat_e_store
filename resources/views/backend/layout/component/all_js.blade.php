@@ -268,14 +268,16 @@ document.querySelectorAll('.quantity-wrapper').forEach(wrapper => {
     });
 });
 
-function setIsTrending(product_id){
-var checked = $('#check_' + product_id).prop('checked');
+function setIsTrendingHotDeal(product_id,key){
+var checked = $('#'+key+'_' + product_id).prop('checked');
+
 $.ajax({
-        url: "{{ route('admin.setIsTrending') }}",
+        url: "{{ route('admin.setIsTrendingHotDeal') }}",
         type: 'POST',
         data: {
             checked: checked,
             product_id: product_id,
+            key:key,
             _token: '{{ csrf_token() }}'
         },
         cache: false,

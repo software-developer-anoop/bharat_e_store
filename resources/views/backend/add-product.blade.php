@@ -115,6 +115,22 @@
                   <textarea id="meta_schema" type="text" name="meta_schema" placeholder="Meta Schema" class="form-control">{{$data->meta_schema??''}}</textarea>
                 </div>
               </div> -->
+              <div class="col-lg-4 col-12">
+                <label for="check">Is Trending</label>
+                <select name="is_trending" id="is_trending" class="form-control select2" required>
+                    <option value="">Select Trending</option>
+                    <option value="yes" {{!empty($data->is_trending) && ($data->is_trending=="yes")?'selected':''}}>Yes</option>
+                    <option value="no" {{!empty($data->is_trending) && ($data->is_trending=="no")?'selected':''}}>No</option>
+                  </select>
+              </div>
+              <div class="col-lg-4 col-12">
+                <label for="check">Is Hot Deal</label>
+                <select name="is_hot_deal" id="is_hot_deal" class="form-control select2" required>
+                    <option value="">Select hot_deal</option>
+                    <option value="yes" {{!empty($data->is_hot_deal) && ($data->is_hot_deal=="yes")?'selected':''}}>Yes</option>
+                    <option value="no" {{!empty($data->is_hot_deal) && ($data->is_hot_deal=="no")?'selected':''}}>No</option>
+                  </select>
+              </div>
               </div>
               <div class="row">
               <div class="col-lg-4 col-12">
@@ -136,6 +152,7 @@
                         @endforeach
                     </div>
               @endif
+              
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>

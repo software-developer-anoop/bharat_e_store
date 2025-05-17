@@ -103,7 +103,7 @@ Route::post('/changeStatus', [Ajax::class, 'changeStatus'])->name('admin.changeS
 Route::post('/getStates', [Ajax::class, 'getStates'])->name('admin.getStates');
 Route::post('/getSubcategory', [Ajax::class, 'getSubcategory'])->name('admin.getSubcategory');
 Route::post('/manageInventory', [Ajax::class, 'manageInventory'])->name('admin.manageInventory');
-Route::post('/setIsTrending', [Ajax::class, 'setIsTrending'])->name('admin.setIsTrending');
+Route::post('/setIsTrendingHotDeal', [Ajax::class, 'setIsTrendingHotDeal'])->name('admin.setIsTrendingHotDeal');
 Route::get('/logout', [Authentication::class, 'logout'])->name('admin.logout');
 });
 
