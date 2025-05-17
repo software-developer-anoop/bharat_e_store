@@ -27,6 +27,7 @@ Route::post('category-list', [Homepage::class, 'categoryList'])->name('api.categ
 Route::post('cms-page', [Cmspage::class, 'index'])->name('api.cms-page');
 Route::post('subcategory-list', [Homepage::class, 'subcategoryList'])->name('api.subcategory-list');
 Route::post('trending-products', [Homepage::class, 'trendingProducts'])->name('api.trending-products');
+Route::post('hot-deals-products', [Homepage::class, 'hotDealsProducts'])->name('api.hot-deals-products');
 //Wishlist
 Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
