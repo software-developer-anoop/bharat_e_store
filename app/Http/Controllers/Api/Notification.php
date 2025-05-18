@@ -10,6 +10,8 @@ class Notification extends Controller
     public function index(){
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
+        $page_no = intval($post['page_no']??1); // Default to 1
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
@@ -20,7 +22,13 @@ class Notification extends Controller
         if ($customer->profile_status == "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
-        $notificationlist = DB::table('push_notifications')->where('customer_id',$customer_id)->select('customer_id','notification_id','title','id','description','image')->get();
+        $offset = ($page_no - 1) * $per_page_limit;
+        $notificationList = DB::table('push_notifications')
+            ->where('customer_id', $customer_id)
+            ->select('id', 'notification_id', 'customer_id', 'title', 'description', 'image')
+            ->offset($offset)
+            ->limit($per_page_limit)
+            ->get();
         if (empty($notificationlist)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
