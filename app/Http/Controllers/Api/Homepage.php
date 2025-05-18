@@ -96,13 +96,17 @@ class Homepage extends Controller {
         }
         // Format data
         $returnData = $products->map(function ($value) use ($customerCurrency) {
-            $images = json_decode($value->product_image, true); // decode as array
+            $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $imageUrls = [];
-            foreach ($images as $imageArray) {
-                if (isset($imageArray['image'])) {
-                    $imageUrls[] = url('uploads/' . $imageArray['image']);
+
+            if (!empty($images)) {
+                foreach ($images as $imageArray) {
+                    if (isset($imageArray['image'])) {
+                        $imageUrls[] = url('uploads/' . $imageArray['image']);
+                    }
                 }
             }
+
             return ['product_id' => (string)$value->id, 
                     'category_id' => (string)$value->category_id, 
                     'subcategory_id' => (string)$value->subcategory_id,
@@ -239,11 +243,14 @@ class Homepage extends Controller {
         }
         // Format data
         $returnData = $products->map(function ($value) use ($customerCurrency) {
-            $images = json_decode($value->product_image, true); // decode as array
+            $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $imageUrls = [];
-            foreach ($images as $imageArray) {
-                if (isset($imageArray['image'])) {
-                    $imageUrls[] = url('uploads/' . $imageArray['image']);
+
+            if (!empty($images)) {
+                foreach ($images as $imageArray) {
+                    if (isset($imageArray['image'])) {
+                        $imageUrls[] = url('uploads/' . $imageArray['image']);
+                    }
                 }
             }
             return ['product_id' => (string)$value->id, 
