@@ -63,12 +63,18 @@ class Wishlist extends Controller
         }
         $returnData = [];
         foreach ($products as $key => $value) {
+            $images = $value->product_image ? json_decode($value->product_image, true) : [];
+            $firstImageUrl = null;
+
+            if (!empty($images) && isset($images[0]['image'])) {
+                $firstImageUrl = url('uploads/' . $images[0]['image']);
+            }
             $return['product_id'] = (string)$value->product_id;
             $return['category_id'] = (string)$value->category_id;
             $return['subcategory_id'] = (string)$value->subcategory_id;
             $return['product_name'] = (string)$value->product_name;
             $return['product_rating'] = (string)$value->product_rating;
-            $return['product_image'] = url('uploads/' . $value->product_image);
+            $return['product_image'] = $firstImageUrl;
             array_push($returnData, $return);
         }
         $response['status'] = true;

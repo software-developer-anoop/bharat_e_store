@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Cmspage;
 use App\Http\Controllers\Api\Wishlist;
 use App\Http\Controllers\Api\Couponlist;
 use App\Http\Controllers\Api\Address;
+use App\Http\Controllers\Api\Cart;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -34,6 +35,10 @@ Route::post('subcategory-products', [Homepage::class, 'subCategoryProducts'])->n
 Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
 Route::post('remove-from-wishlist', [Wishlist::class, 'removeFromWishlist'])->name('api.remove-from-wishlist');
+//Cart
+Route::post('add-to-cart', [Cart::class, 'index'])->name('api.add-to-cart');
+Route::post('my-cart', [Cart::class, 'myCart'])->name('api.my-cart');
+Route::post('remove-from-cart', [Cart::class, 'removeFromCart'])->name('api.remove-from-cart');
 //Address
 Route::post('my-address', [Address::class, 'index'])->name('api.my-address');
 Route::post('add-edit-address', [Address::class, 'addEditAddress'])->name('api.add-edit-address');
