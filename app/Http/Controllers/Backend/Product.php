@@ -62,7 +62,9 @@ class Product extends Controller
         $saveData['product_cost_price'] = $data['product_cost_price']?trim($data['product_cost_price']):'';
         $saveData['product_quantity'] = $data['product_quantity']?trim($data['product_quantity']):'';
         $saveData['product_availability'] = $data['product_availability']?trim($data['product_availability']):'';
-        $saveData['product_rating'] = $data['product_rating']?trim($data['product_rating']):'';
+        $saveData['product_rating'] = isset($data['product_rating']) && is_numeric($data['product_rating'])
+            ? floatval(trim($data['product_rating']))
+            : null; // or use 0.0 if you prefer a default numeric value
         $saveData['is_trending'] = $data['is_trending']?trim($data['is_trending']):'';
         $saveData['is_hot_deal'] = $data['is_hot_deal']?trim($data['is_hot_deal']):'';
         if(empty($id)){
