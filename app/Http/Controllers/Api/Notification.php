@@ -10,7 +10,7 @@ class Notification extends Controller
     public function index(){
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
-        if (empty($countryCode)) {
+        if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
         $customer = DB::table('customers')->where('id', $customer_id)->first();
