@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Wishlist;
 use App\Http\Controllers\Api\Couponlist;
 use App\Http\Controllers\Api\Address;
 use App\Http\Controllers\Api\Cart;
+use App\Http\Controllers\Api\Notification;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -49,3 +50,4 @@ Route::post('search', [Homepage::class, 'search'])->name('api.search');
 Route::post('edit-profile', [Authentication::class, 'editProfile'])->name('api.edit-profile');
 
 Route::post('product-detail', [Homepage::class, 'productDetail'])->name('api.product-detail');
+Route::post('my-notification', [Notification::class, 'index'])->name('api.my-notification');
