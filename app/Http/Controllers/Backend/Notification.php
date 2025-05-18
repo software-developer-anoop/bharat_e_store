@@ -117,7 +117,7 @@ class Notification extends Controller
                         'notification_id' => $id,
                         'title' => $msgarray['title'],
                         'description' => $msgarray['message'],
-                        'image_path' => $msgarray['image'],
+                        'image' => $msgarray['image'],
                         'created_at' => now(),
                     ];
                 }
