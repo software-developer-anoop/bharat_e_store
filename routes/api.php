@@ -51,3 +51,4 @@ Route::post('edit-profile', [Authentication::class, 'editProfile'])->name('api.e
 
 Route::post('product-detail', [Homepage::class, 'productDetail'])->name('api.product-detail');
 Route::post('my-notification', [Notification::class, 'index'])->name('api.my-notification');
+Route::post('remove-notification', [Notification::class, 'deleteMyNotification'])->name('api.remove-notification');
