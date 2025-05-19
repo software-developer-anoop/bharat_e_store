@@ -121,6 +121,8 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
+        $customerCurrency = getUserCurrency($customer_id) ??'';
+
         // Get cart products for the customer
         $products = DB::table('cart')
             ->join('products', 'products.id', '=', 'cart.product_id')
@@ -159,8 +161,8 @@ class Cart extends Controller{
                 'subcategory_id'        => (string)$value->subcategory_id,
                 'product_name'          => (string)$value->product_name,
                 'product_color'         => (string)($value->product_colors ?? ''), // corrected to match DB field
-                'product_selling_price' => (string)$value->product_selling_price,
-                'product_cost_price'    => (string)$value->product_cost_price,
+                'product_selling_price' => $customerCurrency.(string)$value->product_selling_price,
+                'product_cost_price'    => $customerCurrency.(string)$value->product_cost_price,
                 'product_image'         => $firstImageUrl,
                 'product_quantity'      => (string)$value->quantity,
             ];
@@ -169,10 +171,74 @@ class Cart extends Controller{
         return response()->json([
             'status'    => true,
             'data'      => $returnData,
-            'subTotal'  => (string)$subTotal,
+            'subTotal'  => $customerCurrency.(string)$subTotal,
             'message'   => "API Accessed Successfully!"
         ]);
     }
 
+    public function applyCoupon(){
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        $coupon_id = trim($post['coupon_id']??'');
+        $subTotal = trim($post['subtotal']??'');
+
+        // Validate input
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+        }
+
+        if (empty($coupon_id)) {
+            return response()->json(['status' => false, 'message' => 'Coupon Id is blank']);
+        }
+
+        if (empty($subTotal)) {
+            return response()->json(['status' => false, 'message' => 'Subtotal is blank']);
+        }
+
+        // Validate customer
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+
+        if ($customer->profile_status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+
+        $customerCurrency = getUserCurrency($customer_id) ??'';
+        //Validate Coupon
+        $coupon = DB::table('coupons')->find($coupon_id);
+        if (!$coupon) {
+            return response()->json(['status' => false, 'message' => 'Coupon not found']);
+        }
+
+        if ($coupon->status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'This coupon is currently inactive']);
+        }
+
+        $checkAppliedCoupon = DB::table('coupon_history')->where(['customer_id'=>$customer_id,'coupon_id'=>$coupon_id])->first();
+
+        if ($checkAppliedCoupon) {
+            return response()->json(['status' => false, 'message' => 'Coupon already applied']);
+        }
+
+        $total = 0;
+        if($coupon->coupon_type == "Fixed"){
+            $total  = ($subTotal - (int)$coupon->coupon_value);
+        }else{
+            $discount = ($subTotal*$coupon->coupon_value)/100;
+            $total = $subTotal-$discount;
+        }
+
+
+        $saveData = [];
+        $saveData['coupon_id']=$coupon_id;
+        $saveData['customer_id']=$customer_id;
+        $saveData['subtotal']=$subTotal;
+        $saveData['total']=$total;
+
+        $coupon_history_id = DB::table('coupon_history')->insertGetId($saveData);
+        return response()->json(['status' => true, 'message' => 'Coupon Applied Successfully','total'=>$customerCurrency.(string)$total,'applied_coupon_id'=>(string)$coupon_history_id]);
+    }
 
 }
