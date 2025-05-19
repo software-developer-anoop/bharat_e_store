@@ -64,13 +64,13 @@ class Notification extends Controller
     public function deleteMyNotification(){
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
-        $product_id = trim($post['product_id']??'');
+        $notify_id = trim($post['notify_id']??'');
 
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
-        if (empty($product_id)) {
-            return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
+        if (empty($notify_id)) {
+            return response()->json(['status' => false, 'message' => 'Notification Id Is Blank']);
         }
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
