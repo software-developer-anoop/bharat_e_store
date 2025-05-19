@@ -48,8 +48,8 @@ class Notification extends Controller
                 'title'           => (string) $value->title,
                 'description'     => (string) $value->description,
                 'image'           => (string) $value->image,
-                'date'            => $value->created_at->format('Y-m-d'),
-                'time'            => $value->created_at->format('H:i'),
+                'date'            => Carbon::parse($value->created_at)->format('Y-m-d'),
+                'time'            => Carbon::parse($value->created_at)->format('H:i'),
             ];
         });
 
