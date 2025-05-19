@@ -176,11 +176,12 @@ class Cart extends Controller{
         ]);
     }
 
-    public function applyCoupon(){
+    public function applyCoupon()
+    {
         $post = checkPayload();
-        $customer_id = trim($post['customer_id']??'');
-        $coupon_id = trim($post['coupon_id']??'');
-        $subTotal = trim($post['subtotal']??'');
+        $customer_id = trim($post['customer_id'] ?? '');
+        $coupon_id   = trim($post['coupon_id'] ?? '');
+        $subTotal    = trim($post['subtotal'] ?? '');
 
         // Validate input
         if (empty($customer_id)) {
@@ -191,9 +192,11 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Coupon Id is blank']);
         }
 
-        if (empty($subTotal)) {
-            return response()->json(['status' => false, 'message' => 'Subtotal is blank']);
+        if (empty($subTotal) || !is_numeric($subTotal)) {
+            return response()->json(['status' => false, 'message' => 'Subtotal is blank or invalid']);
         }
+
+        $subTotal = (float) $subTotal;
 
         // Validate customer
         $customer = DB::table('customers')->find($customer_id);
@@ -205,8 +208,9 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
-        $customerCurrency = getUserCurrency($customer_id) ??'';
-        //Validate Coupon
+        $customerCurrency = getUserCurrency($customer_id) ?? '';
+
+        // Validate coupon
         $coupon = DB::table('coupons')->find($coupon_id);
         if (!$coupon) {
             return response()->json(['status' => false, 'message' => 'Coupon not found']);
@@ -216,29 +220,54 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'This coupon is currently inactive']);
         }
 
-        $checkAppliedCoupon = DB::table('coupon_history')->where(['customer_id'=>$customer_id,'coupon_id'=>$coupon_id])->first();
+        // Check if already applied
+        $checkApplied = DB::table('coupon_history')
+            ->where(['customer_id' => $customer_id, 'coupon_id' => $coupon_id])
+            ->first();
 
-        if ($checkAppliedCoupon) {
+        if ($checkApplied) {
             return response()->json(['status' => false, 'message' => 'Coupon already applied']);
         }
 
+        // Apply coupon logic
+        $discount = 0;
         $total = 0;
-        if($coupon->coupon_type == "Fixed"){
-            $total  = ($subTotal - (int)$coupon->coupon_value);
-        }else{
-            $discount = ($subTotal*$coupon->coupon_value)/100;
-            $total = $subTotal-$discount;
+
+        if ($coupon->coupon_type === "Fixed") {
+            $discount = (float) $coupon->coupon_value;
+            $total = $subTotal - $discount;
+        } else {
+            $discount = ($subTotal * $coupon->coupon_value) / 100;
+            $total = $subTotal - $discount;
         }
 
+        // Optional: prevent negative totals
+        $total = max($total, 0);
 
-        $saveData = [];
-        $saveData['coupon_id']=$coupon_id;
-        $saveData['customer_id']=$customer_id;
-        $saveData['subtotal']=$subTotal;
-        $saveData['total']=$total;
+        // Optional: round values to 2 decimal places
+        $discount = round($discount, 2);
+        $total = round($total, 2);
+
+        // Save history
+        $saveData = [
+            'coupon_id'  => $coupon_id,
+            'customer_id'=> $customer_id,
+            'subtotal'   => $subTotal,
+            'total'      => $total,
+            'discount'   => $discount,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
 
         $coupon_history_id = DB::table('coupon_history')->insertGetId($saveData);
-        return response()->json(['status' => true, 'message' => 'Coupon Applied Successfully','total'=>$customerCurrency.(string)$total,'applied_coupon_id'=>(string)$coupon_history_id]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Coupon Applied Successfully',
+            'total' => $customerCurrency . (string)$total,
+            'applied_coupon_id' => (string)$coupon_history_id
+        ]);
     }
+
 
 }
