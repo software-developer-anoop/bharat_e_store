@@ -269,5 +269,53 @@ class Cart extends Controller{
         ]);
     }
 
+    public function removeCoupon()
+    {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id'] ?? '');
+        $applied_coupon_id = trim($post['applied_coupon_id'] ?? '');
+
+        // Validate input
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+        }
+
+        if (empty($applied_coupon_id)) {
+            return response()->json(['status' => false, 'message' => 'Applied Coupon ID is blank']);
+        }
+
+        // Validate customer
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+
+        if ($customer->profile_status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+
+        // Fetch the coupon history record
+        $applied = DB::table('coupon_history')
+            ->where('id', $applied_coupon_id)
+            ->where('customer_id', $customer_id)
+            ->first();
+
+        if (!$applied) {
+            return response()->json(['status' => false, 'message' => 'No applied coupon found']);
+        }
+
+        // Delete the coupon history record
+        DB::table('coupon_history')->where('id', $applied_coupon_id)->delete();
+
+        $customerCurrency = getUserCurrency($customer_id) ?? '';
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Coupon removed successfully',
+            'total' => $customerCurrency . (string)round((float)$applied->subtotal, 2)
+        ]);
+    }
+
+
 
 }
