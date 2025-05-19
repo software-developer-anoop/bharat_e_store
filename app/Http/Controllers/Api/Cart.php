@@ -143,30 +143,36 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
 
-        // Build response
+        $subTotal = 0;
         $returnData = [];
+
         foreach ($products as $value) {
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images) && isset($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
 
+            $itemTotal = $value->product_selling_price * $value->quantity;
+            $subTotal += $itemTotal;
+
             $returnData[] = [
-                'product_id' => (string)$value->product_id,
-                'category_id' => (string)$value->category_id,
-                'subcategory_id' => (string)$value->subcategory_id,
-                'product_name' => (string)$value->product_name,
-                'product_color' => (string)($value->product_color ?? ''),
+                'product_id'            => (string)$value->product_id,
+                'category_id'           => (string)$value->category_id,
+                'subcategory_id'        => (string)$value->subcategory_id,
+                'product_name'          => (string)$value->product_name,
+                'product_color'         => (string)($value->product_colors ?? ''), // corrected to match DB field
                 'product_selling_price' => (string)$value->product_selling_price,
-                'product_cost_price' => (string)$value->product_cost_price,
-                'product_image' => $firstImageUrl,
-                'product_quantity'=>(string)$value->quantity,
+                'product_cost_price'    => (string)$value->product_cost_price,
+                'product_image'         => $firstImageUrl,
+                'product_quantity'      => (string)$value->quantity,
             ];
         }
 
         return response()->json([
-            'status' => true,
-            'data' => $returnData,
-            'message' => "API Accessed Successfully!"
+            'status'    => true,
+            'data'      => $returnData,
+            'subTotal'  => (string)$subTotal,
+            'message'   => "API Accessed Successfully!"
         ]);
     }
+
 
 }

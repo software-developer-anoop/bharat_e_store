@@ -31,7 +31,7 @@ class Notification extends Controller
 
         $notificationList = DB::table('push_notifications')
             ->where('customer_id', $customer_id)
-            ->select('id', 'notification_id', 'customer_id', 'title', 'description', 'image')
+            ->select('id', 'notification_id', 'customer_id', 'title', 'description', 'image','created_at')
             ->offset($offset)
             ->limit($per_page_limit)
             ->get();
@@ -42,12 +42,14 @@ class Notification extends Controller
 
         $returnData = $notificationList->map(function ($value) {
             return [
-                'notify_id'      => (string) $value->id,
-                'customer_id'    => (string) $value->customer_id,
-                'notification_id'=> (string) $value->notification_id,
-                'title'          => (string) $value->title,
-                'description'    => (string) $value->description,
-                'image'          => (string) $value->image,
+                'notify_id'       => (string) $value->id,
+                'customer_id'     => (string) $value->customer_id,
+                'notification_id' => (string) $value->notification_id,
+                'title'           => (string) $value->title,
+                'description'     => (string) $value->description,
+                'image'           => (string) $value->image,
+                'date'            => $value->created_at->format('Y-m-d'),
+                'time'            => $value->created_at->format('H:i'),
             ];
         });
 
@@ -56,6 +58,35 @@ class Notification extends Controller
             'message' => 'API accessed successfully!',
             'data'    => $returnData
         ]);
+    }
+
+    public function deleteMyNotification(){
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        $product_id = trim($post['product_id']??'');
+
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
+        }
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
+        }
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+        if ($customer->profile_status == "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+        $notification = DB::table('push_notifications')->find($notify_id);
+        if (!$notification) {
+            return response()->json(['status' => false, 'message' => 'Notification not found']);
+        }
+        $where=[];
+        $where['customer_id']=$customer_id;
+        $where['id']=$notify_id;
+        DB::table('push_notifications')->where($where)->delete();
+        return response()->json(['status' => true, 'message' => 'Notification Deleted Successfully']);
     }
 
 }

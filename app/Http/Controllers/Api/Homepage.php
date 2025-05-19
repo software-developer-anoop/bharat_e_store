@@ -160,7 +160,18 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
         $offset = ($page_no - 1) * $per_page_limit;
-        $referralHistory = DB::table('referral_history')->join('customers', 'referral_history.referral_customer_id', '=', 'customers.id')->where('referral_history.referral_customer_id', $customer_id)->select('referral_history.id as referral_id', 'customers.customer_name', 'referral_history.points')->limit($per_page_limit)->offset($offset)->get();
+        $referralHistory = DB::table('referral_history')
+            ->join('customers', 'referral_history.referral_customer_id', '=', 'customers.id')
+            ->where('referral_history.referral_customer_id', $customer_id)
+            ->select(
+                'referral_history.id as referral_id',
+                'customers.customer_name',
+                'referral_history.points'
+            )
+            ->offset($offset)
+            ->limit($per_page_limit)
+            ->get();
+
         if ($referralHistory->isEmpty()) {
             return response()->json(['status' => false, 'message' => "No records found", ]);
         }
