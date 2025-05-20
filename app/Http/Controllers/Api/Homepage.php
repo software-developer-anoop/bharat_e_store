@@ -377,4 +377,22 @@ class Homepage extends Controller {
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
+    public function helpSupport(){
+        checkHeaders();
+        $response = [];
+        $record = DB::table('websetting')->select('email','mobile_number')->first();
+        if (empty($record)) {
+            $response['status'] = false;
+            $response['message'] = "No Records Found";
+            return response()->json($response);
+        }
+        $returnData = [];
+        $returnData['email']=(string)$record->email;
+        $returnData['mobile_number']=(string)$record->mobile_number;
+        
+        $response['status'] = true;
+        $response['message'] = "API Accessed Successfully";
+        $response['data'] = $returnData;
+        return response()->json($response);
+    }
 }

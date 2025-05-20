@@ -36,6 +36,7 @@ Route::post('subcategory-products', [Homepage::class, 'subCategoryProducts'])->n
 Route::post('referral-history', [Homepage::class, 'referralHistory'])->name('api.referral-history');
 Route::post('search', [Homepage::class, 'search'])->name('api.search');
 Route::post('product-detail', [Homepage::class, 'productDetail'])->name('api.product-detail');
+Route::get('help-support', [Homepage::class, 'helpSupport'])->name('api.help-support');
 //Wishlist
 Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
