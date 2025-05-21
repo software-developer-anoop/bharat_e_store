@@ -167,7 +167,7 @@
               <div class="media mx-auto">
                 <img src="{{Auth::user()->profile_image?asset('uploads/'.Auth::user()->profile_image):''}}" class="img-fluid mr-2" alt="avatar">
                 <div class="media-body">
-                  <h5>{{$userData->name??''}}</h5>
+                  <h5>{{Auth::user()->name??''}}</h5>
                   <p>Owner</p>
                 </div>
               </div>
