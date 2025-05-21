@@ -23,6 +23,43 @@
           </div>
         </a>
       </li>
+      @php
+      $menus = [
+      '1' => 'Country Master',
+      '2' => 'State Master',
+      '3' => 'City Master',
+      '4' => 'Address Master',
+      '5' => 'CMS Pages Master',
+      '6' => 'Customer Master',
+      '7' => 'User Master',
+      '8' => 'Category Master',
+      '9' => 'Subcategory Master',
+      '10' => 'Product Master',
+      '11' => 'Coupon Master',
+      '12' => 'Notification Master',
+      '13' => 'Orders',
+      '14' => 'Settings',
+      '15' => 'Assign Menu'
+      ];
+      $user = Auth::user();
+      // Check if user is super admin (adjust to your logic)
+      $isSuperAdmin = $user->role === 'super_admin'; // or $user->is_super_admin == 1;
+      if ($isSuperAdmin) {
+      $assignedMenuIds = array_keys($menus);
+      } else {
+      // Get assigned_menus string and convert to array
+      $assignedMenuString = DB::table('users')->where('id', $user->id)->value('assigned_menus');
+      $assignedMenuIds = $assignedMenuString
+      ? array_map('trim', explode(',', $assignedMenuString))
+      : [];
+      }
+      @endphp
+      @if (
+      in_array('1', $assignedMenuIds) ||
+      in_array('2', $assignedMenuIds) ||
+      in_array('3', $assignedMenuIds) ||
+      in_array('4', $assignedMenuIds)
+      )
       <li class="menu menu-heading">
         <div class="heading">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle">
@@ -31,7 +68,8 @@
           <span>Location Masters</span>
         </div>
       </li>
-      
+      @endif
+      @if (in_array('1', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/country-list','admin/add-country') ? 'active' : '' }}">
         <a href="#country" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -56,6 +94,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('2', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/state-list','admin/add-state') ? 'active' : '' }}">
         <a href="#state" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -80,6 +120,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('3', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/city-list','admin/add-city') ? 'active' : '' }}">
         <a href="#city" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -104,6 +146,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('4', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/address-list','admin/add-address') ? 'active' : '' }}">
         <a href="#address" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -128,6 +172,17 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if(
+      in_array('5', $assignedMenuIds) ||
+      in_array('6', $assignedMenuIds) ||
+      in_array('7', $assignedMenuIds) ||
+      in_array('8', $assignedMenuIds) ||
+      in_array('9', $assignedMenuIds) ||
+      in_array('10', $assignedMenuIds) ||
+      in_array('11', $assignedMenuIds) ||
+      in_array('12', $assignedMenuIds) 
+      )
       <li class="menu menu-heading">
         <div class="heading">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle">
@@ -136,6 +191,8 @@
           <span>Other Masters</span>
         </div>
       </li>
+      @endif
+      @if (in_array('5', $assignedMenuIds))
       <li class="menu">
         <a href="#cmspage" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -160,6 +217,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('6', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/customer-list','admin/add-customer') ? 'active' : '' }}">
         <a href="#customer" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -184,6 +243,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('7', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/user-list','admin/add-user') ? 'active' : '' }}">
         <a href="#user" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -208,6 +269,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('8', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/category-list','admin/add-category') ? 'active' : '' }}">
         <a href="#category" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -232,6 +295,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('9', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/subcategory-list','admin/add-subcategory') ? 'active' : '' }}">
         <a href="#subcategory" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -256,6 +321,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('10', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/product-list','admin/add-product') ? 'active' : '' }}">
         <a href="#product" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -280,17 +347,8 @@
           </li>
         </ul>
       </li>
-      <!-- <li class="menu active">
-        <a href="{{route('admin.getEnquiries')}}" aria-expanded="true" class="dropdown-toggle">
-          <div class="">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <span>Enquiries</span>
-          </div>
-        </a>
-        </li> -->
+      @endif
+      @if (in_array('11', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/coupon-list','admin/add-coupon') ? 'active' : '' }}">
         <a href="#coupon" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -315,6 +373,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('12', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/notification-list','admin/add-notification') ? 'active' : '' }}">
         <a href="#notification" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -339,6 +399,12 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if(
+      in_array('13', $assignedMenuIds) ||
+      in_array('14', $assignedMenuIds) ||
+      in_array('15', $assignedMenuIds) 
+      )
       <li class="menu menu-heading">
         <div class="heading">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-circle">
@@ -347,6 +413,8 @@
           <span>Others</span>
         </div>
       </li>
+      @endif
+      @if (in_array('13', $assignedMenuIds))
       <li class="menu">
         <a href="#orders" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -374,6 +442,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('14', $assignedMenuIds))
       <li class="menu {{ request()->is('admin/web-setting') ? 'active' : '' }}">
         <a href="#settings" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
           <div class="">
@@ -398,6 +468,8 @@
           </li>
         </ul>
       </li>
+      @endif
+      @if (in_array('15', $assignedMenuIds))
       <li class="menu{{ request()->is('/admin/assign-menu') ? 'active' : '' }}">
         <a href="{{route('admin.assign-menu')}}" aria-expanded="true" class="dropdown-toggle">
           <div class="">
@@ -409,6 +481,7 @@
           </div>
         </a>
       </li>
+      @endif
     </ul>
   </nav>
 </div>

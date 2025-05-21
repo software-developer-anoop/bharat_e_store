@@ -105,6 +105,7 @@ Route::post('/getSubcategory', [Ajax::class, 'getSubcategory'])->name('admin.get
 Route::post('/manageInventory', [Ajax::class, 'manageInventory'])->name('admin.manageInventory');
 Route::post('/setIsTrendingHotDeal', [Ajax::class, 'setIsTrendingHotDeal'])->name('admin.setIsTrendingHotDeal');
 Route::get('/logout', [Authentication::class, 'logout'])->name('admin.logout');
+Route::post('/assignmenu', [Ajax::class, 'assignMenu'])->name('admin.assignmenu');
 });
 
 //Frontend Routes

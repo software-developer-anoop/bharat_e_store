@@ -24,7 +24,7 @@
     <script src="{{asset('assets/backend/plugins/dropify/dropify.min.js')}}"></script>
     <script src="{{asset('assets/backend/plugins/blockui/jquery.blockUI.min.js')}}"></script>
     <script src="{{asset('assets/backend/plugins/flatpickr/flatpickr.js')}}"></script>
-    <script src="{{asset('assets/backend/assets/js/users/account-settings.js')}}"></script>
+    <script src="{{asset('assets/backend/assets/js/admins/account-settings.js')}}"></script>
     <script src="{{asset('assets/backend/common.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -322,5 +322,74 @@ function broadCastNotification(id) {
     });
 }
 
+function viewAssigned(id) {
+    if (id == "0") {
+        window.location.href = "{{ route('admin.assign-menu') }}";
+    } else {
+        window.location.href = "{{ url('admin/assign-menu') }}?id=" + id;
+    }
+}
 </script>
+
+<script>
+$(document).ready(function () {
+    const admin = $("#admin").val();
+
+    // Handle Select All checkbox
+    $("#readcheckAll").off('change').on('change', function () {
+        if (admin == "0") {
+            toastr.error("Please Select An Admin");
+            $(this).prop("checked", false);
+            return;
+        }
+
+        $(".read-checkbox").prop('checked', $(this).prop('checked'));
+        updateAssignedMenus();
+    });
+
+    // Handle individual checkbox changes
+    $(".read-checkbox").off('change').on('change', function () {
+        if (admin == "0") {
+            toastr.error("Please Select An Admin");
+            $(this).prop("checked", false);
+            return;
+        }
+
+        if (!$(this).prop("checked")) {
+            $("#readcheckAll").prop("checked", false);
+        }
+
+        updateAssignedMenus();
+    });
+
+    // Function to send AJAX update
+    function updateAssignedMenus() {
+        const menus = $(".read-checkbox:checked").map(function () {
+            return $(this).val();
+        }).get();
+
+        $.ajax({
+            url: "{{ route('admin.assignmenu') }}",
+            type: "POST",
+            data: {
+                admin: admin,
+                menus: menus,
+                _token: '{{ csrf_token() }}'
+            },
+            dataType: 'json',
+            success: function (response) {
+                Snackbar.show({
+                    text: response.message,
+                    pos: 'top-right',
+                    actionTextColor: '#fff',
+                    backgroundColor: response.status ? '#8dbf42' : '#e7515a'
+                });
+            }
+        });
+    }
+});
+
+
+</script>
+
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->

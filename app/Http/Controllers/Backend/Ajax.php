@@ -134,7 +134,45 @@ class Ajax extends Controller
 
         return response()->json(['status' => true, 'msg' => $msg]);
     }
+  
+    public function assignMenu(Request $request)
+    {
+        if (!$request->isMethod('post')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid request method.'
+            ]);
+        }
 
+        $adminId = $request->input('admin');
+
+        if (empty($adminId)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please choose an admin.'
+            ]);
+        }
+
+        $assignedMenus = $request->input('menus', []);
+        $menuString = !empty($assignedMenus) ? implode(',', $assignedMenus) : null;
+
+        $updated = DB::table('users')
+            ->where('id', $adminId)
+            ->update(['assigned_menus' => $menuString]);
+
+        if ($updated) {
+            $status = $menuString ? 'assigned' : 'unassigned';
+            return response()->json([
+                'status' => true,
+                'message' => "Menus {$status} successfully."
+            ]);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Failed to update menus.'
+        ]);
+    }
 
 
 }
