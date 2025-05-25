@@ -34,6 +34,12 @@
               </div>
               <div class="col-lg-3 col-12">
                 <div class="form-group">
+                  <label for="whatsapp_number">Whatsapp Number</label>
+                  <input id="whatsapp_number" type="tel" name="whatsapp_number" placeholder="Whatsapp Number" class="form-control numbersWithZeroOnlyInput" maxlength="10" minlength="10" autocomplete="off" required value="{{$web->whatsapp_number??''}}">
+                </div>
+              </div>
+              <div class="col-lg-3 col-12">
+                <div class="form-group">
                   <label for="email">Email</label>
                   <input id="email" type="email" name="email" placeholder="Email" class="form-control emailInput" autocomplete="off" required value="{{$web->email??''}}">
                 </div>
@@ -68,6 +74,7 @@
                   <input id="address" type="text" name="address" placeholder="Full Address" class="form-control" required value="{{$web->address??''}}">
                 </div>
               </div>
+              </div>
               <!-- <div class="col-lg-12 col-12">
                 <div class="form-group">
                   <label for="meta_title">Meta Title</label>
@@ -86,6 +93,7 @@
                   <textarea id="meta_keyword" name="meta_keyword" placeholder="Meta Keywords" class="form-control" required>{{$web->meta_keyword??''}}</textarea>
                 </div>
               </div> -->
+              <div class="row">
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="logo">Logo</label>

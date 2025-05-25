@@ -19,7 +19,7 @@ class Websetting extends Controller
         $saveData['site_name'] = $data['site_name']?trim($data['site_name']):'';
         $saveData['mobile_number'] = $data['mobile_number']?trim($data['mobile_number']):'';
         $saveData['email'] = $data['email']?trim($data['email']):'';
-        // $saveData['facebook_link'] = $data['facebook_link']?trim($data['facebook_link']):'';
+        $saveData['whatsapp_number'] = $data['whatsapp_number']?trim($data['whatsapp_number']):'';
         // $saveData['twitter_link'] = $data['twitter_link']?trim($data['twitter_link']):'';
         // $saveData['instagram_link'] = $data['instagram_link']?trim($data['instagram_link']):'';
         // $saveData['linkedin_link'] = $data['linkedin_link']?trim($data['linkedin_link']):'';
