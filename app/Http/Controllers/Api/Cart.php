@@ -137,7 +137,8 @@ class Cart extends Controller{
                 'products.product_colors',
                 'products.product_selling_price',
                 'products.product_cost_price',
-                'cart.quantity'
+                'cart.quantity',
+                'cart.id as cart_id'
             )
             ->get();
 
@@ -156,6 +157,7 @@ class Cart extends Controller{
             $subTotal += $itemTotal;
 
             $returnData[] = [
+                'cart_id'            => (string)$value->cart_id,
                 'product_id'            => (string)$value->product_id,
                 'category_id'           => (string)$value->category_id,
                 'subcategory_id'        => (string)$value->subcategory_id,
