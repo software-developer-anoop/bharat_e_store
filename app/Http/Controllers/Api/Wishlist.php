@@ -54,7 +54,7 @@ class Wishlist extends Controller
         }
         $products = DB::table('products')
                 ->join('wishlist', 'products.id', '=', 'wishlist.product_id')
-                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image',)
+                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image','products.added_to_wishlist as added_to_wishlist')
                 ->get();
         if (empty($products)) {
             $response['status'] = false;
@@ -75,6 +75,7 @@ class Wishlist extends Controller
             $return['product_name'] = (string)$value->product_name;
             $return['product_rating'] = (string)$value->product_rating;
             $return['product_image'] = $firstImageUrl;
+            $return['added_to_wishlist'] = (boolean)$value->added_to_wishlist;
             array_push($returnData, $return);
         }
         $response['status'] = true;

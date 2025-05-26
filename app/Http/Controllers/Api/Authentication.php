@@ -224,13 +224,13 @@ class Authentication extends Controller {
         DB::table('customers')->where('id', $customer_id)->update(['fcm_token' => '', 'device_id' => '']);
         return response()->json(['status' => true, 'message' => 'Logout Successfully']);
     }
-    public function editProfile(Request $request){
+    public function editProfile(Request $request)
+    {
         // Reusable request validation
         if ($error = validateApiRequest($request)) {
             return $error;
         }
 
-        // Proceed with normal logic
         $customer_id = $request->input('customer_id');
         $customer_name = $request->input('customer_name');
         $customer_email = $request->input('customer_email');
@@ -240,6 +240,27 @@ class Authentication extends Controller {
         $old_customer_profile_image = $request->input('old_customer_profile_image');
         $customer_profile_image = $request->file('customer_profile_image');
 
+        // Basic input validation
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
+        }
+        if (empty($customer_name)) {
+            return response()->json(['status' => false, 'message' => 'Customer Name Is Blank']);
+        }
+        if (empty($customer_email)) {
+            return response()->json(['status' => false, 'message' => 'Customer Email Is Blank']);
+        }
+        if (empty($customer_phone)) {
+            return response()->json(['status' => false, 'message' => 'Customer Phone Is Blank']);
+        }
+        if (empty($customer_address)) {
+            return response()->json(['status' => false, 'message' => 'Customer Address Is Blank']);
+        }
+        if (empty($customer_gender)) {
+            return response()->json(['status' => false, 'message' => 'Customer Gender Is Blank']);
+        }
+
+        // Fetch customer
         $customer = DB::table('customers')->where('id', $customer_id)->first();
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
@@ -249,6 +270,26 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
+        // Duplication check
+        $emailExists = DB::table('customers')
+            ->where('customer_email', $customer_email)
+            ->where('id', '!=', $customer_id)
+            ->exists();
+
+        if ($emailExists) {
+            return response()->json(['status' => false, 'message' => 'Email already in use by another customer']);
+        }
+
+        $phoneExists = DB::table('customers')
+            ->where('customer_phone', $customer_phone)
+            ->where('id', '!=', $customer_id)
+            ->exists();
+
+        if ($phoneExists) {
+            return response()->json(['status' => false, 'message' => 'Phone number already in use by another customer']);
+        }
+
+        // Prepare update data
         $updateData = [
             'customer_name' => $customer_name,
             'customer_email' => $customer_email,
@@ -268,13 +309,27 @@ class Authentication extends Controller {
             $updateData['customer_profile_image'] = $filename;
         }
 
+        // Update customer
         $updated = DB::table('customers')->where('id', $customer_id)->update($updateData);
+        $updatedCustomer = DB::table('customers')->where('id', $customer_id)->first(); 
+
+        $returnData = [
+            'customer_id' => (string) $updatedCustomer->id,
+            'customer_name' => (string) $updatedCustomer->customer_name,
+            'customer_email' => (string) $updatedCustomer->customer_email,
+            'customer_phone' => (string) $updatedCustomer->customer_phone,
+            'customer_address' => (string) $updatedCustomer->customer_address,
+            'customer_gender' => (string) $updatedCustomer->customer_gender,
+            'customer_profile_image' => (string) $updatedCustomer->customer_profile_image,
+        ];
 
         return response()->json([
             'status' => $updated ? true : false,
+            'data' => $returnData,
             'message' => $updated ? 'Profile Updated Successfully' : 'Something Went Wrong'
         ]);
     }
+
 
 
 }
