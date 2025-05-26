@@ -150,7 +150,7 @@ class Homepage extends Controller {
         $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
         $page_no = intval($post['page_no']??1); // Default to 1
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => "Customer ID is blank", ]);
+            return response()->json(['status' => false, 'message' => "Customer ID Is Blank", ]);
         }
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
@@ -188,7 +188,7 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => "Product ID is blank", ]);
         }
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => "Customer ID is blank", ]);
+            return response()->json(['status' => false, 'message' => "Customer ID Is Blank", ]);
         }
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
@@ -380,7 +380,7 @@ class Homepage extends Controller {
     public function helpSupport(){
         checkHeaders();
         $response = [];
-        $record = DB::table('websetting')->select('email','mobile_number')->first();
+        $record = DB::table('websetting')->select('email','mobile_number','whatsapp_number')->first();
         if (empty($record)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -389,6 +389,7 @@ class Homepage extends Controller {
         $returnData = [];
         $returnData['email']=(string)$record->email;
         $returnData['mobile_number']=(string)$record->mobile_number;
+        $returnData['whatsapp_number']=(string)$record->whatsapp_number;
         
         $response['status'] = true;
         $response['message'] = "API Accessed Successfully";

@@ -64,7 +64,7 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'Please enter a four-digit OTP']);
         }
         if (!$customerId) {
-            return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+            return response()->json(['status' => false, 'message' => 'Customer ID Is Blank']);
         }
         if (!$deviceId) {
             return response()->json(['status' => false, 'message' => 'Device ID is blank']);

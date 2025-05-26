@@ -16,7 +16,7 @@ class Address extends Controller
         if (empty($customer_id)) {
             return response()->json([
                 'status' => false,
-                'message' => "Customer ID is blank",
+                'message' => "Customer ID Is Blank",
             ]);
         }
 
@@ -70,7 +70,7 @@ class Address extends Controller
         if (empty($customer_id)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Customer ID is required',
+                'message' => 'Customer ID Is Required',
             ]);
         }
 

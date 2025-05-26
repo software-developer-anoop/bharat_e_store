@@ -66,7 +66,7 @@ class Cart extends Controller{
 
         // Basic validation
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
 
         if (empty($cart_id)) {
@@ -108,7 +108,7 @@ class Cart extends Controller{
 
         // Validate input
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
 
         // Validate customer
@@ -187,7 +187,7 @@ class Cart extends Controller{
 
         // Validate input
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
 
         if (empty($coupon_id)) {
@@ -279,7 +279,7 @@ class Cart extends Controller{
 
         // Validate input
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
 
         if (empty($applied_coupon_id)) {

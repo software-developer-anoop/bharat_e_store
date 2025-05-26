@@ -16,7 +16,7 @@ class Notification extends Controller
         $page_no = intval($post['page_no'] ?? 1); // Default to 1
 
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id is blank']);
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
 
         $customer = DB::table('customers')->where('id', $customer_id)->first();
