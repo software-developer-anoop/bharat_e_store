@@ -120,29 +120,105 @@ class Homepage extends Controller {
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
-    public function search() {
+    public function search()
+    {
         $post = checkPayload();
-        $keyword = trim($post['keyword']??'');
+        $keyword = trim($post['keyword'] ?? '');
+
         if (empty($keyword)) {
-            return response()->json(['status' => false, 'message' => "Keyword is blank"]);
+            return response()->json(['status' => false, 'message' => "Keyword is required"]);
         }
-        $products = DB::table('products')->leftJoin('categories', 'products.category_id', '=', 'categories.id')->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')->where(function ($query) use ($keyword) {
-            $query->where('products.product_name', 'like', "%{$keyword}%")->orWhere('products.product_description', 'like', "%{$keyword}%")->orWhere('categories.category_name', 'like', "%{$keyword}%")->orWhere('subcategories.subcategory_name', 'like', "%{$keyword}%");
-        })->select('products.*', 'categories.category_name as category_name', 'subcategories.subcategory_name as subcategory_name')->get();
-        if ($products->isEmpty()) {
-            return response()->json(['status' => false, 'message' => "No record found"]);
+
+        // Search Products
+        $products = DB::table('products')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
+            ->where(function ($query) use ($keyword) {
+                $query->where('products.product_name', 'like', "%{$keyword}%")
+                    ->orWhere('products.product_description', 'like', "%{$keyword}%")
+                    ->orWhere('categories.category_name', 'like', "%{$keyword}%")
+                    ->orWhere('subcategories.subcategory_name', 'like', "%{$keyword}%");
+            })
+            ->select(
+                'products.id',
+                'products.product_name',
+                'products.product_rating',
+                'products.product_image',
+                'products.category_id',
+                'products.subcategory_id',
+                'categories.category_name',
+                'subcategories.subcategory_name'
+            )
+            ->get();
+
+        // Search Categories
+        $categories = DB::table('categories')
+            ->where('category_name', 'like', "%{$keyword}%")
+            ->select('id', 'category_name')
+            ->get();
+
+        if ($products->isEmpty() && $categories->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No matching records found"]);
         }
-        $returnData = [];
-        foreach ($products as $product) {
-            $return['product_id'] = (string)$product->id;
-            $return['category_id'] = (string)$product->category_id;
-            $return['subcategory_id'] = (string)$product->subcategory_id;
-            $return['product_name'] = (string)$product->product_name;
-            $return['product_rating'] = (string)$product->product_rating;
-            $return['product_image'] = url('uploads/' . $product->product_image);
-            array_push($returnData, $return);
-        }
-        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API accessed successfully!"]);
+
+        $productData = $products->map(function ($product) {
+            return [
+                'type'             => 'product',
+                'product_id'       => (string) $product->id,
+                'product_name'     => (string) $product->product_name,
+                'product_rating'   => (string) $product->product_rating,
+                'product_image'    => url('uploads/' . $product->product_image),
+                'category_id'      => (string) $product->category_id,
+                'subcategory_id'   => (string) $product->subcategory_id,
+                'category_name'    => (string) $product->category_name,
+                'subcategory_name' => (string) $product->subcategory_name,
+            ];
+        });
+
+        $categoryData = $categories->map(function ($category) {
+            return [
+                'type'          => 'category',
+                'category_id'   => (string) $category->id,
+                'category_name' => (string) $category->category_name,
+            ];
+        });
+
+        // Suggestions for autocomplete (limit to unique 10 max)
+        $suggestions = collect();
+
+        // From product names
+        $suggestions = $suggestions->merge(
+            $products->pluck('product_name')
+        );
+
+        // From category names
+        $suggestions = $suggestions->merge(
+            $categories->pluck('category_name')
+        );
+
+        // From matched category names in products
+        $suggestions = $suggestions->merge(
+            $products->pluck('category_name')
+        );
+
+        // From matched subcategory names in products
+        $suggestions = $suggestions->merge(
+            $products->pluck('subcategory_name')
+        );
+
+        // Filter unique & remove nulls
+        $suggestions = $suggestions
+            ->filter()
+            ->unique()
+            ->values()
+            ->take(10);
+
+        return response()->json([
+            'status'      => true,
+            'message'     => 'Search results found',
+            'data'        => $productData->merge($categoryData)->values(),
+            'suggestions' => $suggestions
+        ]);
     }
     public function referralHistory() {
         $post = checkPayload();
