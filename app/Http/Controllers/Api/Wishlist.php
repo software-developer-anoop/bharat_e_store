@@ -53,14 +53,16 @@ class Wishlist extends Controller
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
         $products = DB::table('products')
-                ->join('wishlist', 'products.id', '=', 'wishlist.product_id')
-                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image','products.added_to_wishlist as added_to_wishlist')
+                ->leftJoin('wishlist', 'products.id', '=', 'wishlist.product_id')
+                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image','products.added_to_wishlist as added_to_wishlist','products.product_selling_price as product_selling_price','products.product_cost_price as product_cost_price','categories.category_name as category_name')
                 ->get();
         if (empty($products)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
             return response()->json($response);
         }
+        $customerCurrency = getUserCurrency($customer_id);
         $returnData = [];
         foreach ($products as $key => $value) {
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
@@ -76,6 +78,9 @@ class Wishlist extends Controller
             $return['product_rating'] = (string)$value->product_rating;
             $return['product_image'] = $firstImageUrl;
             $return['added_to_wishlist'] = (boolean)$value->added_to_wishlist;
+            $return['product_selling_price'] = $customerCurrency . (string)$value->product_selling_price;
+            $return['product_cost_price'] = $customerCurrency . (string)$value->product_cost_price;
+            $return['category_name'] = (string)$value->category_name;
             array_push($returnData, $return);
         }
         $response['status'] = true;
