@@ -13,6 +13,8 @@ class Cart extends Controller{
         $post = checkPayload();
         $customer_id = trim($post['customer_id'] ?? '');
         $product_id = trim($post['product_id'] ?? '');
+        $size = trim($post['size'] ?? '');
+        $color = trim($post['color'] ?? '');
 
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
@@ -20,6 +22,14 @@ class Cart extends Controller{
 
         if (empty($product_id)) {
             return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
+        }
+
+        if (empty($size)) {
+            return response()->json(['status' => false, 'message' => 'Product Size Is Blank']);
+        }
+
+        if (empty($color)) {
+            return response()->json(['status' => false, 'message' => 'Product Color Is Blank']);
         }
 
         // Validate customer
@@ -47,6 +57,8 @@ class Cart extends Controller{
             DB::table('cart')->insert([
                 'customer_id' => $customer_id,
                 'product_id' => $product_id,
+                'size' => $size,
+                'color' => $color,
                 'quantity' => 1,
                 'created_at' => Carbon::now(),
             ]);

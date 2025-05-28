@@ -292,8 +292,12 @@ class Homepage extends Controller {
         $returnData['subcategory_name'] = (string)$product->subcategory_name;
         $returnData['product_name'] = (string)$product->product_name;
         $returnData['product_description'] = (string)$product->product_description;
-        $returnData['product_size'] = (string)$product->product_size;
-        $returnData['product_colors'] = (string)$product->product_colors;
+        $returnData['product_size'] = !empty($product->product_size)
+        ? array_map('trim', explode(',', $product->product_size))
+        : [];;
+        $returnData['product_colors'] = !empty($product->product_colors)
+        ? array_map('trim', explode(',', $product->product_colors))
+        : [];
         $returnData['product_image'] = (string)(url('uploads/' . $product->product_image));
         $returnData['product_selling_price'] = $customerCurrency . (string)$product->product_selling_price;
         $returnData['product_cost_price'] = $customerCurrency . (string)$product->product_cost_price;
