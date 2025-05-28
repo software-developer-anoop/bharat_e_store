@@ -62,7 +62,7 @@ class Wishlist extends Controller
         $products = DB::table('products')
                 ->leftJoin('wishlist', 'products.id', '=', 'wishlist.product_id')
                 ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image','products.added_to_wishlist as added_to_wishlist','products.product_selling_price as product_selling_price','products.product_cost_price as product_cost_price','categories.category_name as category_name')
+                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image','products.added_to_wishlist as added_to_wishlist','products.product_selling_price as product_selling_price','products.product_cost_price as product_cost_price','categories.category_name as category_name','wishlist.id as wishlist_id')
                 ->get();
         if (empty($products)) {
             $response['status'] = false;
@@ -78,6 +78,7 @@ class Wishlist extends Controller
             if (!empty($images) && isset($images[0]['image'])) {
                 $firstImageUrl = url('uploads/' . $images[0]['image']);
             }
+            $return['wishlist_id'] = (string)$value->wishlist_id;
             $return['product_id'] = (string)$value->product_id;
             $return['category_id'] = (string)$value->category_id;
             $return['subcategory_id'] = (string)$value->subcategory_id;
@@ -97,31 +98,22 @@ class Wishlist extends Controller
     }
     public function removeFromWishlist(){
         $post = checkPayload();
-        $customer_id = trim($post['customer_id']??'');
-        $product_id = trim($post['product_id']??'');
+        $wishlist_id = trim($post['wishlist_id']??'');
+        
 
-        if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
+        if (empty($wishlist_id)) {
+            return response()->json(['status' => false, 'message' => 'Wishlist Id Is Blank']);
         }
-        if (empty($product_id)) {
-            return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
-        }
-        $customer = DB::table('customers')->find($customer_id);
-        if (!$customer) {
-            return response()->json(['status' => false, 'message' => 'Customer not found']);
-        }
-        if ($customer->profile_status == "Inactive") {
-            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
-        }
-        $product = DB::table('products')->find($product_id);
+        
+        $product = DB::table('wishlist')->find($wishlist_id);
         if (!$product) {
-            return response()->json(['status' => false, 'message' => 'Product not found']);
+            return response()->json(['status' => false, 'message' => 'Product not found in wishlist']);
         }
         $where=[];
-        $where['customer_id']=$customer_id;
-        $where['product_id']=$product_id;
+        $where['id']=$wishlist_id;
+
         DB::table('wishlist')->where($where)->delete();
-        DB::table('products')->where('id', $product_id)->update(['added_to_wishlist' => 'false']);
+        DB::table('products')->where('id', $product->product_id)->update(['added_to_wishlist' => 'false']);
         return response()->json(['status' => true, 'message' => 'Removed From Wishlist']);
     }
 }
