@@ -544,4 +544,78 @@ class Homepage extends Controller {
 
         return response()->json(['status' => true, 'message' => 'Review added successfully']);
     }
+    public function similiarProducts()
+    {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id'] ?? '');
+        $product_id = trim($post['product_id'] ?? '');
+
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+        }
+
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product ID is blank']);
+        }
+
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+
+        if ($customer->profile_status === 'Inactive') {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+
+        $product = DB::table('products')->find($product_id);
+        if (!$product) {
+            return response()->json(['status' => false, 'message' => 'Product not found']);
+        }
+
+        $similarProducts = DB::table('products')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
+            ->where('products.id', '!=', $product_id)
+            ->where('products.category_id', $product->category_id)
+            ->where('products.subcategory_id', $product->subcategory_id)
+            ->where('products.status', 'Active')
+            ->select(
+                'products.*',
+                'categories.category_name',
+                'subcategories.subcategory_name'
+            )
+            ->get();
+
+        if ($similarProducts->isEmpty()) {
+            return response()->json(['status' => false, 'message' => 'No records found']);
+        }
+
+        $customerCurrency = getUserCurrency($customer_id) ?? '';
+
+        $returnData = $similarProducts->map(function ($value) use ($customerCurrency) {
+            $images = $value->product_image ? json_decode($value->product_image, true) : [];
+            $firstImageUrl = !empty($images) && isset($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
+
+            return [
+                'product_id'            => (string) $value->id,
+                'category_id'           => (string) $value->category_id,
+                'subcategory_id'        => (string) $value->subcategory_id,
+                'product_name'          => (string) $value->product_name,
+                'product_rating'        => (string) $value->product_rating,
+                'product_selling_price' => $customerCurrency . (string) $value->product_selling_price,
+                'product_cost_price'    => $customerCurrency . (string) $value->product_cost_price,
+                'category_name'         => (string) $value->category_name,
+                'subcategory_name'      => (string) $value->subcategory_name,
+                'product_image'         => $firstImageUrl,
+                'added_to_wishlist'     => strtolower((string)$value->added_to_wishlist) === 'true',
+            ];
+        });
+
+        return response()->json([
+            'status'  => true,
+            'data'    => $returnData,
+            'message' => 'API Accessed Successfully!',
+        ]);
+    }
+
 }

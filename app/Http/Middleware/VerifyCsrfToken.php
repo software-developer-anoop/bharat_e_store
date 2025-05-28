@@ -18,5 +18,5 @@ class VerifyCsrfToken extends Middleware {
      '/api/product-detail', '/api/hot-deals-products', '/api/category-products',
      '/api/subcategory-products', '/api/add-to-cart', '/api/my-cart',
      '/api/remove-from-cart', '/api/my-notification', '/api/remove-notification', '/api/apply-coupon', '/api/remove-coupon',
-     '/api/help-support'];
+     '/api/help-support','/api/review','/api/similiar-products'];
 }
