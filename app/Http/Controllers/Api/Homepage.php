@@ -126,7 +126,10 @@ class Homepage extends Controller {
         $keyword = trim($post['keyword'] ?? '');
 
         if (empty($keyword)) {
-            return response()->json(['status' => false, 'message' => "Keyword is required"]);
+            return response()->json([
+                'status' => false,
+                'message' => "Keyword is required"
+            ]);
         }
 
         // Search Products
@@ -157,8 +160,17 @@ class Homepage extends Controller {
             ->select('id', 'category_name')
             ->get();
 
-        if ($products->isEmpty() && $categories->isEmpty()) {
-            return response()->json(['status' => false, 'message' => "No matching records found"]);
+        // Search Subcategories
+        $subcategories = DB::table('subcategories')
+            ->where('subcategory_name', 'like', "%{$keyword}%")
+            ->select('id', 'subcategory_name')
+            ->get();
+
+        if ($products->isEmpty() && $categories->isEmpty() && $subcategories->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => "No matching records found"
+            ]);
         }
 
         $productData = $products->map(function ($product) {
@@ -183,31 +195,21 @@ class Homepage extends Controller {
             ];
         });
 
+        $subcategoryData = $subcategories->map(function ($subcategory) {
+            return [
+                'type'              => 'subcategory',
+                'subcategory_id'    => (string) $subcategory->id,
+                'subcategory_name'  => (string) $subcategory->subcategory_name,
+            ];
+        });
+
         // Suggestions for autocomplete (limit to unique 10 max)
-        $suggestions = collect();
-
-        // From product names
-        $suggestions = $suggestions->merge(
-            $products->pluck('product_name')
-        );
-
-        // From category names
-        $suggestions = $suggestions->merge(
-            $categories->pluck('category_name')
-        );
-
-        // From matched category names in products
-        $suggestions = $suggestions->merge(
-            $products->pluck('category_name')
-        );
-
-        // From matched subcategory names in products
-        $suggestions = $suggestions->merge(
-            $products->pluck('subcategory_name')
-        );
-
-        // Filter unique & remove nulls
-        $suggestions = $suggestions
+        $suggestions = collect()
+            ->merge($products->pluck('product_name'))
+            ->merge($products->pluck('category_name'))
+            ->merge($products->pluck('subcategory_name'))
+            ->merge($categories->pluck('category_name'))
+            ->merge($subcategories->pluck('subcategory_name'))
             ->filter()
             ->unique()
             ->values()
@@ -216,10 +218,11 @@ class Homepage extends Controller {
         return response()->json([
             'status'      => true,
             'message'     => 'Search results found',
-            'data'        => $productData->merge($categoryData)->values(),
-            'suggestions' => $suggestions
+            'data'        => $productData->merge($categoryData)->merge($subcategoryData)->values(),
+            'suggestions' => $suggestions,
         ]);
     }
+
     public function referralHistory() {
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');

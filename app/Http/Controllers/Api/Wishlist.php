@@ -30,9 +30,16 @@ class Wishlist extends Controller
         if (!$product) {
             return response()->json(['status' => false, 'message' => 'Product not found']);
         }
+
         $saveData = [];
         $saveData['customer_id']=$customer_id;
         $saveData['product_id']=$product_id;
+
+        $wishlistProduct = DB::table('wishlist')->where($saveData)->first();
+        if ($wishlistProduct) {
+            return response()->json(['status' => false, 'message' => 'Already In Wishlist']);
+        }
+
         $saveData['created_at']=Carbon::now();
 
         DB::table('wishlist')->insert($saveData);
