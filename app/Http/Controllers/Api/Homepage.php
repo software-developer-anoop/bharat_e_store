@@ -118,7 +118,7 @@ class Homepage extends Controller {
                     'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
-                    'added_to_wishlist' => (bool)$value->added_to_wishlist];
+                    'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
@@ -354,7 +354,7 @@ class Homepage extends Controller {
                     'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
-                    'added_to_wishlist' => (bool)$value->added_to_wishlist];
+                    'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
@@ -402,7 +402,7 @@ class Homepage extends Controller {
                     'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
-                    'added_to_wishlist' => (bool)$value->added_to_wishlist];
+                    'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
@@ -454,7 +454,7 @@ class Homepage extends Controller {
                     'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
-                    'added_to_wishlist' => (bool)$value->added_to_wishlist];
+                    'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
