@@ -46,56 +46,89 @@ class Wishlist extends Controller
         DB::table('products')->where('id', $product_id)->update(['added_to_wishlist' => 'true']);
         return response()->json(['status' => true, 'message' => 'Added To Wishlist']);
     }
-    public function myWishlist(){
+    public function myWishlist()
+    {
         $post = checkPayload();
-        $customer_id = trim($post['customer_id']??'');
+        $customer_id = trim($post['customer_id'] ?? '');
+
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
+            return response()->json([
+                'status' => false,
+                'message' => 'Customer Id is blank'
+            ]);
         }
+
         $customer = DB::table('customers')->find($customer_id);
+
         if (!$customer) {
-            return response()->json(['status' => false, 'message' => 'Customer not found']);
+            return response()->json([
+                'status' => false,
+                'message' => 'Customer not found'
+            ]);
         }
-        if ($customer->profile_status == "Inactive") {
-            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+
+        if ($customer->profile_status === "Inactive") {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your profile is currently inactive'
+            ]);
         }
-        $products = DB::table('products')
-                ->leftJoin('wishlist', 'products.id', '=', 'wishlist.product_id')
-                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-                ->select('products.id as product_id','products.category_id as category_id','products.subcategory_id as subcategory_id','products.product_name as product_name','products.product_rating as product_rating','products.product_image as product_image','products.added_to_wishlist as added_to_wishlist','products.product_selling_price as product_selling_price','products.product_cost_price as product_cost_price','categories.category_name as category_name','wishlist.id as wishlist_id')
-                ->get();
-        if (empty($products)) {
-            $response['status'] = false;
-            $response['message'] = "No Records Found";
-            return response()->json($response);
+
+        $products = DB::table('wishlist')
+            ->where('wishlist.customer_id', $customer_id)
+            ->leftJoin('products', 'products.id', '=', 'wishlist.product_id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->select(
+                'products.id as product_id',
+                'products.category_id',
+                'products.subcategory_id',
+                'products.product_name',
+                'products.product_rating',
+                'products.product_image',
+                'products.added_to_wishlist',
+                'products.product_selling_price',
+                'products.product_cost_price',
+                'categories.category_name',
+                'wishlist.id as wishlist_id'
+            )
+            ->get();
+
+        if ($products->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No records found'
+            ]);
         }
+
         $customerCurrency = getUserCurrency($customer_id);
         $returnData = [];
-        foreach ($products as $key => $value) {
-            $images = $value->product_image ? json_decode($value->product_image, true) : [];
-            $firstImageUrl = null;
 
-            if (!empty($images) && isset($images[0]['image'])) {
-                $firstImageUrl = url('uploads/' . $images[0]['image']);
-            }
-            $return['wishlist_id'] = (string)$value->wishlist_id;
-            $return['product_id'] = (string)$value->product_id;
-            $return['category_id'] = (string)$value->category_id;
-            $return['subcategory_id'] = (string)$value->subcategory_id;
-            $return['product_name'] = (string)$value->product_name;
-            $return['product_rating'] = (string)$value->product_rating;
-            $return['product_image'] = $firstImageUrl;
-            $return['added_to_wishlist'] = (boolean)$value->added_to_wishlist;
-            $return['product_selling_price'] = $customerCurrency . (string)$value->product_selling_price;
-            $return['product_cost_price'] = $customerCurrency . (string)$value->product_cost_price;
-            $return['category_name'] = (string)$value->category_name;
-            array_push($returnData, $return);
+        foreach ($products as $value) {
+            $images = $value->product_image ? json_decode($value->product_image, true) : [];
+            $firstImageUrl = !empty($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
+
+            $returnData[] = [
+                'wishlist_id'           => (string) $value->wishlist_id,
+                'product_id'            => (string) $value->product_id,
+                'category_id'           => (string) $value->category_id,
+                'subcategory_id'        => (string) $value->subcategory_id,
+                'product_name'          => (string) $value->product_name,
+                'product_rating'        => (string) $value->product_rating,
+                'product_image'         => $firstImageUrl,
+                'added_to_wishlist'     => (bool) $value->added_to_wishlist,
+                'product_selling_price' => $customerCurrency . (string) $value->product_selling_price,
+                'product_cost_price'    => $customerCurrency . (string) $value->product_cost_price,
+                'category_name'         => (string) $value->category_name,
+            ];
         }
-        $response['status'] = true;
-        $response['data'] = $returnData;
-        $response['message'] = "API Accessed Successfully!";
-        return response()->json($response);
+
+        return response()->json([
+            'status'  => true,
+            'data'    => $returnData,
+            'message' => 'API accessed successfully!'
+        ]);
     }
+
     public function removeFromWishlist(){
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
