@@ -98,22 +98,31 @@ class Wishlist extends Controller
     }
     public function removeFromWishlist(){
         $post = checkPayload();
-        $wishlist_id = trim($post['wishlist_id']??'');
-        
+        $customer_id = trim($post['customer_id']??'');
+        $product_id = trim($post['product_id']??'');
 
-        if (empty($wishlist_id)) {
-            return response()->json(['status' => false, 'message' => 'Wishlist Id Is Blank']);
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
-        
-        $product = DB::table('wishlist')->find($wishlist_id);
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
+        }
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+        if ($customer->profile_status == "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+        $product = DB::table('products')->find($product_id);
         if (!$product) {
-            return response()->json(['status' => false, 'message' => 'Product not found in wishlist']);
+            return response()->json(['status' => false, 'message' => 'Product not found']);
         }
         $where=[];
-        $where['id']=$wishlist_id;
-
+        $where['customer_id']=$customer_id;
+        $where['product_id']=$product_id;
         DB::table('wishlist')->where($where)->delete();
-        DB::table('products')->where('id', $product->product_id)->update(['added_to_wishlist' => 'false']);
+        DB::table('products')->where('id', $product_id)->update(['added_to_wishlist' => 'false']);
         return response()->json(['status' => true, 'message' => 'Removed From Wishlist']);
     }
 }
