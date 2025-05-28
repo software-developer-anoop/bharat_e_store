@@ -38,13 +38,11 @@ class Authentication extends Controller {
         if ($duplicate) {
             return response()->json(['status' => false, 'message' => 'Duplicate Entry']);
         }
-        //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $otp = 1234;
+        $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
         $saveData = array_merge($checkField, ['referral_code' => $referralCode, 'referrer_code' => random_alphanumeric_string(10), 'profile_status' => 'Inactive', 'created_at' => Carbon::now(), 'otp' => $otp, 'otp_sent_at' => Carbon::now(), 'country_code' => $country->country_code, 'country_name' => $country->country_name]);
         $customer_id = DB::table('customers')->insertGetId($saveData);
         if ($isIndia) {
-            //sendOtpPhone($mobileNumber, $otp);
-            
+            sendOtpPhone($mobileNumber, $otp);  
         } else {
             Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
         }
@@ -110,13 +108,12 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
         $isIndia = $customer->country_name === 'India';
-        //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $otp = 1234;
+        $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
         $updateData['otp'] = $otp;
         $updateData['otp_sent_at'] = date('Y-m-d H:i:s');
         DB::table('customers')->where('id', $customer_id)->update($updateData);
         if ($isIndia) {
-            //sendOtpPhone($customer->customer_phone, $otp);
+            sendOtpPhone($customer->customer_phone, $otp);
             
         } else {
             Mail::to($customer->customer_email)->send(new CustomerVerificationMail(['otp' => $otp]));
@@ -195,13 +192,12 @@ class Authentication extends Controller {
         if ($customer->profile_status == "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
-        //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $otp = 1234;
+        $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
         $updateData['otp'] = $otp;
         $updateData['otp_sent_at'] = date('Y-m-d H:i:s');
         DB::table('customers')->where('id', $customer->id)->update($updateData);
         if ($isIndia) {
-            //sendOtpPhone($mobileNumber, $otp);
+            sendOtpPhone($mobileNumber, $otp);
             
         } else {
             Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
@@ -314,14 +310,15 @@ class Authentication extends Controller {
         $updatedCustomer = DB::table('customers')->where('id', $customer_id)->first(); 
 
         $returnData = [
-            'customer_id' => (string) $updatedCustomer->id,
-            'customer_name' => (string) $updatedCustomer->customer_name,
-            'customer_email' => (string) $updatedCustomer->customer_email,
-            'customer_phone' => (string) $updatedCustomer->customer_phone,
-            'customer_address' => (string) $updatedCustomer->customer_address,
-            'customer_gender' => (string) $updatedCustomer->customer_gender,
-            'customer_profile_image' => (string) $updatedCustomer->customer_profile_image,
+            'customer_id'             => (string) ($updatedCustomer->id ?? ''),
+            'customer_name'           => (string) ($updatedCustomer->customer_name ?? ''),
+            'customer_email'          => (string) ($updatedCustomer->customer_email ?? ''),
+            'customer_phone'          => (string) ($updatedCustomer->customer_phone ?? ''),
+            'customer_address'        => (string) ($updatedCustomer->customer_address ?? ''),
+            'customer_gender'         => (string) ($updatedCustomer->customer_gender ?? ''),
+            'customer_profile_image'  => (string) url('uploads/' . ($updatedCustomer->customer_profile_image ?? '')),
         ];
+
 
         return response()->json([
             'status' => $updated ? true : false,

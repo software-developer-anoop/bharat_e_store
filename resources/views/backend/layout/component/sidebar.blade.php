@@ -39,7 +39,8 @@
       '12' => 'Notification Master',
       '13' => 'Orders',
       '14' => 'Settings',
-      '15' => 'Assign Menu'
+      '15' => 'Assign Menu',
+      '16' => 'Banner Master'
       ];
       $user = Auth::user();
       // Check if user is super admin (adjust to your logic)
@@ -181,7 +182,8 @@
       in_array('9', $assignedMenuIds) ||
       in_array('10', $assignedMenuIds) ||
       in_array('11', $assignedMenuIds) ||
-      in_array('12', $assignedMenuIds) 
+      in_array('12', $assignedMenuIds) ||
+      in_array('16', $assignedMenuIds) 
       )
       <li class="menu menu-heading">
         <div class="heading">
@@ -396,6 +398,32 @@
           </li>
           <li>
             <a href="{{route('admin.add-notification')}}"> Add Notification </a>
+          </li>
+        </ul>
+      </li>
+      @endif
+      @if (in_array('16', $assignedMenuIds))
+      <li class="menu {{ request()->is('admin/banner-list','admin/add-banner') ? 'active' : '' }}">
+        <a href="#banner" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+          <div class="">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Banner Master</span>
+          </div>
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </a>
+        <ul class="collapse submenu list-unstyled" id="banner" data-parent="#accordionExample">
+          <li>
+            <a href="{{route('admin.banner-list')}}"> Banner List </a>
+          </li>
+          <li>
+            <a href="{{route('admin.add-banner')}}"> Add Banner </a>
           </li>
         </ul>
       </li>

@@ -6,16 +6,18 @@ use Illuminate\Support\Facades\DB;
 class Homepage extends Controller {
     public function index(Request $request) {
         checkHeaders();
-        $record = DB::table('websetting')->select('banner')->first();
-        $banner = !empty($record->banner) ? json_decode($record->banner) : [];
-        if (empty($banner)) {
+        $record = DB::table('banner_list')->select('id','category_id','subcategory_id','image')->get();
+        if (empty($record)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
             return response()->json($response);
         }
         $returnData = [];
-        foreach ($banner as $key => $value) {
-            $return['image'] = url('uploads/' . $value->image);
+        foreach ($record as $key => $value) {
+            $return['banner_id'] = (string)$value->id;
+            $return['category_id'] = (string)$value->category_id;
+            $return['subcategory_id'] = (string)$value->subcategory_id;
+            $return['image'] = (string)url('uploads/' . $value->image);
             array_push($returnData, $return);
         }
         return response()->json(['status' => true, 'banner' => $returnData, 'message' => 'API Accessed Successfully']);

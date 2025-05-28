@@ -20,6 +20,7 @@ use App\Http\Controllers\Backend\Notification;
 use App\Http\Controllers\Backend\Coupon;
 use App\Http\Controllers\Backend\Menu;
 use App\Http\Controllers\Backend\Address;
+use App\Http\Controllers\Backend\Banner;
 
 Route::get('/login', [Authentication::class, 'index'])->name('login');
 Route::post('/authenticate', [Authentication::class, 'authenticate'])->name('authenticate');
@@ -91,6 +92,11 @@ Route::get('/address-list', [Address::class, 'index'])->name('admin.address-list
 Route::get('/add-address', [Address::class, 'addAddress'])->name('admin.add-address');
 Route::get('/edit-address/{id}', [Address::class, 'addAddress'])->name('admin.edit-address');
 Route::post('/save-address', [Address::class, 'saveAddress'])->name('admin.save-address');
+//Banner Master
+Route::get('/banner-list', [Banner::class, 'index'])->name('admin.banner-list');
+Route::get('/add-banner', [Banner::class, 'addBanner'])->name('admin.add-banner');
+Route::get('/edit-banner/{id}', [Banner::class, 'addBanner'])->name('admin.edit-banner');
+Route::post('/save-banner', [Banner::class, 'saveBanner'])->name('admin.save-banner');
 //Profile
 Route::get('/my-profile', [Profile::class, 'index'])->name('admin.my-profile');
 Route::post('/save-profile', [Profile::class, 'saveProfile'])->name('admin.save-profile');

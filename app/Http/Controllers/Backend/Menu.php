@@ -42,7 +42,8 @@ class Menu extends Controller
             '12' => 'Notification Master',
             '13' => 'Orders',
             '14' => 'Settings',
-            '15' => 'Assign Menu'
+            '15' => 'Assign Menu',
+            '16' => 'Banner Master'
         ];
 
         return view('backend.assign-menu', compact('page_name', 'users', 'assigned_menus', 'menus', 'id'));
