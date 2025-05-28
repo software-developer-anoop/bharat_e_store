@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 class Homepage extends Controller {
     public function index(Request $request) {
         checkHeaders();
@@ -491,5 +492,56 @@ class Homepage extends Controller {
         $response['message'] = "API Accessed Successfully";
         $response['data'] = $returnData;
         return response()->json($response);
+    }
+    public function reviewProduct()
+    {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id'] ?? '');
+        $product_id = trim($post['product_id'] ?? '');
+        $review = trim($post['review'] ?? '');
+
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+        }
+
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product ID is blank']);
+        }
+
+        if (empty($review)) {
+            return response()->json(['status' => false, 'message' => 'Review is blank']);
+        }
+
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+
+        if ($customer->profile_status === 'Inactive') {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+
+        $product = DB::table('products')->find($product_id);
+        if (!$product) {
+            return response()->json(['status' => false, 'message' => 'Product not found']);
+        }
+
+        $existingReview = DB::table('reviews')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $product_id)
+            ->first();
+
+        if ($existingReview) {
+            return response()->json(['status' => false, 'message' => 'You have already submitted a review for this product']);
+        }
+
+        DB::table('reviews')->insert([
+            'customer_id' => $customer_id,
+            'product_id'  => $product_id,
+            'review'      => $review,
+            'created_at'  => Carbon::now(),
+        ]);
+
+        return response()->json(['status' => true, 'message' => 'Review added successfully']);
     }
 }
