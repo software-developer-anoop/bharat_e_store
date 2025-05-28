@@ -286,6 +286,17 @@ class Homepage extends Controller {
         if (empty($product)) {
             return response()->json(['status' => false, 'message' => "Product Not Found"]);
         }
+        $images = $product->product_image ? json_decode($product->product_image, true) : [];
+            $imageUrls = [];
+
+        if (!empty($images)) {
+            foreach ($images as $imageArray) {
+                if (isset($imageArray['image'])) {
+                    $imageUrls[] = url('uploads/' . $imageArray['image']);
+                }
+            }
+        }
+
         $returnData = [];
         $returnData['product_id'] = (string)$product->id;
         $returnData['category_name'] = (string)$product->category_name;
@@ -298,7 +309,7 @@ class Homepage extends Controller {
         $returnData['product_colors'] = !empty($product->product_colors)
         ? array_map('trim', explode(',', $product->product_colors))
         : [];
-        $returnData['product_image'] = (string)(url('uploads/' . $product->product_image));
+        $returnData['product_image'] = $imageUrls;
         $returnData['product_selling_price'] = $customerCurrency . (string)$product->product_selling_price;
         $returnData['product_cost_price'] = $customerCurrency . (string)$product->product_cost_price;
         $returnData['product_quantity'] = (string)$product->product_quantity;
