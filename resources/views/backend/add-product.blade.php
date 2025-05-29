@@ -90,7 +90,7 @@
                   <input id="product_availability" type="text" name="product_availability" placeholder="Product Availability" class="form-control"  value="{{$data->product_availability??''}}">
                 </div>
               </div>
-              <div class="input_field_wrapper col-sm-12">
+              <div class="input_field_wrapper col-sm-12 mb-3">
                 @php $faqIndex = 1; @endphp
                 @if (!empty($faqs) && count($faqs) > 0)
                 @foreach ($faqs as $faq)
@@ -156,6 +156,12 @@
                   </a>
                 </div>
                 @endif
+              </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="product_off">Product Off</label>
+                  <input id="product_off" type="text" name="product_off" placeholder="Product Off" class="form-control"  value="{{$data->product_off??''}}">
+                </div>
               </div>
               <div class="col-lg-4 col-12">
                 <label for="check">Is Trending</label>

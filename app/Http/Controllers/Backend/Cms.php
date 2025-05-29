@@ -22,7 +22,7 @@ class Cms extends Controller
         $data = $request->all();
         $saveData = [];
         $id = $data['id']?trim($data['id']):'';
-        $checkData['page_name'] = ucwords(trim($data['page_name']));
+        $checkData['page_name'] = trim($data['page_name']);
         $duplicate = DB::table('cms_pages')->where($checkData)->first();
 
         if (!empty($duplicate)) {

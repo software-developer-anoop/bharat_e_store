@@ -23,12 +23,12 @@
                 <div class="form-group">
                   <label for="page_name">Page Name</label>
                   <select name="page_name" id="page_name" class="form-control select2">
-                  <option value="">Select Page Name</option>
-                  <option value="About Us" <?=!empty($data->page_name) && ($data->page_name == "About Us") ? "selected" : ""?>>About Us</option>
-                  <option value="Return Policy" <?=!empty($data->page_name) && ($data->page_name == "Return Policy") ? "selected" : ""?>>Return Policy</option>
-                  <option value="Privacy Policy" <?=!empty($data->page_name) && ($data->page_name == "Privacy Policy") ? "selected" : ""?>>Privacy Policy</option>
-                  <option value="Terms and Conditions" <?=!empty($data->page_name) && ($data->page_name == "Terms and Conditions") ? "selected" : ""?>>Terms and Conditions</option>
-                </select>
+                    <option value="">Select Page Name</option>
+                    <option value="About Us" {{ old('page_name', $data->page_name ?? '') == 'About Us' ? 'selected' : '' }}>About Us</option>
+                    <option value="Return Policy" {{ old('page_name', $data->page_name ?? '') == 'Return Policy' ? 'selected' : '' }}>Return Policy</option>
+                    <option value="Privacy Policy" {{ old('page_name', $data->page_name ?? '') == 'Privacy Policy' ? 'selected' : '' }}>Privacy Policy</option>
+                    <option value="Terms and Conditions" {{ old('page_name', $data->page_name ?? '') == 'Terms and Conditions' ? 'selected' : '' }}>Terms and Conditions</option>
+                 </select>
                 </div>
               </div>
               <!-- <div class="col-lg-3 col-12">
