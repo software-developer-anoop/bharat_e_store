@@ -24,7 +24,7 @@
     <script src="{{asset('assets/backend/plugins/dropify/dropify.min.js')}}"></script>
     <script src="{{asset('assets/backend/plugins/blockui/jquery.blockUI.min.js')}}"></script>
     <script src="{{asset('assets/backend/plugins/flatpickr/flatpickr.js')}}"></script>
-    <script src="{{asset('assets/backend/assets/js/admins/account-settings.js')}}"></script>
+    <script src="{{asset('assets/backend/assets/js/users/account-settings.js')}}"></script>
     <script src="{{asset('assets/backend/common.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -389,6 +389,58 @@ $(document).ready(function () {
     }
 });
 
+ function del_faq(a) {
+    $('#faq_' + a).remove(); 
+    $('#bt_' + a).remove(); 
+  }
+
+
+
+$(document).ready(function () {
+    var maxFieldLimit = 10; // Input fields increment limitation
+    var addMoreButton = $('.add_button'); // Add button selector
+    var fieldWrapper = $('.input_field_wrapper'); // Input field wrapper
+    var x = $('.faq_block').length || 1; // Initial field count
+
+    var getFieldHTML = function () {
+        return `
+            <div class="faq_block">
+                <div class="form-group row mb-3">
+                    <label class="col-sm-2 col-form-label">Question</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" name="faq_question[]" placeholder="Question">
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label class="col-sm-2 col-form-label">Answer</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" name="faq_answer[]" placeholder="Answer">
+                    </div>
+                </div>
+                <a href="javascript:void(0);" class="remove_button btn btn-danger btn-sm" title="Remove field">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="feather feather-activity">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </a>
+                <hr>
+            </div>`;
+    };
+
+    addMoreButton.on('click', function () {
+        if (x < maxFieldLimit) {
+            x++;
+            fieldWrapper.append(getFieldHTML());
+        }
+    });
+
+    fieldWrapper.on('click', '.remove_button', function (e) {
+        e.preventDefault();
+        $(this).closest('.faq_block').remove();
+        x--;
+    });
+});
 
 </script>
 

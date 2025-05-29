@@ -39,6 +39,7 @@ Route::post('product-detail', [Homepage::class, 'productDetail'])->name('api.pro
 Route::get('help-support', [Homepage::class, 'helpSupport'])->name('api.help-support');
 Route::post('review', [Homepage::class, 'reviewProduct'])->name('api.review');
 Route::post('similiar-products', [Homepage::class, 'similiarProducts'])->name('api.similiar-products');
+Route::post('product-faqs', [Homepage::class, 'productFaqs'])->name('api.product-faqs');
 //Wishlist
 Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');

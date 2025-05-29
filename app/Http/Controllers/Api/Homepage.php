@@ -318,6 +318,7 @@ class Homepage extends Controller {
         $returnData['product_rating'] = (string)$product->product_rating;
         $returnData['is_trending'] = (string)$product->is_trending;
         $returnData['product_status'] = (string)$product->status;
+        $returnData['added_to_wishlist'] = strtolower($product->added_to_wishlist) === 'true';
         return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
     public function hotDealsProducts() {
@@ -617,5 +618,37 @@ class Homepage extends Controller {
             'message' => 'API Accessed Successfully!',
         ]);
     }
+    public function productFaqs(){
+        $post = checkPayload();
+        $product_id = trim($post['product_id'] ?? '');
 
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product ID is blank']);
+        }
+
+        $product = DB::table('products')->find($product_id);
+        if (!$product) {
+            return response()->json(['status' => false, 'message' => 'Product not found']);
+        }
+
+        $faqs = DB::table('faqs')->where('table_name','products')->where('table_id',$product_id)->get();
+        if ($faqs->isEmpty()) {
+            return response()->json(['status' => false, 'message' => 'No FAQs found']);
+        }
+
+        $returnData = [];
+        foreach ($faqs as $value) {
+            $returnData[] = [
+                'faq_id'       => (string) $value->id,
+                'question'     => (string) $value->question,
+                'answer'       => (string) $value->answer
+            ];
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => "API accessed successfully!",
+            'data'    => $returnData,
+        ]);
+    }
 }

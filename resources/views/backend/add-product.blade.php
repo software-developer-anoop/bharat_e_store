@@ -1,4 +1,3 @@
-
 @extends('backend.layout.master')
 @section('content')
 <div class="container">
@@ -91,48 +90,91 @@
                   <input id="product_availability" type="text" name="product_availability" placeholder="Product Availability" class="form-control"  value="{{$data->product_availability??''}}">
                 </div>
               </div>
-              <!-- <div class="col-lg-4 col-12">
-                <div class="form-group">
-                  <label for="meta_title">Meta Title</label>
-                  <textarea id="meta_title" name="meta_title" placeholder="Meta Title" class="form-control" required>{{$data->meta_title??''}}</textarea>
+              <div class="input_field_wrapper col-sm-12">
+                @php $faqIndex = 1; @endphp
+                @if (!empty($faqs) && count($faqs) > 0)
+                @foreach ($faqs as $faq)
+                <div id="faq_{{ $faqIndex }}">
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Question</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" placeholder="Question" value="{{ $faq->question }}" name="faq_question[]">
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Answer</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" placeholder="Answer" value="{{ $faq->answer }}" name="faq_answer[]">
+                    </div>
+                  </div>
+                  @if ($faqIndex == 1)
+                  <a href="javascript:void(0);" class="add_button btn btn-success btn-sm" title="Add field">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="feather feather-activity">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </a>
+                  @else
+                  <a href="javascript:void(0);" class="btn btn-danger btn-sm" title="Remove field"
+                    onclick="del_faq({{ $faqIndex }})" id="bt_{{ $faqIndex }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="feather feather-activity">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </a>
+                  @endif
                 </div>
+                @php $faqIndex++; @endphp
+                @endforeach
+                @else
+                <div id="faq_1">
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Question</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" placeholder="Question" name="faq_question[]">
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label">Answer</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" placeholder="Answer" name="faq_answer[]">
+                    </div>
+                  </div>
+                  <a href="javascript:void(0);" class="add_button btn btn-success btn-sm" title="Add field">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="feather feather-activity">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </a>
+                </div>
+                @endif
               </div>
-              <div class="col-lg-12 col-12">
-                <div class="form-group">
-                  <label for="meta_description">Meta Description</label>
-                  <textarea id="meta_description" name="meta_description" placeholder="Meta Description" class="form-control" required>{{$data->meta_description??''}}</textarea>
-                </div>
-              </div>
-              <div class="col-lg-12 col-12">
-                <div class="form-group">
-                  <label for="meta_keyword">Meta Keywords</label>
-                  <textarea id="meta_keyword" name="meta_keyword" placeholder="Meta Keywords" class="form-control" required>{{$data->meta_keyword??''}}</textarea>
-                </div>
-              </div> -->
-              <!-- <div class="col-lg-12 col-12">
-                <div class="form-group">
-                  <label for="meta_schema">Meta Schema</label>
-                  <textarea id="meta_schema" type="text" name="meta_schema" placeholder="Meta Schema" class="form-control">{{$data->meta_schema??''}}</textarea>
-                </div>
-              </div> -->
               <div class="col-lg-4 col-12">
                 <label for="check">Is Trending</label>
                 <select name="is_trending" id="is_trending" class="form-control select2" required>
-                    <option value="">Select Trending</option>
-                    <option value="yes" {{!empty($data->is_trending) && ($data->is_trending=="yes")?'selected':''}}>Yes</option>
-                    <option value="no" {{!empty($data->is_trending) && ($data->is_trending=="no")?'selected':''}}>No</option>
-                  </select>
+                  <option value="">Select Trending</option>
+                  <option value="yes" {{!empty($data->is_trending) && ($data->is_trending=="yes")?'selected':''}}>Yes</option>
+                  <option value="no" {{!empty($data->is_trending) && ($data->is_trending=="no")?'selected':''}}>No</option>
+                </select>
               </div>
               <div class="col-lg-4 col-12">
                 <label for="check">Is Hot Deal</label>
                 <select name="is_hot_deal" id="is_hot_deal" class="form-control select2" required>
-                    <option value="">Select hot_deal</option>
-                    <option value="yes" {{!empty($data->is_hot_deal) && ($data->is_hot_deal=="yes")?'selected':''}}>Yes</option>
-                    <option value="no" {{!empty($data->is_hot_deal) && ($data->is_hot_deal=="no")?'selected':''}}>No</option>
-                  </select>
+                  <option value="">Select hot_deal</option>
+                  <option value="yes" {{!empty($data->is_hot_deal) && ($data->is_hot_deal=="yes")?'selected':''}}>Yes</option>
+                  <option value="no" {{!empty($data->is_hot_deal) && ($data->is_hot_deal=="no")?'selected':''}}>No</option>
+                </select>
               </div>
-              </div>
-              <div class="row">
+            </div>
+            <div class="row">
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="product_image">Product Image</label>
@@ -140,19 +182,17 @@
                 </div>
               </div>
               @php
-                $images = !empty($data->product_image) ? json_decode($data->product_image, true) : [];
+              $images = !empty($data->product_image) ? json_decode($data->product_image, true) : [];
               @endphp
-
               @if (!empty($images))
-                    <div class="col-sm-12 mt-2">
-                        @foreach ($images as $image)
-                            <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
-                                <img src="{{ asset('uploads/' . $image['image']) }}" height="70px" width="100px" alt="Logo">
-                            </a>
-                        @endforeach
-                    </div>
+              <div class="col-sm-12 mt-2">
+                @foreach ($images as $image)
+                <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
+                <img src="{{ asset('uploads/' . $image['image']) }}" height="70px" width="100px" alt="Logo">
+                </a>
+                @endforeach
+              </div>
               @endif
-              
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>
