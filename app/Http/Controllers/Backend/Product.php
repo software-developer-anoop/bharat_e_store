@@ -50,7 +50,7 @@ class Product extends Controller {
         $saveData['product_rating'] = isset($data['product_rating']) && is_numeric($data['product_rating']) ? floatval($data['product_rating']) : null;
         $saveData['is_trending'] = trim($data['is_trending']??'');
         $saveData['is_hot_deal'] = trim($data['is_hot_deal']??'');
-        $saveData['product_off'] = trim($data['product_off']??'');
+        $saveData['product_off'] = isset($data['product_off']) && is_numeric($data['product_off']) ? floatval($data['product_off']) : null;
         if (empty($id)) {
             $saveData['created_at'] = now();
             $last_id = DB::table('products')->insertGetId($saveData);

@@ -311,7 +311,16 @@ class Homepage extends Controller {
         ? array_map('trim', explode(',', $product->product_size))
         : [];;
         $returnData['product_colors'] = !empty($product->product_colors)
-        ? array_map('trim', explode(',', $product->product_colors))
+        ? array_values(array_filter(array_map(function($color) {
+            $parts = array_map('trim', explode('-', $color));
+            if (count($parts) === 2) {
+                return [
+                    'color_name' => $parts[0],
+                    'color_code' => $parts[1]
+                ];
+            }
+            return null; // skip invalid entries
+        }, explode(',', $product->product_colors))))
         : [];
         $returnData['product_image'] = $imageUrls;
         $returnData['product_selling_price'] = $customerCurrency . (string)$product->product_selling_price;

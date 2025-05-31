@@ -80,7 +80,7 @@
               </div>
               <div class="col-lg-4 col-12">
                 <div class="form-group">
-                  <label for="product_colors">Product Colors</label>
+                  <label for="product_colors">Product Colors (E.g. Color - Code)</label>
                   <input id="product_colors" type="text" name="product_colors" placeholder="Product Colors" class="form-control" required value="{{$data->product_colors??''}}">
                 </div>
               </div>
