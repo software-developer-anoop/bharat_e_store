@@ -7,7 +7,8 @@ use Carbon\Carbon;
 class Homepage extends Controller {
     public function index(Request $request) {
         checkHeaders();
-        $record = DB::table('banner_list')->select('id','category_id','subcategory_id','image')->get();
+        $record = DB::table('banner_list')->leftJoin('categories', 'banner_list.category_id', '=', 'categories.id')
+            ->leftJoin('subcategories', 'banner_list.subcategory_id', '=', 'subcategories.id')->select('banner_list.id','banner_list.category_id','banner_list.subcategory_id','banner_list.image','categories.category_name','subcategories.subcategory_name')->get();
         if (empty($record)) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -17,7 +18,9 @@ class Homepage extends Controller {
         foreach ($record as $key => $value) {
             $return['banner_id'] = (string)$value->id;
             $return['category_id'] = (string)$value->category_id;
+            $return['category_name'] = (string)$value->category_name;
             $return['subcategory_id'] = (string)$value->subcategory_id;
+            $return['subcategory_name'] = (string)$value->subcategory_name;
             $return['image'] = (string)url('uploads/' . $value->image);
             array_push($returnData, $return);
         }
