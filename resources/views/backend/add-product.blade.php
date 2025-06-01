@@ -87,7 +87,11 @@
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="product_availability">Product Availability</label>
-                  <input id="product_availability" type="text" name="product_availability" placeholder="Product Availability" class="form-control"  value="{{$data->product_availability??''}}">
+                  <select name="product_availability" id="product_availability" class="form-control select2" required>
+                    <option value="">Select Availability</option>
+                    <option value="In Stock" {{!empty($data->product_availability) && ($data->product_availability=="In Stock")?'selected':''}}>In Stock</option>
+                    <option value="Out Of Stock" {{!empty($data->product_availability) && ($data->product_availability=="Out Of Stock")?'selected':''}}>Out Of Stock</option>
+                  </select>
                 </div>
               </div>
               <div class="input_field_wrapper col-sm-12 mb-3">
