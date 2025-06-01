@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Couponlist;
 use App\Http\Controllers\Api\Address;
 use App\Http\Controllers\Api\Cart;
 use App\Http\Controllers\Api\Notification;
+use App\Http\Controllers\Api\Payment;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -40,6 +41,7 @@ Route::get('help-support', [Homepage::class, 'helpSupport'])->name('api.help-sup
 Route::post('review', [Homepage::class, 'reviewProduct'])->name('api.review');
 Route::post('similiar-products', [Homepage::class, 'similiarProducts'])->name('api.similiar-products');
 Route::post('product-faqs', [Homepage::class, 'productFaqs'])->name('api.product-faqs');
+Route::post('my-reviews', [Homepage::class, 'myReviews'])->name('api.my-reviews');
 //Wishlist
 Route::post('add-to-wishlist', [Wishlist::class, 'index'])->name('api.add-to-wishlist');
 Route::post('my-wishlist', [Wishlist::class, 'myWishlist'])->name('api.my-wishlist');
@@ -59,3 +61,9 @@ Route::post('remove-coupon', [Cart::class, 'removeCoupon'])->name('api.remove-co
 //Notification
 Route::post('my-notification', [Notification::class, 'index'])->name('api.my-notification');
 Route::post('remove-notification', [Notification::class, 'deleteMyNotification'])->name('api.remove-notification');
+
+// Payment
+
+Route::post('initiatePayment', [Payment::class, 'index']);
+Route::post('payment-webhook', [Payment::class, 'handleWebhook'])->name('payment.webhook');
+Route::get('payment/status/{orderId}', [Payment::class, 'paymentStatus']);

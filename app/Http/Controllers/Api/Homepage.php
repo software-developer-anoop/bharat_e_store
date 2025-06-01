@@ -517,7 +517,7 @@ class Homepage extends Controller {
                 'message' => 'Your profile is currently inactive'
             ]);
         }
-    
+
         $customerCurrency = getUserCurrency($customer_id) ??'';
         
         // Base query
@@ -572,39 +572,50 @@ class Homepage extends Controller {
         $response['data'] = $returnData;
         return response()->json($response);
     }
-    public function reviewProduct()
-    {
-        $post = checkPayload();
-        $customer_id = trim($post['customer_id'] ?? '');
-        $product_id = trim($post['product_id'] ?? '');
-        $review = trim($post['review'] ?? '');
 
-        if (empty($customer_id)) {
+    public function reviewProduct(Request $request)
+    {
+        // Call your custom request validator
+        if ($error = validateApiRequest($request)) {
+            return $error;
+        }
+
+        // Extract input
+        $customer_id = $request->input('customer_id');
+        $product_id  = $request->input('product_id');
+        $review      = $request->input('review');
+        $rating      = $request->input('rating');
+
+        // Basic validation
+        if (!$customer_id) {
             return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
         }
-
-        if (empty($product_id)) {
+        if (!$product_id) {
             return response()->json(['status' => false, 'message' => 'Product ID is blank']);
         }
-
-        if (empty($review)) {
+        if (!$review) {
             return response()->json(['status' => false, 'message' => 'Review is blank']);
         }
+        if (!$rating) {
+            return response()->json(['status' => false, 'message' => 'Rating is blank']);
+        }
 
+        // Validate customer existence and status
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
         }
-
         if ($customer->profile_status === 'Inactive') {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
+        // Validate product existence
         $product = DB::table('products')->find($product_id);
         if (!$product) {
             return response()->json(['status' => false, 'message' => 'Product not found']);
         }
 
+        // Check if the customer already reviewed this product
         $existingReview = DB::table('reviews')
             ->where('customer_id', $customer_id)
             ->where('product_id', $product_id)
@@ -614,15 +625,31 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => 'You have already submitted a review for this product']);
         }
 
+        // Handle optional uploaded images
+        $img_data = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                if ($file->isValid()) {
+                    $filename = $file->hashName();
+                    $file->move(public_path('uploads/'), $filename);
+                    $img_data[] = ['image' => $filename];
+                }
+            }
+        }
+
+        // Insert review into database
         DB::table('reviews')->insert([
             'customer_id' => $customer_id,
             'product_id'  => $product_id,
             'review'      => $review,
+            'rating'      => $rating,
+            'images'      => json_encode($img_data),
             'created_at'  => Carbon::now(),
         ]);
 
         return response()->json(['status' => true, 'message' => 'Review added successfully']);
     }
+
     public function similiarProducts()
     {
         $post = checkPayload();
@@ -758,22 +785,14 @@ class Homepage extends Controller {
         }
 
         $reviews = DB::table('reviews')
-            ->where('reviews.customer_id', $customer_id)
-            ->leftJoin('products', 'products.id', '=', 'reviews.product_id')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id') // Optional, if category_name needed
+            ->where('customer_id', $customer_id)
             ->select(
-                'reviews.id as review_id',
-                'reviews.review as review',
-                'products.id as product_id',
-                'products.category_id',
-                'products.subcategory_id',
-                'products.product_name',
-                'products.product_rating',
-                'products.product_image',
-                'products.added_to_wishlist',
-                'products.product_selling_price',
-                'products.product_cost_price',
-                'categories.category_name' // Only if you have categories table
+                'id as review_id',
+                'review',
+                'rating',
+                'images',
+                'product_id',
+                'customer_id'
             )
             ->get();
 
@@ -784,26 +803,25 @@ class Homepage extends Controller {
             ]);
         }
 
-        $customerCurrency = getUserCurrency($customer_id);
         $returnData = [];
 
-        foreach ($reviews as $value) {
-            $images = $value->product_image ? json_decode($value->product_image, true) : [];
-            $firstImageUrl = !empty($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
+        foreach ($reviews as $review) {
+            $images = json_decode($review->images, true) ?? [];
+            $imageUrls = [];
+
+            foreach ($images as $imageArray) {
+                if (!empty($imageArray['image'])) {
+                    $imageUrls[] = url('uploads/' . $imageArray['image']);
+                }
+            }
 
             $returnData[] = [
-                'review_id'            => (string) $value->review_id,
-                'review'            => (string) $value->review,
-                'product_id'            => (string) $value->product_id,
-                'category_id'           => (string) $value->category_id,
-                'subcategory_id'        => (string) $value->subcategory_id,
-                'product_name'          => (string) $value->product_name,
-                'product_rating'        => (string) $value->product_rating,
-                'product_image'         => $firstImageUrl,
-                'added_to_wishlist'     => strtolower($value->added_to_wishlist) === 'true',
-                'product_selling_price' => $customerCurrency .' '. (string) $value->product_selling_price,
-                'product_cost_price'    => $customerCurrency .' '. (string) $value->product_cost_price,
-                'category_name'         => isset($value->category_name) ? (string) $value->category_name : null,
+                'review_id'   => (string) $review->review_id,
+                'review'      => (string) $review->review,
+                'rating'      => (string) $review->rating,
+                'customer_id' => (string) $review->customer_id,
+                'product_id'  => (string) $review->product_id,
+                'images'      => $imageUrls
             ];
         }
 
@@ -813,5 +831,4 @@ class Homepage extends Controller {
             'message' => 'API accessed successfully!'
         ]);
     }
-
 }
