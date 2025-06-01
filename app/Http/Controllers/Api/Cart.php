@@ -175,8 +175,8 @@ class Cart extends Controller{
                 'subcategory_id'        => (string)$value->subcategory_id,
                 'product_name'          => (string)$value->product_name,
                 'product_color'         => (string)($value->product_colors ?? ''), // corrected to match DB field
-                'product_selling_price' => $customerCurrency.(string)$value->product_selling_price,
-                'product_cost_price'    => $customerCurrency.(string)$value->product_cost_price,
+                'product_selling_price' => $customerCurrency.' '.(string)$value->product_selling_price,
+                'product_cost_price'    => $customerCurrency.' '.(string)$value->product_cost_price,
                 'product_image'         => $firstImageUrl,
                 'product_quantity'      => (string)$value->quantity,
             ];
@@ -185,7 +185,7 @@ class Cart extends Controller{
         return response()->json([
             'status'    => true,
             'data'      => $returnData,
-            'subTotal'  => $customerCurrency.(string)$subTotal,
+            'subTotal'  => $customerCurrency.' '.(string)$subTotal,
             'message'   => "API Accessed Successfully!"
         ]);
     }
@@ -278,7 +278,7 @@ class Cart extends Controller{
         return response()->json([
             'status' => true,
             'message' => 'Coupon Applied Successfully',
-            'total' => $customerCurrency . (string)$total,
+            'total' => $customerCurrency .' '. (string)$total,
             'applied_coupon_id' => (string)$coupon_history_id
         ]);
     }
@@ -326,7 +326,7 @@ class Cart extends Controller{
         return response()->json([
             'status' => true,
             'message' => 'Coupon removed successfully',
-            'total' => $customerCurrency . (string)round((float)$applied->subtotal, 2)
+            'total' => $customerCurrency .' '. (string)round((float)$applied->subtotal, 2)
         ]);
     }
 

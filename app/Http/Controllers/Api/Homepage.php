@@ -118,8 +118,8 @@ class Homepage extends Controller {
                     'subcategory_id' => (string)$value->subcategory_id,
                     'product_name' => (string)$value->product_name, 
                     'product_rating' => (string)$value->product_rating, 
-                    'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 
-                    'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
+                    'product_selling_price' => $customerCurrency .' '. (string)$value->product_selling_price, 
+                    'product_cost_price' => $customerCurrency .' '. (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
                     'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
@@ -323,8 +323,8 @@ class Homepage extends Controller {
         }, explode(',', $product->product_colors))))
         : [];
         $returnData['product_image'] = $imageUrls;
-        $returnData['product_selling_price'] = $customerCurrency . (string)$product->product_selling_price;
-        $returnData['product_cost_price'] = $customerCurrency . (string)$product->product_cost_price;
+        $returnData['product_selling_price'] = $customerCurrency .' '. (string)$product->product_selling_price;
+        $returnData['product_cost_price'] = $customerCurrency .' '. (string)$product->product_cost_price;
         $returnData['product_quantity'] = (string)$product->product_quantity;
         $returnData['product_availability'] = (string)$product->product_availability;
         $returnData['product_rating'] = (string)$product->product_rating;
@@ -380,8 +380,8 @@ class Homepage extends Controller {
                     'subcategory_id' => (string)$value->subcategory_id,
                     'product_name' => (string)$value->product_name, 
                     'product_rating' => (string)$value->product_rating, 
-                    'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 
-                    'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
+                    'product_selling_price' => $customerCurrency .' '. (string)$value->product_selling_price, 
+                    'product_cost_price' => $customerCurrency .' '. (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
                     'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
@@ -428,8 +428,8 @@ class Homepage extends Controller {
                     'subcategory_id' => (string)$value->subcategory_id,
                     'product_name' => (string)$value->product_name, 
                     'product_rating' => (string)$value->product_rating, 
-                    'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 
-                    'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
+                    'product_selling_price' => $customerCurrency .' '. (string)$value->product_selling_price, 
+                    'product_cost_price' => $customerCurrency .' '. (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
                     'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
@@ -480,8 +480,8 @@ class Homepage extends Controller {
                     'subcategory_id' => (string)$value->subcategory_id,
                     'product_name' => (string)$value->product_name, 
                     'product_rating' => (string)$value->product_rating, 
-                    'product_selling_price' => $customerCurrency . (string)$value->product_selling_price, 
-                    'product_cost_price' => $customerCurrency . (string)$value->product_cost_price, 
+                    'product_selling_price' => $customerCurrency .' '. (string)$value->product_selling_price, 
+                    'product_cost_price' => $customerCurrency .' '. (string)$value->product_cost_price, 
                     'category_name' => (string)$value->category_name, 
                     'product_image' => $imageUrls, 
                     'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true',];
@@ -616,8 +616,8 @@ class Homepage extends Controller {
                 'subcategory_id'        => (string) $value->subcategory_id,
                 'product_name'          => (string) $value->product_name,
                 'product_rating'        => (string) $value->product_rating,
-                'product_selling_price' => $customerCurrency . (string) $value->product_selling_price,
-                'product_cost_price'    => $customerCurrency . (string) $value->product_cost_price,
+                'product_selling_price' => $customerCurrency .' '. (string) $value->product_selling_price,
+                'product_cost_price'    => $customerCurrency .' '. (string) $value->product_cost_price,
                 'category_name'         => (string) $value->category_name,
                 'subcategory_name'      => (string) $value->subcategory_name,
                 'product_image'         => $firstImageUrl,
@@ -664,4 +664,89 @@ class Homepage extends Controller {
             'data'    => $returnData,
         ]);
     }
+    public function myReviews()
+{
+    $post = checkPayload();
+    $customer_id = trim($post['customer_id'] ?? '');
+
+    if (empty($customer_id)) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Customer ID is blank'
+        ]);
+    }
+
+    $customer = DB::table('customers')->find($customer_id);
+
+    if (!$customer) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Customer not found'
+        ]);
+    }
+
+    if ($customer->profile_status === "Inactive") {
+        return response()->json([
+            'status' => false,
+            'message' => 'Your profile is currently inactive'
+        ]);
+    }
+
+    $reviews = DB::table('reviews')
+        ->where('reviews.customer_id', $customer_id)
+        ->leftJoin('products', 'products.id', '=', 'reviews.product_id')
+        ->leftJoin('categories', 'categories.id', '=', 'products.category_id') // Optional, if category_name needed
+        ->select(
+            'reviews.id as review_id',
+            'reviews.review as review',
+            'products.id as product_id',
+            'products.category_id',
+            'products.subcategory_id',
+            'products.product_name',
+            'products.product_rating',
+            'products.product_image',
+            'products.added_to_wishlist',
+            'products.product_selling_price',
+            'products.product_cost_price',
+            'categories.category_name' // Only if you have categories table
+        )
+        ->get();
+
+    if ($reviews->isEmpty()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'No records found'
+        ]);
+    }
+
+    $customerCurrency = getUserCurrency($customer_id);
+    $returnData = [];
+
+    foreach ($reviews as $value) {
+        $images = $value->product_image ? json_decode($value->product_image, true) : [];
+        $firstImageUrl = !empty($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
+
+        $returnData[] = [
+            'review_id'            => (string) $value->review_id,
+            'review'            => (string) $value->review,
+            'product_id'            => (string) $value->product_id,
+            'category_id'           => (string) $value->category_id,
+            'subcategory_id'        => (string) $value->subcategory_id,
+            'product_name'          => (string) $value->product_name,
+            'product_rating'        => (string) $value->product_rating,
+            'product_image'         => $firstImageUrl,
+            'added_to_wishlist'     => strtolower($value->added_to_wishlist) === 'true',
+            'product_selling_price' => $customerCurrency .' '. (string) $value->product_selling_price,
+            'product_cost_price'    => $customerCurrency .' '. (string) $value->product_cost_price,
+            'category_name'         => isset($value->category_name) ? (string) $value->category_name : null,
+        ];
+    }
+
+    return response()->json([
+        'status'  => true,
+        'data'    => $returnData,
+        'message' => 'API accessed successfully!'
+    ]);
+}
+
 }

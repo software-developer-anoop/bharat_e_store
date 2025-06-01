@@ -116,8 +116,8 @@ class Wishlist extends Controller
                 'product_rating'        => (string) $value->product_rating,
                 'product_image'         => $firstImageUrl,
                 'added_to_wishlist'     => strtolower($value->added_to_wishlist) === 'true',
-                'product_selling_price' => $customerCurrency . (string) $value->product_selling_price,
-                'product_cost_price'    => $customerCurrency . (string) $value->product_cost_price,
+                'product_selling_price' => $customerCurrency .' '. (string) $value->product_selling_price,
+                'product_cost_price'    => $customerCurrency .' '. (string) $value->product_cost_price,
                 'category_name'         => (string) $value->category_name,
             ];
         }
