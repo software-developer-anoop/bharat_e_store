@@ -331,6 +331,7 @@ class Homepage extends Controller {
         $returnData['is_trending'] = (string)$product->is_trending;
         $returnData['product_status'] = (string)$product->status;
         $returnData['added_to_wishlist'] = strtolower($product->added_to_wishlist) === 'true';
+        $returnData['product_off'] = (string)$product->product_off;
         return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
     public function hotDealsProducts() {
