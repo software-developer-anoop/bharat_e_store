@@ -55,7 +55,7 @@ Route::post('my-address', [Address::class, 'index'])->name('api.my-address');
 Route::post('add-edit-address', [Address::class, 'addEditAddress'])->name('api.add-edit-address');
 Route::post('delete-address', [Address::class, 'deleteAddress'])->name('api.delete-address');
 //Coupon
-Route::get('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list');
+Route::post('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list');
 Route::post('apply-coupon', [Cart::class, 'applyCoupon'])->name('api.apply-coupon');
 Route::post('remove-coupon', [Cart::class, 'removeCoupon'])->name('api.remove-coupon');
 //Notification
