@@ -60,15 +60,15 @@ class Notification extends Controller
     public function pushNotification(Request $request)
     {
         $id = trim($request->input('id', ''));
-        $start = (int) $request->input('start', 0);
-        $limit = (int) $request->input('limit', 10);
+        $start = (int)trim($request->input('start', 0));
+        $limit = (int)trim($request->input('limit', 10));
 
         if (empty($id)) {
             return response()->json(['error' => 'ID is blank'], 400);
         }
 
-        $notification = DB::table('notifications')->find($id);
-        if (!$notification) {
+        $notificationData = DB::table('notifications')->find($id);
+        if (!$notificationData) {
             return response()->json(['error' => 'Notification not found'], 404);
         }
 
@@ -80,11 +80,7 @@ class Notification extends Controller
             'ids' => '',
         ];
 
-        $msg = [
-            'title' => ucwords($notification->title),
-            'message' => !empty($notification->description) ? $notification->description : $notification->title,
-            'image' => !empty($notification->image) ? url('uploads/' . $notification->image) : ''
-        ];
+        $serverkey = env('FIREBASE_API_KEY');
 
         $where = [
             ['fcm_token', '!=', ''],
@@ -96,54 +92,48 @@ class Notification extends Controller
         $customers = DB::table('customers')
             ->where($where)
             ->select('id', 'fcm_token')
-            ->orderByDesc('id')
+            ->orderBy('id', 'DESC')
             ->offset($offset)
             ->limit($limit)
             ->get();
 
-        if ($customers->isEmpty()) {
-            return response()->json($data);
-        }
+        $msgarray = [
+            'title' => ucwords($notificationData->title),
+            'message' => !empty($notificationData->descrption) ? $notificationData->descrption : $notificationData->title,
+            'image' => !empty($notificationData->image) ? url('uploads/' . $notificationData->image) : ''
+        ];
 
-        $data['status'] = true;
-        $notificationLog = [];
-        $tokens = [];
+        if ($customers->isNotEmpty()) {
+            $data['status'] = true;
+            $saveRecords = [];
+            $tokens = [];
 
-        foreach ($customers as $customer) {
-            if (!empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
-                $tokens[] = $customer->fcm_token;
-                $notificationLog[] = [
-                    'customer_id' => $customer->id,
-                    'notification_id' => $id,
-                    'title' => $msg['title'],
-                    'description' => $msg['message'],
-                    'image' => $msg['image'],
-                    'created_at' => now(),
-                ];
+            foreach ($customers as $customer) {
+                if (!empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
+                    $tokens[] = $customer->fcm_token;
+
+                    $saveRecords[] = [
+                        'customer_id' => $customer->id,
+                        'notification_id' => $id,
+                        'title' => $msgarray['title'],
+                        'description' => $msgarray['message'],
+                        'image' => $msgarray['image'],
+                        'created_at' => now(),
+                    ];
+                }
             }
-        }
 
-        if (!empty($notificationLog)) {
-            DB::table('push_notifications')->insert($notificationLog);
-        }
+            if (!empty($saveRecords)) {
+                DB::table('push_notifications')->insert($saveRecords);
+            }
 
-        // 🔥 Send notifications
-        if (!empty($tokens)) {
-            foreach ($tokens as $token) {
-                // You should pass token + message content here
-                sendPushNotification([
-                    'token' => $token,
-                    'notification' => [
-                        'title' => $msg['title'],
-                        'body' => $msg['message'],
-                        'image' => $msg['image']
-                    ]
-                ]);
+            if (!empty($tokens)) {
+                $firebaseids = implode(',', $tokens);
+                pushnotifications($firebaseids, $msgarray, $serverkey);
             }
         }
 
         return response()->json($data);
     }
-
 
 }
