@@ -760,6 +760,8 @@ class Homepage extends Controller {
     {
         $post = checkPayload();
         $customer_id = trim($post['customer_id'] ?? '');
+        $per_page_limit = intval($post['per_page_limit'] ?? 10); // Default to 10
+        $page_no = intval($post['page_no'] ?? 1); // Default to 1
 
         if (empty($customer_id)) {
             return response()->json([
@@ -784,6 +786,8 @@ class Homepage extends Controller {
             ]);
         }
 
+        $offset = ($page_no - 1) * $per_page_limit;
+
         $reviews = DB::table('reviews')
             ->where('customer_id', $customer_id)
             ->select(
@@ -794,6 +798,8 @@ class Homepage extends Controller {
                 'product_id',
                 'customer_id'
             )
+            ->offset($offset)
+            ->limit($per_page_limit)
             ->get();
 
         if ($reviews->isEmpty()) {
