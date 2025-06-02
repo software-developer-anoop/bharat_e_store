@@ -66,4 +66,3 @@ Route::post('remove-notification', [Notification::class, 'deleteMyNotification']
 
 Route::post('initiatePayment', [Payment::class, 'index']);
 Route::post('payment-webhook', [Payment::class, 'handleWebhook'])->name('payment.webhook');
-Route::get('payment/status/{orderId}', [Payment::class, 'paymentStatus']);
