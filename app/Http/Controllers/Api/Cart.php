@@ -195,7 +195,6 @@ class Cart extends Controller{
         $post = checkPayload();
         $customer_id = trim($post['customer_id'] ?? '');
         $coupon_id   = trim($post['coupon_id'] ?? '');
-        $subTotal    = trim($post['subtotal'] ?? '');
 
         // Validate input
         if (empty($customer_id)) {
@@ -205,12 +204,26 @@ class Cart extends Controller{
         if (empty($coupon_id)) {
             return response()->json(['status' => false, 'message' => 'Coupon Id is blank']);
         }
+        
+        // Fetch cart products for customer
+        $products = DB::table('cart')
+            ->join('products', 'products.id', '=', 'cart.product_id')
+            ->where('cart.customer_id', $customer_id)
+            ->select(
+                'products.product_selling_price',
+                'cart.quantity'
+            )
+            ->get();
 
-        if (empty($subTotal) || !is_numeric($subTotal)) {
-            return response()->json(['status' => false, 'message' => 'Subtotal is blank or invalid']);
+        // Calculate subtotal
+        $subTotal = 0;
+        foreach ($products as $item) {
+            $price = floatval($item->product_selling_price);
+            $quantity = intval($item->quantity);
+            $subTotal += $price * $quantity;
         }
 
-        $subTotal = (float) $subTotal;
+        $subTotal = round($subTotal, 2);
 
         // Validate customer
         $customer = DB::table('customers')->find($customer_id);
