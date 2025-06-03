@@ -186,6 +186,7 @@ class Cart extends Controller{
             'status'    => true,
             'data'      => $returnData,
             'subTotal'  => $customerCurrency.' '.(string)$subTotal,
+            'coins_available' => (string)$customer->wallet_points,
             'message'   => "API Accessed Successfully!"
         ]);
     }
@@ -204,7 +205,7 @@ class Cart extends Controller{
         if (empty($coupon_id)) {
             return response()->json(['status' => false, 'message' => 'Coupon Id is blank']);
         }
-        
+
         // Fetch cart products for customer
         $products = DB::table('cart')
             ->join('products', 'products.id', '=', 'cart.product_id')
@@ -248,8 +249,8 @@ class Cart extends Controller{
         }
 
         // Check if already applied
-        $checkApplied = DB::table('coupon_history')
-            ->where(['customer_id' => $customer_id, 'coupon_id' => $coupon_id])
+        $checkApplied = DB::table('orders')
+            ->where(['customer_id' => $customer_id, 'coupon_id' => $coupon_id,'status'=>'success'])
             ->first();
 
         if ($checkApplied) {
