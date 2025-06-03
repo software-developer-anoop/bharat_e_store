@@ -14,6 +14,12 @@ class Payment extends Controller {
             $amount = trim($post['amount']??'');
             $payment_mode = strtolower(trim($post['payment_mode']??'')); // 'online' or 'cod'
             $address_id = trim($post['address_id']??'');
+            $product_id = trim($post['product_id']??'');
+            $product_name = trim($post['product_name']??'');
+            $product_color = trim($post['product_color']??'');
+            $product_selling_price = trim($post['product_selling_price']??'');
+            $quantity = trim($post['quantity']??'');
+            $image = trim($post['image']??'');
 
             if (empty($customer_id)) {
                 return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
@@ -30,6 +36,30 @@ class Payment extends Controller {
             if (empty($address_id)) {
                 return response()->json(['status' => false, 'message' => 'Address Id is blank']);
             }
+
+            // if (empty($product_id)) {
+            //     return response()->json(['status' => false, 'message' => 'Product Id is blank']);
+            // }
+
+            // if (empty($product_name)) {
+            //     return response()->json(['status' => false, 'message' => 'Product Name is blank']);
+            // }
+
+            // if (empty($product_color)) {
+            //     return response()->json(['status' => false, 'message' => 'Product Color is blank']);
+            // }
+
+            // if (empty($product_selling_price)) {
+            //     return response()->json(['status' => false, 'message' => 'Product Price is blank']);
+            // }
+
+            // if (empty($quantity)) {
+            //     return response()->json(['status' => false, 'message' => 'Quantity is blank']);
+            // }
+
+            // if (empty($image)) {
+            //     return response()->json(['status' => false, 'message' => 'Image is blank']);
+            // }
 
             $customer = DB::table('customers')->where('id', $customer_id)->first();
 
@@ -55,7 +85,13 @@ class Payment extends Controller {
                  'customer_id' => $customer_id, 
                  'address_id' => $address_id, 
                  'amount'      => $amount, 
-                 'status'      => $payment_mode === 'cod' ? 'cod_pending' : 'pending', 
+                 'payment_mode'      => $payment_mode, 
+                 // 'product_id'      => $product_id, 
+                 // 'product_name'      => $product_name, 
+                 // 'product_color'      => $product_color, 
+                 // 'product_selling_price'      => $product_selling_price, 
+                 // 'quantity'      => $quantity, 
+                 'status'      => 'pending', 
                  'created_at'  => now(), 
                  'updated_at'  => now(), ]);
 
@@ -109,8 +145,7 @@ class Payment extends Controller {
             }
             $responseBody = json_decode($response, true);
             if ($httpCode === 200 && isset($responseBody['payment_session_id'])) {
-                $paymentLink = "https://www.cashfree.com/pg/view_payment/" . $responseBody['payment_session_id'];
-                return response()->json(['status' => true, 'message' => 'Payment initiated', 'payment_mode' => 'online', 'url' => $paymentLink, 'order_table_id' => $order_table_id, 'order_id' => $orderId, ]);
+                return response()->json(['status' => true, 'message' => 'Payment initiated', 'payment_mode' => 'online', 'payment_session_id' => $responseBody['payment_session_id'], 'order_table_id' => $order_table_id, 'order_id' => $orderId, ]);
             }
             return response()->json(['status' => false, 'message' => $responseBody['message']??'Failed to initiate payment', 'error' => $responseBody, ]);
         }
