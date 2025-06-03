@@ -50,6 +50,7 @@ Route::post('remove-from-wishlist', [Wishlist::class, 'removeFromWishlist'])->na
 Route::post('add-to-cart', [Cart::class, 'index'])->name('api.add-to-cart');
 Route::post('my-cart', [Cart::class, 'myCart'])->name('api.my-cart');
 Route::post('remove-from-cart', [Cart::class, 'removeFromCart'])->name('api.remove-from-cart');
+Route::post('increase-decrease-quantity', [Cart::class, 'increaseDecreaseQuantity'])->name('api.increase-decrease-quantity');
 //Address
 Route::post('my-address', [Address::class, 'index'])->name('api.my-address');
 Route::post('add-edit-address', [Address::class, 'addEditAddress'])->name('api.add-edit-address');

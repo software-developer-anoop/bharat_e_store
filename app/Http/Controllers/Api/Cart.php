@@ -343,7 +343,92 @@ class Cart extends Controller{
             'total' => $customerCurrency .' '. (string)round((float)$applied->subtotal, 2)
         ]);
     }
+    public function increaseDecreaseQuantity()
+    {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id'] ?? '');
+        $product_id = trim($post['product_id'] ?? '');
+        $condition = trim($post['condition'] ?? '');
 
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+        }
 
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product ID is blank']);
+        }
 
+        if (!in_array($condition, ['increment', 'decrement'])) {
+            return response()->json(['status' => false, 'message' => 'Condition must be either increment or decrement']);
+        }
+
+        // Validate customer
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+
+        if ($customer->profile_status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+
+        // Validate product
+        $product = DB::table('products')->find($product_id);
+        if (!$product) {
+            return response()->json(['status' => false, 'message' => 'Product not found']);
+        }
+
+        // Check if item already exists in cart
+        $cartItem = DB::table('cart')
+            ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
+            ->first();
+
+        if (!$cartItem) {
+            return response()->json(['status' => false, 'message' => 'Product is not in the cart']);
+        }
+
+        if ($condition === "increment") {
+            DB::table('cart')
+                ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
+                ->increment('quantity');
+
+            $updatedQuantity = DB::table('cart')
+                ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
+                ->value('quantity');
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Quantity increased',
+                'quantity' => $updatedQuantity
+            ]);
+        }
+
+        if ($condition === "decrement") {
+            DB::table('cart')
+                ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
+                ->decrement('quantity');
+
+            $updatedCartItem = DB::table('cart')
+                ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
+                ->first();
+
+            if ($updatedCartItem && $updatedCartItem->quantity <= 0) {
+                DB::table('cart')
+                    ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
+                    ->delete();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Product removed from cart',
+                    'quantity' => 0
+                ]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Quantity decreased',
+                'quantity' => $updatedCartItem->quantity
+            ]);
+        }
+    }
 }
