@@ -17,6 +17,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('country-list', [Countrylist::class, 'index'])->name('api.countrylist');
+Route::post('state-list', [Countrylist::class, 'stateList'])->name('api.stateList');
+Route::post('city-list', [Countrylist::class, 'cityList'])->name('api.cityList');
 //Authentication
 Route::post('register', [Authentication::class, 'index'])->name('api.register');
 Route::post('verify-otp', [Authentication::class, 'verifyOtp'])->name('api.verify-otp');
