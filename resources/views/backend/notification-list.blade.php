@@ -14,6 +14,7 @@
             <thead>
               <tr>
                 <th class="text-center">Title</th>
+                <th class="text-center">Type</th>
                 <th class="text-center">Image</th>
                 <th class="text-center">Status</th>
                 <th class="text-center">Created At / <br> Updated At</th>
@@ -25,6 +26,7 @@
               @foreach($data as $key => $value)
               <tr id="del_{{$value->id}}">
                 <td class="text-center">{{$value->title??''}}</td>
+                <td class="text-center">{{ucfirst($value->notification_type??'')}}</td>
                 @if($value->image)
                 <td class="text-center"><img src="{{$value->image?asset('uploads/'.$value->image):''}}" width="100"></td>
                 @else

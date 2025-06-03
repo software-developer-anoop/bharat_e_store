@@ -38,6 +38,7 @@ class Notification extends Controller {
         }
         $saveData['title'] = $data['title'] ? trim($data['title']) : '';
         $saveData['description'] = $data['description'] ? trim($data['description']) : '';
+        $saveData['notification_type'] = $data['notification_type'] ? trim($data['notification_type']) : '';
         if (empty($id)) {
             $saveData['created_at'] = Carbon::now();
             DB::table('notifications')->insert($saveData);
@@ -61,7 +62,7 @@ class Notification extends Controller {
             return response()->json(['error' => 'Notification not found'], 404);
         }
         $data = ['status' => false, 'id' => (string)$id, 'start' => (string)($start + 1), 'limit' => (string)$limit, 'ids' => '', ];
-        $msg = ['title' => ucwords($notification->title), 'message' => !empty($notification->description) ? $notification->description : $notification->title, 'image' => !empty($notification->image) ? url('uploads/' . $notification->image) : ''];
+        $msg = ['title' => ucwords($notification->title), 'message' => !empty($notification->description) ? $notification->description : $notification->title, 'image' => !empty($notification->image) ? url('uploads/' . $notification->image) : '','type'=>$notification->notification_type];
         $where = [['fcm_token', '!=', ''], ['profile_status', '=', 'Active'], ['email_status', '=', 'Verified']];
         $offset = $start * $limit;
         $customers = DB::table('customers')->where($where)->select('id', 'fcm_token')->orderByDesc('id')->offset($offset)->limit($limit)->get();
@@ -99,7 +100,8 @@ class Notification extends Controller {
                         'click_action' => 'OPEN_NOTIFICATION'
                     ],
                     'data' => [
-                        'notification_id' => $id, 
+                        'notification_id' => $id,
+                        'notification_type' => $msg['type']
                     ]
                 ],$jsonPath);
             }

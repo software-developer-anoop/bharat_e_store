@@ -41,6 +41,16 @@
                 <img src="{{asset('uploads/'.$data->image)}}" height="70" width="100">
               </div>
               @endif 
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="notification_type">Notification Type</label>
+                  <select name="notification_type" id="notification_type" class="form-control select2" required>
+                    <option value="">Select Type</option>
+                    <option value="normal" {{!empty($data->notification_type) && ($data->notification_type=="normal")?'selected':''}}>Normal</option>
+                    <option value="coin" {{!empty($data->notification_type) && ($data->notification_type=="coin")?'selected':''}}>Coin</option>
+                  </select>
+                </div>
+              </div>
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>
