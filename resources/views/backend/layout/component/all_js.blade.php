@@ -293,12 +293,14 @@ $.ajax({
     });
 }
 
-function broadCastNotification(id) {
+function broadCastNotification(id,start,limit) {
     $.ajax({
         url: "{{route('admin.push-notification')}}",
         type: "POST",
         data: { 
             id: id,
+            start:start,
+            limit:limit,
             _token: '{{ csrf_token() }}'
         },
         async: true,
@@ -310,7 +312,7 @@ function broadCastNotification(id) {
                 var nstart = obj.start;
                 var nlimit = obj.limit;
                 setTimeout(function () {
-                    sendNotifications(nid);
+                    broadCastNotification(nid, nstart, nlimit);
                 }, 300);
             } else {
                window.location.href = "{{route('admin.notification-list')}}";

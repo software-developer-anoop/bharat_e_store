@@ -1,37 +1,31 @@
 <?php
-
 namespace App\Http\Controllers\Backend;
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-
-class Notification extends Controller
-{
-    public function index(){
+class Notification extends Controller {
+    public function index() {
         $page_name = 'Notification List';
         $data = DB::table('notifications')->get();
-        return view('backend.notification-list',compact('page_name','data'));
+        return view('backend.notification-list', compact('page_name', 'data'));
     }
-    public function addNotification($id=null){
-        $data = $id?DB::table('notifications')->where('id',$id)->first():'';
-        $page_name = $id?'Edit Notification':'Add Notification';
-        return view('backend.add-notification',compact('data','page_name'));
+    public function addNotification($id = null) {
+        $data = $id ? DB::table('notifications')->where('id', $id)->first() : '';
+        $page_name = $id ? 'Edit Notification' : 'Add Notification';
+        return view('backend.add-notification', compact('data', 'page_name'));
     }
-    public function saveNotification(Request $request){
+    public function saveNotification(Request $request) {
         $data = $request->all();
         $saveData = [];
-        $id = $data['id']?trim($data['id']):'';
+        $id = $data['id'] ? trim($data['id']) : '';
         $checkData['title'] = trim($data['title']);
         $duplicate = DB::table('notifications')->where($checkData)->first();
-
         if (!empty($duplicate)) {
             if ($id === '' || $duplicate->id != $id) {
                 return redirect()->back()->with('error', 'Duplicate Entry');
             }
         }
-
         if ($file = $request->file('image')) {
             if ($file->isValid()) {
                 $filename = $file->hashName();
@@ -42,98 +36,74 @@ class Notification extends Controller
                 $saveData['image'] = $filename;
             }
         }
-        
-        $saveData['title'] = $data['title']?trim($data['title']):'';
-        $saveData['description'] = $data['description']?trim($data['description']):'';
-
-        if(empty($id)){
+        $saveData['title'] = $data['title'] ? trim($data['title']) : '';
+        $saveData['description'] = $data['description'] ? trim($data['description']) : '';
+        if (empty($id)) {
             $saveData['created_at'] = Carbon::now();
             DB::table('notifications')->insert($saveData);
             $msg = 'Notification Added successfully';
-        }else{
+        } else {
             $saveData['updated_at'] = Carbon::now();
-            DB::table('notifications')->where('id',$id)->update($saveData);
+            DB::table('notifications')->where('id', $id)->update($saveData);
             $msg = 'Notification Updated Successfully';
         }
-        return redirect(route('admin.notification-list'))->with('success',$msg);
+        return redirect(route('admin.notification-list'))->with('success', $msg);
     }
-    public function pushNotification(Request $request)
-    {
+    public function pushNotification(Request $request) {
         $id = trim($request->input('id', ''));
-        $start = (int)trim($request->input('start', 0));
-        $limit = (int)trim($request->input('limit', 10));
-
+        $start = (int)$request->input('start', 0);
+        $limit = (int)$request->input('limit', 10);
         if (empty($id)) {
             return response()->json(['error' => 'ID is blank'], 400);
         }
-
-        $notificationData = DB::table('notifications')->find($id);
-        if (!$notificationData) {
+        $notification = DB::table('notifications')->find($id);
+        if (!$notification) {
             return response()->json(['error' => 'Notification not found'], 404);
         }
-
-        $data = [
-            'status' => false,
-            'id' => (string) $id,
-            'start' => (string) ($start + 1),
-            'limit' => (string) $limit,
-            'ids' => '',
-        ];
-
-        $serverkey = env('FIREBASE_API_KEY');
-
-        $where = [
-            ['fcm_token', '!=', ''],
-            ['profile_status', '=', 'Active'],
-            ['email_status', '=', 'Verified']
-        ];
-
+        $data = ['status' => false, 'id' => (string)$id, 'start' => (string)($start + 1), 'limit' => (string)$limit, 'ids' => '', ];
+        $msg = ['title' => ucwords($notification->title), 'message' => !empty($notification->description) ? $notification->description : $notification->title, 'image' => !empty($notification->image) ? url('uploads/' . $notification->image) : ''];
+        $where = [['fcm_token', '!=', ''], ['profile_status', '=', 'Active'], ['email_status', '=', 'Verified']];
         $offset = $start * $limit;
-        $customers = DB::table('customers')
-            ->where($where)
-            ->select('id', 'fcm_token')
-            ->orderBy('id', 'DESC')
-            ->offset($offset)
-            ->limit($limit)
-            ->get();
-
-        $msgarray = [
-            'title' => ucwords($notificationData->title),
-            'message' => !empty($notificationData->descrption) ? $notificationData->descrption : $notificationData->title,
-            'image' => !empty($notificationData->image) ? url('uploads/' . $notificationData->image) : ''
-        ];
-
-        if ($customers->isNotEmpty()) {
-            $data['status'] = true;
-            $saveRecords = [];
-            $tokens = [];
-
-            foreach ($customers as $customer) {
-                if (!empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
-                    $tokens[] = $customer->fcm_token;
-
-                    $saveRecords[] = [
-                        'customer_id' => $customer->id,
-                        'notification_id' => $id,
-                        'title' => $msgarray['title'],
-                        'description' => $msgarray['message'],
-                        'image' => $msgarray['image'],
-                        'created_at' => now(),
-                    ];
-                }
-            }
-
-            if (!empty($saveRecords)) {
-                DB::table('push_notifications')->insert($saveRecords);
-            }
-
-            if (!empty($tokens)) {
-                $firebaseids = implode(',', $tokens);
-                pushnotifications($firebaseids, $msgarray, $serverkey);
+        $customers = DB::table('customers')->where($where)->select('id', 'fcm_token')->orderByDesc('id')->offset($offset)->limit($limit)->get();
+        if ($customers->isEmpty()) {
+            return response()->json($data);
+        }
+        $data['status'] = true;
+        $notificationLog = [];
+        $tokens = [];
+        foreach ($customers as $customer) {
+            if (!empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
+                $tokens[] = $customer->fcm_token;
+                $notificationLog[] = ['customer_id' => $customer->id, 
+                                      'notification_id' => $id, 
+                                      'title' => $msg['title'], 
+                                      'description' => $msg['message'], 
+                                      'image' => $msg['image'], 
+                                      'created_at' => now(), ];
             }
         }
+        if (!empty($notificationLog)) {
+            DB::table('push_notifications')->insert($notificationLog);
+        }
+        $jsonPath = realpath('../firebase_credentials.json');
 
+        // 🔥 Send notifications
+        if (!empty($tokens)) {
+            foreach ($tokens as $token) {
+                // You should pass token + message content here
+                $response = sendPushNotification([
+                    'to' => $token,
+                    'notification' => [
+                        'title' => $msg['title'],
+                        'body' => $msg['message'],
+                        'click_action' => 'OPEN_NOTIFICATION'
+                    ],
+                    'data' => [
+                        'notification_id' => $id, 
+                    ]
+                ],$jsonPath);
+            }
+        }
         return response()->json($data);
     }
-
 }

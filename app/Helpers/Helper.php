@@ -23,65 +23,6 @@ if (!function_exists("webSetting")) {
         
     }
 }
-// if (!function_exists("homeSetting")) {
-//     function homeSetting($select) {
-//         $home = DB::table('homesetting')->select($select)->first();
-//         // Check if data is found before returning
-//         if ($home) {
-//             return $home;
-//         }
-//         return null; // Return null if no data found
-//     }
-// }
-if (!function_exists('convertImageToWebp')) {
-    function convertImageToWebp($folderPath, $uploaded_file_name, $new_webp_file) {
-        $source = $folderPath . '/' . $uploaded_file_name;
-        $extension = pathinfo($source, PATHINFO_EXTENSION);
-        $quality = 100;
-        $image = '';
-        if ($extension == 'jpeg' || $extension == 'jpg') {
-            $image = imagecreatefromjpeg($source);
-        } else if ($extension == 'gif') {
-            $image = imagecreatefromgif($source);
-        } else if ($extension == 'png') {
-            $image = imagecreatefrompng($source);
-            imagepalettetotruecolor($image);
-        } else {
-            $image = $uploaded_file_name;
-        }
-        $destination = $folderPath . '/' . $new_webp_file;
-        $webp_upload_done = imagewebp($image, $destination, $quality);
-        return $webp_upload_done ? $new_webp_file : '';
-    }
-}
-function FetchExactBrowserName() {
-    $userAgent = strtolower(request()->header('User-Agent'));
-    if (strpos($userAgent, "opr/") !== false) {
-        return "Opera";
-    } elseif (strpos($userAgent, "chrome/") !== false) {
-        return "Chrome";
-    } elseif (strpos($userAgent, "edg/") !== false) {
-        return "Microsoft Edge";
-    } elseif (strpos($userAgent, "msie") !== false || strpos($userAgent, "trident/") !== false) {
-        return "Internet Explorer";
-    } elseif (strpos($userAgent, "firefox/") !== false) {
-        return "Firefox";
-    } elseif (strpos($userAgent, "safari/") !== false && strpos($userAgent, "chrome/") === false) {
-        return "Safari";
-    } else {
-        return "Unknown";
-    }
-}
-function imgExtension($image_jpg_png_gif, $image_webp = null) {
-    $browserName = FetchExactBrowserName();
-    if ($browserName === "Chrome" && !empty($image_webp)) {
-        return $image_webp;
-    } elseif ($browserName === "Safari" && !empty($image_webp)) {
-        return $image_webp;
-    } else {
-        return $image_jpg_png_gif;
-    }
-}
 if (!function_exists("validate_slug")) {
     function validate_slug($text, string $divider = '-') {
         $text = preg_replace('~[^\p{L}\d]+~u', $divider, $text);
@@ -96,65 +37,6 @@ if (!function_exists("validate_slug")) {
 function random_alphanumeric_string($length) {
     $chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     return substr(str_shuffle($chars), 0, $length);
-}
-function testInput($input) {
-    $input = trim($input);
-    $input = htmlspecialchars($input, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    $input = filter_var($input, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
-    return $input;
-}
-if (!function_exists("generateProductSchema")) {
-    function generateProductSchema($name = false, $image = false, $description = false) {
-        // $ratingValue = random_int(40, 50) / 10;
-        $ratingValue = (int)4;
-        $settingData = webSetting(['logo', 'site_name']);
-        $brandname = $settingData->site_name;
-        if (!empty($image)) {
-            $imagePath = asset('uploads/' . $image);
-        } else {
-            $imagePath = asset('uploads/' . $settingData->logo);
-        }
-        $schema = '';
-        $schema.= '<script type="application/ld+json">' . "\n";
-        $schema.= '{' . "\n";
-        $schema.= '"@context": "https://schema.org/",' . "\n";
-        $schema.= '"@type": "Product", ' . "\n";
-        $schema.= '"name": "' . $name . '",' . "\n";
-        $schema.= '"image": "' . $imagePath . '",' . "\n";
-        $schema.= '"description": "' . $description . '",' . "\n";
-        $schema.= '"brand": {' . "\n";
-        $schema.= '"@type": "Brand",' . "\n";
-        $schema.= '"name": "' . $brandname . '"' . "\n";
-        $schema.= '},' . "\n";
-        $schema.= '"aggregateRating": {' . "\n";
-        $schema.= '"@type": "AggregateRating",' . "\n";
-        $schema.= '"ratingValue": "' . $ratingValue . '",' . "\n";
-        $schema.= '"bestRating": "5",' . "\n";
-        $schema.= '"worstRating": "1",' . "\n";
-        $schema.= '"ratingCount": "' . random_int(700, 1500) . '"' . "\n";
-        $schema.= '}' . "\n";
-        $schema.= '}' . "\n";
-        $schema.= '</script>' . "\n";
-        return $schema;
-    }
-}
-if (!function_exists("generateFaqSchema")) {
-    function generateFaqSchema($faqData) {
-        if (!empty($faqData)) {
-            $count = count($faqData);
-            $schema = ["@context" => "https://schema.org/", "@type" => "FAQPage", "mainEntity" => []];
-            foreach ($faqData as $index => $faqItem) {
-                $question = strip_tags($faqItem['question']);
-                $answer = strip_tags($faqItem['answer']);
-                $schema['mainEntity'][] = ["@type" => "Question", "name" => $question, "acceptedAnswer" => ["@type" => "Answer", "text" => $answer]];
-            }
-            $jsonSchema = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            $scriptTag = '<script type="application/ld+json">' . PHP_EOL . $jsonSchema . PHP_EOL . '</script>' . PHP_EOL;
-            return $scriptTag;
-        } else {
-            return false;
-        }
-    }
 }
 if (!function_exists("removeImage")) {
     function removeImage($old_image) {
@@ -173,29 +55,18 @@ if (!function_exists('currentUrl')) {
 if (!function_exists("getUserCurrency")) {
     function getUserCurrency($id = null) {
         $userCountry = null;
-
         if (!empty($id)) {
-            $userCountry = DB::table('customers')
-                ->where('id', $id)
-                ->value('country_code');
-
-            return DB::table('country')
-                ->where('country_code', $userCountry)
-                ->value('country_currency_symbol');
+            $userCountry = DB::table('customers')->where('id', $id)->value('country_code');
+            return DB::table('country')->where('country_code', $userCountry)->value('country_currency_symbol');
         }
-
         if (Auth::check()) {
             $userCountry = Auth::user()->country;
-
-            return DB::table('country')
-                ->where('country_name', $userCountry)
-                ->value('country_currency_symbol');
+            return DB::table('country')->where('country_name', $userCountry)->value('country_currency_symbol');
         }
-
         return null; // fallback return
+        
     }
 }
-
 if (!function_exists('checkPayload')) {
     function checkPayload() {
         $response = [];
@@ -302,17 +173,92 @@ function sendOtpPhone($mobile, $otp) {
     $sent = sendsms($mobile, $msg);
     return true;
 }
-function sendPushNotification($fields, $key = null) {
-    $fcmurl = 'https://fcm.googleapis.com/fcm/send';
-    $firebasekey = (!is_null($key) && !empty($key)) ? $key : FIREBASE_API_KEY;
-    $headers = array('Authorization: key=' . $firebasekey, 'Content-Type: application/json');
+if (!function_exists('base64url_encode')) {
+    function base64url_encode($data) {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+}
+
+function getAccessTokenFromServiceAccount($jsonFilePath) {
+    $json = json_decode(file_get_contents($jsonFilePath), true);
+
+    $header = ['alg' => 'RS256', 'typ' => 'JWT'];
+    $iat = time();
+    $exp = $iat + 3600;
+
+    $claims = [
+        'iss' => $json['client_email'],
+        'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+        'aud' => 'https://oauth2.googleapis.com/token',
+        'iat' => $iat,
+        'exp' => $exp
+    ];
+
+    // Use existing global base64url_encode()
+    $jwtHeader = base64url_encode(json_encode($header));
+    $jwtClaims = base64url_encode(json_encode($claims));
+    $signatureInput = "$jwtHeader.$jwtClaims";
+
+    openssl_sign($signatureInput, $signature, $json['private_key'], 'sha256WithRSAEncryption');
+    $jwtSignature = base64url_encode($signature);
+
+    $jwt = "$jwtHeader.$jwtClaims.$jwtSignature";
+
+    $postFields = http_build_query([
+        'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        'assertion' => $jwt
+    ]);
+
+    $ch = curl_init('https://oauth2.googleapis.com/token');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/x-www-form-urlencoded'
+    ]);
+    $response = curl_exec($ch);
+    if ($response === false) {
+        die('Token request failed: ' . curl_error($ch));
+    }
+    curl_close($ch);
+
+    $responseData = json_decode($response, true);
+    return $responseData['access_token'] ?? null;
+}
+
+
+function sendPushNotification($fields, $jsonPath) {
+    $fcmurl = 'https://fcm.googleapis.com/v1/projects/bharat-e-store/messages:send';
+    $accessToken = getAccessTokenFromServiceAccount($jsonPath);
+    $headers = [
+        'Authorization: Bearer ' . $accessToken,
+        'Content-Type: application/json'
+    ];
+
+    // Properly format payload for HTTP v1 API
+    $payload = [
+        'message' => [
+            'token' => $fields['to'],
+            'notification' => [
+                'title' => $fields['notification']['title'],
+                'body' => $fields['notification']['body']
+            ],
+            'data' => $fields['data'],
+            'android' => [
+                'notification' => [
+                    'click_action' => $fields['notification']['click_action']
+                ]
+            ]
+        ]
+    ];
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $fcmurl);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     $result = curl_exec($ch);
     if ($result === FALSE) {
         die('Curl failed: ' . curl_error($ch));
@@ -381,22 +327,18 @@ if (!function_exists('validateApiRequest')) {
      * @param string|null $expectedToken
      * @return \Illuminate\Http\JsonResponse|null
      */
-    function validateApiRequest($request, $expectedToken = '3d677482a0d52578ddca12375c374e24')
-    {
+    function validateApiRequest($request, $expectedToken = '3d677482a0d52578ddca12375c374e24') {
         if (!$request->isMethod('post')) {
             return response()->json(['status' => false, 'message' => 'Bad Request'], 400);
         }
-
         $authHeader = $request->header('Authorization');
         if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
             return response()->json(['status' => false, 'message' => 'Missing or malformed Auth Token!'], 401);
         }
-
         $token = trim(str_replace('Bearer', '', $authHeader));
         if ($token !== $expectedToken) {
             return response()->json(['status' => false, 'message' => 'Invalid Auth Token!'], 401);
         }
-
         // Valid request
         return null;
     }
