@@ -20,9 +20,14 @@ class Address extends Controller
             ]);
         }
 
+        $customer = DB::table('customers')->where('id', $customer_id)->first();
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'No Record Found']);
+        }
+
         $addressList = DB::table('addresses')
             ->where('customer_id', $customer_id)
-            ->select('id', 'customer_id', 'name', 'email', 'phone', 'address', 'pincode', 'address_type')
+            ->select('id', 'customer_id', 'name', 'email', 'phone', 'address', 'pincode', 'address_type','country_id','state_id','city_id')
             ->get();
 
         if ($addressList->isEmpty()) {
@@ -43,6 +48,9 @@ class Address extends Controller
                 'address'      => (string) $value->address,
                 'pincode'      => (string) $value->pincode,
                 'address_type' => (string) $value->address_type,
+                'country_id'   => (string) $value->country_id,
+                'state_id'     => (string) $value->state_id,
+                'city_id'      => (string) $value->city_id,
             ];
         }
 
@@ -66,6 +74,9 @@ class Address extends Controller
         $address = trim($post['address'] ?? '');
         $pincode = trim($post['pincode'] ?? '');
         $address_type = trim($post['address_type'] ?? '');
+        $country_id = trim($post['country_id'] ?? '');
+        $state_id = trim($post['state_id'] ?? '');
+        $city_id = trim($post['city_id'] ?? '');
 
         if (empty($customer_id)) {
             return response()->json([
@@ -74,6 +85,11 @@ class Address extends Controller
             ]);
         }
 
+        $customer = DB::table('customers')->where('id', $customer_id)->first();
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'No Record Found']);
+        }
+        
         $saveData = [
             'customer_id' => $customer_id,
             'name' => $name,
@@ -82,6 +98,9 @@ class Address extends Controller
             'address' => $address,
             'pincode' => $pincode,
             'address_type' => $address_type,
+            'country_id' => $country_id,
+            'state_id' => $state_id,
+            'city_id' => $city_id,
         ];
 
         if (empty($address_id)) {

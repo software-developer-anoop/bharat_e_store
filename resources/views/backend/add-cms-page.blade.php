@@ -28,6 +28,8 @@
                     <option value="Return Policy" {{ old('page_name', $data->page_name ?? '') == 'Return Policy' ? 'selected' : '' }}>Return Policy</option>
                     <option value="Privacy Policy" {{ old('page_name', $data->page_name ?? '') == 'Privacy Policy' ? 'selected' : '' }}>Privacy Policy</option>
                     <option value="Terms and Conditions" {{ old('page_name', $data->page_name ?? '') == 'Terms and Conditions' ? 'selected' : '' }}>Terms and Conditions</option>
+                    <option value="Refund Policy" {{ old('page_name', $data->page_name ?? '') == 'Refund Policy' ? 'selected' : '' }}>Refund Policy</option>
+                    <option value="Contact Us" {{ old('page_name', $data->page_name ?? '') == 'Contact Us' ? 'selected' : '' }}>Contact Us</option>
                  </select>
                 </div>
               </div>

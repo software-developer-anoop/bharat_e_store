@@ -21,6 +21,7 @@ use App\Http\Controllers\Backend\Coupon;
 use App\Http\Controllers\Backend\Menu;
 use App\Http\Controllers\Backend\Address;
 use App\Http\Controllers\Backend\Banner;
+use App\Http\Controllers\Cmspages;
 
 Route::get('/login', [Authentication::class, 'index'])->name('login');
 Route::post('/authenticate', [Authentication::class, 'authenticate'])->name('authenticate');
@@ -115,7 +116,9 @@ Route::post('/assignmenu', [Ajax::class, 'assignMenu'])->name('admin.assignmenu'
 });
 
 //Frontend Routes
-// Route::post('getRandomCaptcha', [Home::class, 'getRandomCaptcha']);
+Route::get('contact-us', [Cmspages::class, 'index']);
+Route::get('refund-policy', [Cmspages::class, 'refund_policy']);
+Route::get('terms-and-conditions', [Cmspages::class, 't_and_c']);
 // Route::post('save-query', [Home::class, 'saveQuery']);
 // Route::get('/', [Home::class, 'index']);
 // Route::get('/{any}', [Common::class, 'index'])->where('any', '.*');
