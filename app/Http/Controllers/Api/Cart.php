@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 class Cart extends Controller{
 
     public function index()
@@ -123,6 +125,19 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
         }
 
+        // Cooldown control (3 seconds)
+        $cooldownKey = "cooldown:mycart:$customer_id";
+        if (Cache::has($cooldownKey)) {
+            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
+        }
+        Cache::put($cooldownKey, true, now()->addSeconds(3));
+
+        // Cache key for response
+        $cacheKey = "cart:data:$customer_id";
+        if (Cache::has($cacheKey)) {
+            return response()->json(Cache::get($cacheKey));
+        }
+
         // Validate customer
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
@@ -133,9 +148,9 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
-        $customerCurrency = getUserCurrency($customer_id) ??'';
+        $customerCurrency = getUserCurrency($customer_id) ?? '';
 
-        // Get cart products for the customer
+        // Get cart products
         $products = DB::table('cart')
             ->join('products', 'products.id', '=', 'cart.product_id')
             ->where('cart.customer_id', $customer_id)
@@ -169,28 +184,32 @@ class Cart extends Controller{
             $subTotal += $itemTotal;
 
             $returnData[] = [
-                'cart_id'            => (string)$value->cart_id,
-                'product_id'            => (string)$value->product_id,
-                'category_id'           => (string)$value->category_id,
-                'subcategory_id'        => (string)$value->subcategory_id,
-                'product_name'          => (string)$value->product_name,
-                'product_color'         => (string)($value->product_colors ?? ''), // corrected to match DB field
-                'product_selling_price' => $customerCurrency.' '.(string)$value->product_selling_price,
-                'product_cost_price'    => $customerCurrency.' '.(string)$value->product_cost_price,
-                'product_image'         => $firstImageUrl,
-                'product_quantity'      => (string)$value->quantity,
+                'cart_id'              => (string)$value->cart_id,
+                'product_id'           => (string)$value->product_id,
+                'category_id'          => (string)$value->category_id,
+                'subcategory_id'       => (string)$value->subcategory_id,
+                'product_name'         => (string)$value->product_name,
+                'product_color'        => (string)($value->product_colors ?? ''),
+                'product_selling_price'=> $customerCurrency . ' ' . (string)$value->product_selling_price,
+                'product_cost_price'   => $customerCurrency . ' ' . (string)$value->product_cost_price,
+                'product_image'        => $firstImageUrl,
+                'product_quantity'     => (string)$value->quantity,
             ];
         }
 
-        return response()->json([
-            'status'    => true,
-            'data'      => $returnData,
-            'subTotal'  => $customerCurrency.' '.(string)$subTotal,
-            'coins_available' => (string)$customer->wallet_points,
-            'message'   => "API Accessed Successfully!"
-        ]);
-    }
+        $response = [
+            'status'           => true,
+            'data'             => $returnData,
+            'subTotal'         => $customerCurrency . ' ' . (string)$subTotal,
+            'coins_available'  => (string)$customer->wallet_points,
+            'message'          => "API Accessed Successfully!"
+        ];
 
+        // Cache response for 2 minutes
+        Cache::put($cacheKey, $response, now()->addMinutes(2));
+
+        return response()->json($response);
+    }
     public function applyCoupon()
     {
         $post = checkPayload();
