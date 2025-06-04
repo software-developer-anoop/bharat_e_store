@@ -4,6 +4,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 class Homepage extends Controller {
     public function index(Request $request) {
         checkHeaders();
@@ -281,33 +283,62 @@ class Homepage extends Controller {
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
-    public function productDetail() {
+    public function productDetail()
+    {
         $post = checkPayload();
-        $product_id = trim($post['product_id']??'');
-        $customer_id = trim($post['customer_id']??'');
+        $product_id = trim($post['product_id'] ?? '');
+        $customer_id = trim($post['customer_id'] ?? '');
+
         if (empty($product_id)) {
-            return response()->json(['status' => false, 'message' => "Product ID is blank", ]);
+            return response()->json(['status' => false, 'message' => "Product ID is blank"]);
         }
+
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => "Customer ID Is Blank", ]);
+            return response()->json(['status' => false, 'message' => "Customer ID Is Blank"]);
         }
+
+        // Manual Cooldown: Prevent frequent calls from the same customer
+        $cooldownKey = "cooldown:product_detail:{$customer_id}";
+        if (Cache::has($cooldownKey)) {
+            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
+        }
+        Cache::put($cooldownKey, true, now()->addSeconds(3)); // 3-second cooldown
+
+        // Caching the response to reduce DB load
+        $cacheKey = "product_detail_{$customer_id}_{$product_id}";
+        $cachedData = Cache::get($cacheKey);
+        if ($cachedData) {
+            return response()->json(['status' => true, 'message' => 'API Accessed Successfully (cached)', 'data' => $cachedData]);
+        }
+
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
         }
+
         if ($customer->profile_status === "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
+
         $customerCurrency = getUserCurrency($customer_id);
-        $where = [];
-        $where['products.status'] = 'Active';
-        $where['products.id'] = $product_id;
-        $product = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')->where($where)->select('products.*', 'categories.category_name', 'subcategories.subcategory_name')->first();
+        $where = [
+            'products.status' => 'Active',
+            'products.id' => $product_id
+        ];
+
+        $product = DB::table('products')
+            ->join('categories', 'categories.id', '=', 'products.category_id')
+            ->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')
+            ->where($where)
+            ->select('products.*', 'categories.category_name', 'subcategories.subcategory_name')
+            ->first();
+
         if (empty($product)) {
             return response()->json(['status' => false, 'message' => "Product Not Found"]);
         }
+
         $images = $product->product_image ? json_decode($product->product_image, true) : [];
-            $imageUrls = [];
+        $imageUrls = [];
 
         if (!empty($images)) {
             foreach ($images as $imageArray) {
@@ -317,37 +348,42 @@ class Homepage extends Controller {
             }
         }
 
-        $returnData = [];
-        $returnData['product_id'] = (string)$product->id;
-        $returnData['category_name'] = (string)$product->category_name;
-        $returnData['subcategory_name'] = (string)$product->subcategory_name;
-        $returnData['product_name'] = (string)$product->product_name;
-        $returnData['product_description'] = (string)$product->product_description;
-        $returnData['product_size'] = !empty($product->product_size)
-        ? array_map('trim', explode(',', $product->product_size))
-        : [];;
-        $returnData['product_colors'] = !empty($product->product_colors)
-        ? array_values(array_filter(array_map(function($color) {
-            $parts = array_map('trim', explode('-', $color));
-            if (count($parts) === 2) {
-                return [
-                    'color_name' => $parts[0],
-                    'color_code' => $parts[1]
-                ];
-            }
-            return null; // skip invalid entries
-        }, explode(',', $product->product_colors))))
-        : [];
-        $returnData['product_image'] = $imageUrls;
-        $returnData['product_selling_price'] = $customerCurrency .' '. (string)$product->product_selling_price;
-        $returnData['product_cost_price'] = $customerCurrency .' '. (string)$product->product_cost_price;
-        $returnData['product_quantity'] = (string)$product->product_quantity;
-        $returnData['product_availability'] = (string)$product->product_availability;
-        $returnData['product_rating'] = (string)$product->product_rating;
-        $returnData['is_trending'] = (string)$product->is_trending;
-        $returnData['product_status'] = (string)$product->status;
-        $returnData['added_to_wishlist'] = strtolower($product->added_to_wishlist) === 'true';
-        $returnData['product_off'] = (string)$product->product_off;
+        $returnData = [
+            'product_id' => (string)$product->id,
+            'category_name' => (string)$product->category_name,
+            'subcategory_name' => (string)$product->subcategory_name,
+            'product_name' => (string)$product->product_name,
+            'product_description' => (string)$product->product_description,
+            'product_size' => !empty($product->product_size)
+                ? array_map('trim', explode(',', $product->product_size))
+                : [],
+            'product_colors' => !empty($product->product_colors)
+                ? array_values(array_filter(array_map(function ($color) {
+                    $parts = array_map('trim', explode('-', $color));
+                    if (count($parts) === 2) {
+                        return [
+                            'color_name' => $parts[0],
+                            'color_code' => $parts[1]
+                        ];
+                    }
+                    return null;
+                }, explode(',', $product->product_colors))))
+                : [],
+            'product_image' => $imageUrls,
+            'product_selling_price' => $customerCurrency . ' ' . (string)$product->product_selling_price,
+            'product_cost_price' => $customerCurrency . ' ' . (string)$product->product_cost_price,
+            'product_quantity' => (string)$product->product_quantity,
+            'product_availability' => (string)$product->product_availability,
+            'product_rating' => (string)$product->product_rating,
+            'is_trending' => (string)$product->is_trending,
+            'product_status' => (string)$product->status,
+            'added_to_wishlist' => strtolower($product->added_to_wishlist) === 'true',
+            'product_off' => (string)$product->product_off,
+        ];
+
+        // Store result in cache for 2 minutes
+        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+
         return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
     public function hotDealsProducts() {
