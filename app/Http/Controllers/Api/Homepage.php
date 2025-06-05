@@ -10,7 +10,7 @@ class Homepage extends Controller {
     public function index(Request $request)
     {
         checkHeaders();
-
+        sleep(1);
         // Use customer_id if available, else fallback to IP address
         $identifier = $request->input('customer_id') ?? $request->ip();
         $cooldownKey = 'cooldown:banner:' . $identifier;
@@ -78,6 +78,7 @@ class Homepage extends Controller {
     }
     public function categoryList() {
         checkHeaders();
+        sleep(2);
         $category = DB::table('categories')->where('status', 'Active')->select('category_name', 'category_image', 'id')->get();
         if (empty($category)) {
             $response['status'] = false;
@@ -122,6 +123,7 @@ class Homepage extends Controller {
         return response()->json($response);
     }
     public function trendingProducts() {
+        sleep(3);
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
         $condition = trim($post['condition']??'');
@@ -291,6 +293,7 @@ class Homepage extends Controller {
         return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
     public function hotDealsProducts() {
+        sleep(4);
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
         $condition = trim($post['condition']??'');
