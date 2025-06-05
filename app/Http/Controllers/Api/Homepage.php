@@ -4,38 +4,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
 class Homepage extends Controller {
     public function index(Request $request)
     {
         checkHeaders();
         sleep(1);
-        // Use customer_id if available, else fallback to IP address
-        $identifier = $request->input('customer_id') ?? $request->ip();
-        $cooldownKey = 'cooldown:banner:' . $identifier;
-
-        // Limit: Allow 1 request per 5 seconds
-        $cooldownSeconds = 5;
-
-        if (!Cache::add($cooldownKey, true, $cooldownSeconds)) {
-            return response()->json([
-                'status' => false,
-                'message' => "Too many requests. Please wait $cooldownSeconds seconds."
-            ], 429);
-        }
-
-        // Check if we already have banner data in cache
-        $cacheKey = 'banner_list:all';
-        $cachedData = Cache::get($cacheKey);
-
-        if ($cachedData) {
-            return response()->json([
-                'status' => true,
-                'banner' => $cachedData,
-                'message' => 'API Accessed Successfully (cached)'
-            ]);
-        }
 
         // Fetch from DB
         $record = DB::table('banner_list')
@@ -66,9 +39,6 @@ class Homepage extends Controller {
                 'image'            => url('uploads/' . $value->image),
             ];
         })->toArray();
-
-        // Cache the banner data for 2 minutes
-        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
 
         return response()->json([
             'status' => true,
@@ -132,12 +102,6 @@ class Homepage extends Controller {
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
         }
-        // Cooldown check (per user)
-        $cooldownKey = "cooldown:trending_products:{$customer_id}";
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
-        }
-        Cache::add($cooldownKey, true, now()->addSeconds(3));
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
@@ -149,14 +113,13 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => "Invalid Condition"]);
         }
         $customerCurrency = getUserCurrency($customer_id) ??'';
-        // Generate cache key
-        $cacheKey = "trending_products:{$customer_id}:{$condition}:{$per_page_limit}:{$page_no}";
-        if (Cache::has($cacheKey)) {
-            return response()->json(['status' => true, 'data' => Cache::get($cacheKey), 'message' => "API Accessed Successfully! (cached)", ]);
-        }
+
         // Base query
         $where = ['products.status' => 'Active', 'products.is_trending' => 'yes'];
-        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        $query = DB::table('products')
+        ->join('categories', 'categories.id', '=', 'products.category_id')
+        ->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')
+        ->where($where)->select('products.*', 'categories.category_name','subcategories.subcategory_name');
         if (!empty($condition)) {
             $offset = ($page_no - 1) * $per_page_limit;
             $query->limit($per_page_limit)->offset($offset);
@@ -168,7 +131,12 @@ class Homepage extends Controller {
         if ($products->isEmpty()) {
             return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
-        $returnData = $products->map(function ($value) use ($customerCurrency) {
+        
+        $returnData = $products->map(function ($value) use ($customerCurrency,$customer_id) {
+            $isInWishlist = DB::table('wishlist')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $value->id)
+            ->exists();
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $imageUrls = [];
             foreach ($images as $imageArray) {
@@ -176,10 +144,9 @@ class Homepage extends Controller {
                     $imageUrls[] = url('uploads/' . $imageArray['image']);
                 }
             }
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true', ];
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => $isInWishlist,'subcategory_name' => (string)$value->subcategory_name ];
         });
-        // Cache the response
-        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!"]);
     }
     public function search() {
@@ -247,18 +214,7 @@ class Homepage extends Controller {
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => "Customer ID Is Blank"]);
         }
-        // Manual Cooldown: Prevent frequent calls from the same customer
-        $cooldownKey = "cooldown:product_detail:{$customer_id}";
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
-        }
-        Cache::add($cooldownKey, true, now()->addSeconds(3)); // 3-second cooldown
-        // Caching the response to reduce DB load
-        $cacheKey = "product_detail_{$customer_id}_{$product_id}";
-        $cachedData = Cache::get($cacheKey);
-        if ($cachedData) {
-            return response()->json(['status' => true, 'message' => 'API Accessed Successfully (cached)', 'data' => $cachedData]);
-        }
+     
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
@@ -281,15 +237,18 @@ class Homepage extends Controller {
                 }
             }
         }
+        $isInWishlist = DB::table('wishlist')
+        ->where('customer_id', $customer_id)
+        ->where('product_id', $product->id)
+        ->exists();
         $returnData = ['product_id' => (string)$product->id, 'category_name' => (string)$product->category_name, 'subcategory_name' => (string)$product->subcategory_name, 'product_name' => (string)$product->product_name, 'product_description' => (string)$product->product_description, 'product_size' => !empty($product->product_size) ? array_map('trim', explode(',', $product->product_size)) : [], 'product_colors' => !empty($product->product_colors) ? array_values(array_filter(array_map(function ($color) {
             $parts = array_map('trim', explode('-', $color));
             if (count($parts) === 2) {
                 return ['color_name' => $parts[0], 'color_code' => $parts[1]];
             }
             return null;
-        }, explode(',', $product->product_colors)))) : [], 'product_image' => $imageUrls, 'product_selling_price' => $customerCurrency . ' ' . (string)$product->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$product->product_cost_price, 'product_quantity' => (string)$product->product_quantity, 'product_availability' => (string)$product->product_availability, 'product_rating' => (string)$product->product_rating, 'is_trending' => (string)$product->is_trending, 'product_status' => (string)$product->status, 'added_to_wishlist' => strtolower($product->added_to_wishlist) === 'true', 'product_off' => (string)$product->product_off, ];
-        // Store result in cache for 2 minutes
-        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+        }, explode(',', $product->product_colors)))) : [], 'product_image' => $imageUrls, 'product_selling_price' => $customerCurrency . ' ' . (string)$product->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$product->product_cost_price, 'product_quantity' => (string)$product->product_quantity, 'product_availability' => (string)$product->product_availability, 'product_rating' => (string)$product->product_rating, 'is_trending' => (string)$product->is_trending, 'product_status' => (string)$product->status, 'added_to_wishlist' => $isInWishlist, 'product_off' => (string)$product->product_off, ];
+
         return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
     public function hotDealsProducts() {
@@ -302,17 +261,7 @@ class Homepage extends Controller {
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => "Customer Id Is Blank"]);
         }
-        // Manual Cooldown (3 seconds)
-        $cooldownKey = "cooldown:hot_deals:{$customer_id}";
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
-        }
-        Cache::add($cooldownKey, true, now()->addSeconds(3));
-        // Cache Key for unique request
-        $cacheKey = "hot_deals_{$customer_id}_{$page_no}_{$per_page_limit}_{$condition}";
-        if (Cache::has($cacheKey)) {
-            return response()->json(['status' => true, 'data' => Cache::get($cacheKey), 'message' => "API Accessed Successfully! (cached)"]);
-        }
+
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
@@ -325,7 +274,10 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => "Invalid Condition"]);
         }
         $where = ['products.status' => 'Active', 'products.is_hot_deal' => 'yes'];
-        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        $query = DB::table('products')
+        ->join('categories', 'categories.id', '=', 'products.category_id')
+        ->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')
+        ->where($where)->select('products.*', 'categories.category_name','subcategories.subcategory_name');
         if (!empty($condition)) {
             $offset = ($page_no - 1) * $per_page_limit;
             $query->limit($per_page_limit)->offset($offset);
@@ -336,7 +288,12 @@ class Homepage extends Controller {
         if ($products->isEmpty()) {
             return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
-        $returnData = $products->map(function ($value) use ($customerCurrency) {
+
+        $returnData = $products->map(function ($value) use ($customerCurrency,$customer_id) {
+            $isInWishlist = DB::table('wishlist')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $value->id)
+            ->exists();
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $imageUrls = [];
             if (!empty($images)) {
@@ -346,10 +303,9 @@ class Homepage extends Controller {
                     }
                 }
             }
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true', ];
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => $isInWishlist,'subcategory_name' => (string)$value->subcategory_name, ];
         });
-        // Cache for 2 minutes
-        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!"]);
     }
     public function categoryProducts() {
@@ -375,7 +331,10 @@ class Homepage extends Controller {
         $customerCurrency = getUserCurrency($customer_id) ??'';
         // Base query
         $where = ['products.status' => 'Active', 'products.category_id' => $category_id];
-        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        $query = DB::table('products')
+        ->join('categories', 'categories.id', '=', 'products.category_id')
+        ->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')
+        ->where($where)->select('products.*', 'categories.category_name','subcategories.subcategory_name');
         // Pagination
         $offset = ($page_no - 1) * $per_page_limit;
         $query->limit($per_page_limit)->offset($offset);
@@ -384,7 +343,11 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
         // Format data
-        $returnData = $products->map(function ($value) use ($customerCurrency) {
+        $returnData = $products->map(function ($value) use ($customerCurrency,$customer_id) {
+            $isInWishlist = DB::table('wishlist')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $value->id)
+            ->exists();
             $images = json_decode($value->product_image, true); // decode as array
             $imageUrls = [];
             foreach ($images as $imageArray) {
@@ -392,7 +355,7 @@ class Homepage extends Controller {
                     $imageUrls[] = url('uploads/' . $imageArray['image']);
                 }
             }
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true', ];
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => $isInWishlist,'subcategory_name' => (string)$value->subcategory_name, ];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
@@ -423,7 +386,10 @@ class Homepage extends Controller {
         $customerCurrency = getUserCurrency($customer_id) ??'';
         // Base query
         $where = ['products.status' => 'Active', 'products.category_id' => $category_id, 'products.subcategory_id' => $subcategory_id];
-        $query = DB::table('products')->join('categories', 'categories.id', '=', 'products.category_id')->where($where)->select('products.*', 'categories.category_name');
+        $query = DB::table('products')
+        ->join('categories', 'categories.id', '=', 'products.category_id')
+        ->join('subcategories', 'subcategories.id', '=', 'products.subcategory_id')
+        ->where($where)->select('products.*', 'categories.category_name','subcategories.subcategory_name');
         // Pagination
         $offset = ($page_no - 1) * $per_page_limit;
         $query->limit($per_page_limit)->offset($offset);
@@ -432,7 +398,11 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
         // Format data
-        $returnData = $products->map(function ($value) use ($customerCurrency) {
+        $returnData = $products->map(function ($value) use ($customerCurrency,$customer_id) {
+            $isInWishlist = DB::table('wishlist')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $product->id)
+            ->exists();
             $images = json_decode($value->product_image, true); // decode as array
             $imageUrls = [];
             foreach ($images as $imageArray) {
@@ -440,7 +410,7 @@ class Homepage extends Controller {
                     $imageUrls[] = url('uploads/' . $imageArray['image']);
                 }
             }
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => strtolower($value->added_to_wishlist) === 'true', ];
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'product_image' => $imageUrls, 'added_to_wishlist' => $isInWishlist,'subcategory_name' => (string)$value->subcategory_name, ];
         });
         return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
@@ -528,17 +498,7 @@ class Homepage extends Controller {
         if (empty($product_id)) {
             return response()->json(['status' => false, 'message' => 'Product ID is blank']);
         }
-        // Manual Cooldown (3 seconds)
-        $cooldownKey = "cooldown:similar_products:{$customer_id}";
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
-        }
-        Cache::add($cooldownKey, true, now()->addSeconds(3));
-        // Response Cache (2 minutes)
-        $cacheKey = "similar_products_{$customer_id}_{$product_id}";
-        if (Cache::has($cacheKey)) {
-            return response()->json(['status' => true, 'data' => Cache::get($cacheKey), 'message' => 'API Accessed Successfully! (cached)']);
-        }
+  
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
@@ -555,13 +515,16 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => 'No records found']);
         }
         $customerCurrency = getUserCurrency($customer_id) ??'';
-        $returnData = $similarProducts->map(function ($value) use ($customerCurrency) {
+        $returnData = $similarProducts->map(function ($value) use ($customerCurrency,$customer_id) {
+            $isInWishlist = DB::table('wishlist')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $value->id)
+            ->exists();
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images) && isset($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
-            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'subcategory_name' => (string)$value->subcategory_name, 'product_image' => $firstImageUrl, 'added_to_wishlist' => strtolower((string)$value->added_to_wishlist) === 'true', ];
+            return ['product_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'subcategory_id' => (string)$value->subcategory_id, 'product_name' => (string)$value->product_name, 'product_rating' => (string)$value->product_rating, 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 'category_name' => (string)$value->category_name, 'subcategory_name' => (string)$value->subcategory_name, 'product_image' => $firstImageUrl, 'added_to_wishlist' => $isInWishlist ];
         });
-        // Store to cache
-        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+
         return response()->json(['status' => true, 'data' => $returnData, 'message' => 'API Accessed Successfully!', ]);
     }
     public function productFaqs() {
@@ -570,17 +533,7 @@ class Homepage extends Controller {
         if (empty($product_id)) {
             return response()->json(['status' => false, 'message' => 'Product ID is blank']);
         }
-        // Cooldown key: prevents flood
-        $cooldownKey = "cooldown:product_faqs:{$product_id}";
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
-        }
-        Cache::add($cooldownKey, true, now()->addSeconds(3));
-        // Cache key
-        $cacheKey = "product_faqs:{$product_id}";
-        if (Cache::has($cacheKey)) {
-            return response()->json(['status' => true, 'message' => "API accessed successfully! (cached)", 'data' => Cache::get($cacheKey), ]);
-        }
+     
         $product = DB::table('products')->find($product_id);
         if (!$product) {
             return response()->json(['status' => false, 'message' => 'Product not found']);
@@ -592,8 +545,7 @@ class Homepage extends Controller {
         $returnData = $faqs->map(function ($value) {
             return ['faq_id' => (string)$value->id, 'question' => (string)$value->question, 'answer' => (string)$value->answer];
         });
-        // Save to cache
-        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+
         return response()->json(['status' => true, 'message' => "API accessed successfully!", 'data' => $returnData, ]);
     }
     public function myReviews() {

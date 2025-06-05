@@ -78,6 +78,7 @@ class Wishlist extends Controller
             ->where('wishlist.customer_id', $customer_id)
             ->leftJoin('products', 'products.id', '=', 'wishlist.product_id')
             ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
             ->select(
                 'products.id as product_id',
                 'products.category_id',
@@ -89,9 +90,14 @@ class Wishlist extends Controller
                 'products.product_selling_price',
                 'products.product_cost_price',
                 'categories.category_name',
+                'subcategories.subcategory_name',
                 'wishlist.id as wishlist_id'
             )
             ->get();
+        $isInWishlist = DB::table('wishlist')
+        ->where('customer_id', $customer_id)
+        ->where('product_id', $product->id)
+        ->exists();
 
         if ($products->isEmpty()) {
             return response()->json([
@@ -115,10 +121,11 @@ class Wishlist extends Controller
                 'product_name'          => (string) $value->product_name,
                 'product_rating'        => (string) $value->product_rating,
                 'product_image'         => $firstImageUrl,
-                'added_to_wishlist'     => strtolower($value->added_to_wishlist) === 'true',
+                'added_to_wishlist'     => $isInWishlist,
                 'product_selling_price' => $customerCurrency .' '. (string) $value->product_selling_price,
                 'product_cost_price'    => $customerCurrency .' '. (string) $value->product_cost_price,
                 'category_name'         => (string) $value->category_name,
+                'subcategory_name'      => (string) $value->subcategory_name,
             ];
         }
 
