@@ -26,14 +26,6 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
         }
 
-        if (empty($size)) {
-            return response()->json(['status' => false, 'message' => 'Product Size Is Blank']);
-        }
-
-        if (empty($color)) {
-            return response()->json(['status' => false, 'message' => 'Product Color Is Blank']);
-        }
-
         // Validate customer
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
@@ -49,7 +41,8 @@ class Cart extends Controller{
         if (!$product) {
             return response()->json(['status' => false, 'message' => 'Product not found']);
         }
-
+        $defaultcolor = !empty($product->product_colors) && is_string($product->product_colors) ? trim(explode('-', $product->product_colors)[0] ?? '') : '';
+        $defaultsize = !empty($product->product_size) && is_string($product->product_size) ? trim(explode('-', $product->product_size)[0] ?? '') : '';
         // Check if item already exists in cart
         $fetchCart = DB::table('cart')
             ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
@@ -59,8 +52,8 @@ class Cart extends Controller{
             DB::table('cart')->insert([
                 'customer_id' => $customer_id,
                 'product_id' => $product_id,
-                'size' => $size,
-                'color' => $color,
+                'size' => $size??$defaultsize,
+                'color' => $color??$defaultcolor,
                 'quantity' => 1,
                 'created_at' => Carbon::now(),
             ]);
