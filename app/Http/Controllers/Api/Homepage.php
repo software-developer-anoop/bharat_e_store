@@ -7,31 +7,74 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 class Homepage extends Controller {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         checkHeaders();
-        // Use IP address for basic rate-limiting (or set customer_id if available)
-        $ip = $request->ip();
-        $cooldownKey = "cooldown:banners:" . $ip;
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
+
+        // Use customer_id if available, else fallback to IP address
+        $identifier = $request->input('customer_id') ?? $request->ip();
+        $cooldownKey = 'cooldown:banner:' . $identifier;
+
+        // Limit: Allow 1 request per 5 seconds
+        $cooldownSeconds = 5;
+
+        if (!Cache::add($cooldownKey, true, $cooldownSeconds)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Too many requests. Please wait $cooldownSeconds seconds."
+            ], 429);
         }
-        Cache::add($cooldownKey, true, now()->addSeconds(3));
-        // Use cache key to store response for 2 minutes
+
+        // Check if we already have banner data in cache
         $cacheKey = 'banner_list:all';
-        if (Cache::has($cacheKey)) {
-            return response()->json(['status' => true, 'banner' => Cache::get($cacheKey), 'message' => 'API Accessed Successfully (cached)']);
+        $cachedData = Cache::get($cacheKey);
+
+        if ($cachedData) {
+            return response()->json([
+                'status' => true,
+                'banner' => $cachedData,
+                'message' => 'API Accessed Successfully (cached)'
+            ]);
         }
-        $record = DB::table('banner_list')->leftJoin('categories', 'banner_list.category_id', '=', 'categories.id')->leftJoin('subcategories', 'banner_list.subcategory_id', '=', 'subcategories.id')->select('banner_list.id', 'banner_list.category_id', 'banner_list.subcategory_id', 'banner_list.image', 'categories.category_name', 'subcategories.subcategory_name')->get();
+
+        // Fetch from DB
+        $record = DB::table('banner_list')
+            ->leftJoin('categories', 'banner_list.category_id', '=', 'categories.id')
+            ->leftJoin('subcategories', 'banner_list.subcategory_id', '=', 'subcategories.id')
+            ->select(
+                'banner_list.id',
+                'banner_list.category_id',
+                'banner_list.subcategory_id',
+                'banner_list.image',
+                'categories.category_name',
+                'subcategories.subcategory_name'
+            )
+            ->get();
+
         if ($record->isEmpty()) {
             return response()->json(['status' => false, 'message' => "No Records Found"]);
         }
-        $returnData = [];
-        foreach ($record as $value) {
-            $returnData[] = ['banner_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'category_name' => (string)$value->category_name, 'subcategory_id' => (string)$value->subcategory_id, 'subcategory_name' => (string)$value->subcategory_name, 'image' => url('uploads/' . $value->image), ];
-        }
-        // Cache for 2 minutes
+
+        // Format response
+        $returnData = $record->map(function ($value) {
+            return [
+                'banner_id'        => (string) $value->id,
+                'category_id'      => (string) $value->category_id,
+                'category_name'    => (string) $value->category_name,
+                'subcategory_id'   => (string) $value->subcategory_id,
+                'subcategory_name' => (string) $value->subcategory_name,
+                'image'            => url('uploads/' . $value->image),
+            ];
+        })->toArray();
+
+        // Cache the banner data for 2 minutes
         Cache::put($cacheKey, $returnData, now()->addMinutes(2));
-        return response()->json(['status' => true, 'banner' => $returnData, 'message' => 'API Accessed Successfully']);
+
+        return response()->json([
+            'status' => true,
+            'banner' => $returnData,
+            'message' => 'API Accessed Successfully'
+        ]);
     }
     public function categoryList() {
         checkHeaders();
