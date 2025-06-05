@@ -15,7 +15,7 @@ class Homepage extends Controller {
         if (Cache::has($cooldownKey)) {
             return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-        Cache::put($cooldownKey, true, now()->addSeconds(3));
+        Cache::add($cooldownKey, true, now()->addSeconds(3));
         // Use cache key to store response for 2 minutes
         $cacheKey = 'banner_list:all';
         if (Cache::has($cacheKey)) {
@@ -92,7 +92,7 @@ class Homepage extends Controller {
         if (Cache::has($cooldownKey)) {
             return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-        Cache::put($cooldownKey, true, now()->addSeconds(3));
+        Cache::add($cooldownKey, true, now()->addSeconds(3));
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
@@ -207,7 +207,7 @@ class Homepage extends Controller {
         if (Cache::has($cooldownKey)) {
             return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-        Cache::put($cooldownKey, true, now()->addSeconds(3)); // 3-second cooldown
+        Cache::add($cooldownKey, true, now()->addSeconds(3)); // 3-second cooldown
         // Caching the response to reduce DB load
         $cacheKey = "product_detail_{$customer_id}_{$product_id}";
         $cachedData = Cache::get($cacheKey);
@@ -261,7 +261,7 @@ class Homepage extends Controller {
         if (Cache::has($cooldownKey)) {
             return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-        Cache::put($cooldownKey, true, now()->addSeconds(3));
+        Cache::add($cooldownKey, true, now()->addSeconds(3));
         // Cache Key for unique request
         $cacheKey = "hot_deals_{$customer_id}_{$page_no}_{$per_page_limit}_{$condition}";
         if (Cache::has($cacheKey)) {
@@ -487,7 +487,7 @@ class Homepage extends Controller {
         if (Cache::has($cooldownKey)) {
             return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-        Cache::put($cooldownKey, true, now()->addSeconds(3));
+        Cache::add($cooldownKey, true, now()->addSeconds(3));
         // Response Cache (2 minutes)
         $cacheKey = "similar_products_{$customer_id}_{$product_id}";
         if (Cache::has($cacheKey)) {
@@ -529,7 +529,7 @@ class Homepage extends Controller {
         if (Cache::has($cooldownKey)) {
             return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-        Cache::put($cooldownKey, true, now()->addSeconds(3));
+        Cache::add($cooldownKey, true, now()->addSeconds(3));
         // Cache key
         $cacheKey = "product_faqs:{$product_id}";
         if (Cache::has($cacheKey)) {
