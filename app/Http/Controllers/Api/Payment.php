@@ -9,20 +9,21 @@ class Payment extends Controller {
     public function index(Request $request)
     {
         try {
-            $customer_id = $request->input('customer_id') ?? '';
-            $amount = $request->input('amount') ?? '';
-            $payment_mode = strtolower($request->input('payment_mode') ?? '');
-            $payment_environment = $request->input('payment_environment') ?? '';
-            $address_id = $request->input('address_id') ?? '';
-            $coupon_id = $request->input('coupon_id') ?? '';
+            $customer_id = $request->input('customer_id', '');
+            $amount = $request->input('amount', '');
+            $payment_mode = strtolower($request->input('payment_mode', ''));
+            $payment_environment = $request->input('payment_environment', '');
+            $address_id = $request->input('address_id', '');
+            $coupon_id = $request->input('coupon_id', '');
 
             $product_ids = $request->input('product_id', []);
             $product_names = $request->input('product_name', []);
             $product_colors = $request->input('product_color', []);
             $product_prices = $request->input('product_price', []);
             $quantities = $request->input('quantity', []);
-            $images = $request->file('image', []); // Optional: for file uploads
+            $images = $request->input('image', []); // Now expecting string URLs or image paths
 
+            // Validation
             if (empty($customer_id) || empty($amount) || empty($payment_mode) || empty($payment_environment) || empty($address_id)) {
                 return response()->json(['status' => false, 'message' => 'Missing required fields']);
             }
@@ -35,6 +36,7 @@ class Payment extends Controller {
                 return response()->json(['status' => false, 'message' => 'No products found']);
             }
 
+            // Customer and Address Checks
             $customer = DB::table('customers')->where('id', $customer_id)->first();
             if (!$customer || $customer->profile_status === 'Inactive') {
                 return response()->json(['status' => false, 'message' => 'Customer not found or inactive']);
@@ -45,59 +47,58 @@ class Payment extends Controller {
                 return response()->json(['status' => false, 'message' => 'Address not found']);
             }
 
+            // Create Order
             $orderId = Str::uuid()->toString();
-
-            // Save main order
             $order_table_id = DB::table('orders')->insertGetId([
-                'order_id'      => $orderId,
-                'customer_id'   => $customer_id,
-                'address_id'    => $address_id,
-                'amount'        => $amount,
-                'payment_mode'  => $payment_mode,
-                'status'        => 'pending',
-                'coupon_id'     => $coupon_id,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'order_id' => $orderId,
+                'customer_id' => $customer_id,
+                'address_id' => $address_id,
+                'amount' => $amount,
+                'payment_mode' => $payment_mode,
+                'status' => 'pending',
+                'coupon_id' => $coupon_id,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // Save product details in order_history
+            // Insert Product Details
             for ($i = 0; $i < count($product_ids); $i++) {
                 DB::table('order_history')->insert([
-                    'order_table_id'          => $order_table_id,
-                    'order_id'                => $orderId,
-                    'product_id'              => $product_ids[$i] ?? '',
-                    'product_name'            => $product_names[$i] ?? '',
-                    'product_color'           => $product_colors[$i] ?? '',
-                    'product_selling_price'   => $product_prices[$i] ?? '',
-                    'quantity'                => $quantities[$i] ?? '',
-                    'image'                   => $images[$i]->store('order_images') ?? '', // Optional
-                    'created_at'              => now(),
-                    'updated_at'              => now(),
+                    'order_table_id' => $order_table_id,
+                    'order_id' => $orderId,
+                    'product_id' => $product_ids[$i] ?? '',
+                    'product_name' => $product_names[$i] ?? '',
+                    'product_color' => $product_colors[$i] ?? '',
+                    'product_selling_price' => preg_replace('/[^\d.]/', '', $product_prices[$i] ?? ''),
+                    'quantity' => $quantities[$i] ?? '',
+                    'image' => $images[$i] ?? '', // Just use string/image URL
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
-            // Log transaction
+            // Log Transaction
             DB::table('transactions')->insert([
-                'order_id'        => $orderId,
-                'status'          => $payment_mode === 'cod' ? 'cod' : 'initiated',
+                'order_id' => $orderId,
+                'status' => $payment_mode === 'cod' ? 'cod' : 'initiated',
                 'payment_gateway' => $payment_mode === 'cod' ? 'cod' : 'cashfree',
-                'created_at'      => now(),
-                'updated_at'      => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // Return for COD
+            // Cash on Delivery
             if ($payment_mode === 'cod') {
                 return response()->json([
-                    'status'          => true,
-                    'message'         => 'Cash on Delivery order placed successfully',
-                    'payment_mode'    => 'cod',
+                    'status' => true,
+                    'message' => 'Cash on Delivery order placed successfully',
+                    'payment_mode' => 'cod',
                     'payment_environment' => $payment_environment,
-                    'order_table_id'  => $order_table_id,
-                    'order_id'        => $orderId,
+                    'order_table_id' => $order_table_id,
+                    'order_id' => $orderId,
                 ]);
             }
 
-            // Cashfree Payment Handling
+            // Online Payment (Cashfree)
             $appId = $payment_environment === "TEST" ? env('CASHFREE_APP_ID_TEST') : env('CASHFREE_APP_ID_PROD');
             $secretKey = $payment_environment === "TEST" ? env('CASHFREE_SECRET_KEY_TEST') : env('CASHFREE_SECRET_KEY_PROD');
             $cashfreeBaseUrl = $payment_environment === "TEST" ? env('CASHFREE_BASE_URL_TEST') : env('CASHFREE_BASE_URL_PROD');
@@ -161,6 +162,7 @@ class Payment extends Controller {
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
         }
     }
+
     public function paymentHandler(Request $request)
     {
         if ($request->isMethod('post')) {
