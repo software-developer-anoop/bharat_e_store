@@ -7,64 +7,32 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 class Homepage extends Controller {
-    public function index(Request $request)
-{
-    checkHeaders();
-
-    $ip = $request->ip();
-    $cooldownKey = "cooldown:banners:" . $ip;
-
-    // Use atomic cache add to prevent race condition
-    if (!Cache::add($cooldownKey, true, 3)) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Too many requests. Please wait a few seconds.'
-        ], 429);
-    }
-
-    // Cache key for data
-    $cacheKey = 'banner_list:all';
-
-    $returnData = Cache::remember($cacheKey, now()->addMinutes(2), function () {
-        $records = DB::table('banner_list')
-            ->leftJoin('categories', 'banner_list.category_id', '=', 'categories.id')
-            ->leftJoin('subcategories', 'banner_list.subcategory_id', '=', 'subcategories.id')
-            ->select(
-                'banner_list.id',
-                'banner_list.category_id',
-                'banner_list.subcategory_id',
-                'banner_list.image',
-                'categories.category_name',
-                'subcategories.subcategory_name'
-            )->get();
-
-        if ($records->isEmpty()) {
-            return null;
+    public function index(Request $request) {
+        checkHeaders();
+        // Use IP address for basic rate-limiting (or set customer_id if available)
+        $ip = $request->ip();
+        $cooldownKey = "cooldown:banners:" . $ip;
+        if (Cache::has($cooldownKey)) {
+            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
         }
-
-        return $records->map(function ($value) {
-            return [
-                'banner_id' => (string)$value->id,
-                'category_id' => (string)$value->category_id,
-                'category_name' => (string)$value->category_name,
-                'subcategory_id' => (string)$value->subcategory_id,
-                'subcategory_name' => (string)$value->subcategory_name,
-                'image' => url('uploads/' . $value->image),
-            ];
-        })->toArray();
-    });
-
-    if (empty($returnData)) {
-        return response()->json(['status' => false, 'message' => "No Records Found"]);
+        Cache::add($cooldownKey, true, now()->addSeconds(3));
+        // Use cache key to store response for 2 minutes
+        $cacheKey = 'banner_list:all';
+        if (Cache::has($cacheKey)) {
+            return response()->json(['status' => true, 'banner' => Cache::get($cacheKey), 'message' => 'API Accessed Successfully (cached)']);
+        }
+        $record = DB::table('banner_list')->leftJoin('categories', 'banner_list.category_id', '=', 'categories.id')->leftJoin('subcategories', 'banner_list.subcategory_id', '=', 'subcategories.id')->select('banner_list.id', 'banner_list.category_id', 'banner_list.subcategory_id', 'banner_list.image', 'categories.category_name', 'subcategories.subcategory_name')->get();
+        if ($record->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No Records Found"]);
+        }
+        $returnData = [];
+        foreach ($record as $value) {
+            $returnData[] = ['banner_id' => (string)$value->id, 'category_id' => (string)$value->category_id, 'category_name' => (string)$value->category_name, 'subcategory_id' => (string)$value->subcategory_id, 'subcategory_name' => (string)$value->subcategory_name, 'image' => url('uploads/' . $value->image), ];
+        }
+        // Cache for 2 minutes
+        Cache::put($cacheKey, $returnData, now()->addMinutes(2));
+        return response()->json(['status' => true, 'banner' => $returnData, 'message' => 'API Accessed Successfully']);
     }
-
-    return response()->json([
-        'status' => true,
-        'banner' => $returnData,
-        'message' => Cache::has($cacheKey) ? 'API Accessed Successfully (cached)' : 'API Accessed Successfully'
-    ]);
-}
-
     public function categoryList() {
         checkHeaders();
         $category = DB::table('categories')->where('status', 'Active')->select('category_name', 'category_image', 'id')->get();
