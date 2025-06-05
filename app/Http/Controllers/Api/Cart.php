@@ -127,16 +127,7 @@ class Cart extends Controller{
 
         // Cooldown control (3 seconds)
         $cooldownKey = "cooldown:mycart:$customer_id";
-        if (Cache::has($cooldownKey)) {
-            return response()->json(['status' => false, 'message' => 'Too many requests. Please wait a few seconds.'], 429);
-        }
         Cache::put($cooldownKey, true, now()->addSeconds(3));
-
-        // Cache key for response
-        $cacheKey = "cart:data:$customer_id";
-        if (Cache::has($cacheKey)) {
-            return response()->json(Cache::get($cacheKey));
-        }
 
         // Validate customer
         $customer = DB::table('customers')->find($customer_id);
@@ -204,9 +195,6 @@ class Cart extends Controller{
             'coins_available'  => (string)$customer->wallet_points,
             'message'          => "API Accessed Successfully!"
         ];
-
-        // Cache response for 2 minutes
-        Cache::put($cacheKey, $response, now()->addMinutes(2));
 
         return response()->json($response);
     }
