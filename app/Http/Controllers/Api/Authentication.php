@@ -96,9 +96,12 @@ class Authentication extends Controller {
         DB::table('customers')->where('id', $customerId)->update(['profile_status' => 'Active', 'email_status' => 'Verified', 'otp' => '', 'device_id' => $deviceId, 'fcm_token' => $fcmToken, ]);
         // Fetch updated customer info
         $customer = DB::table('customers')->find($customerId);
+        $country_id = DB::table('country')
+            ->where('country_code', $customer->country_code)
+            ->value('id');
         $data = ['customer_id' => (string)$customer->id, 'customer_email' => (string)$customer->customer_email, 'customer_phone' => (string)$customer->customer_phone, 'profile_status' => (string)$customer->profile_status, 'email_status' => (string)$customer->email_status, 'referrer_code' => (string)$customer->referrer_code, 'country_name' => (string)$customer->country_name, 'country_code' => (string)$customer->country_code, 'device_id' => (string)$customer->device_id, 'fcm_token' => (string)$customer->fcm_token,'wallet_points' => (string)$customer->wallet_points,'currency'=>$customerCurrency,'profile_image'=>$customer->customer_profile_image 
                 ? url('uploads/' . $customer->customer_profile_image) 
-                : ''];
+                : '','country_id'=>(string)$country_id];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
     public function resendOtp(Request $request) {
@@ -143,6 +146,10 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
         $customerCurrency = getUserCurrency($customer->id) ??'';
+        $country_id = DB::table('country')
+            ->where('country_code', $customer->country_code)
+            ->value('id');
+
         $return = [];
         $return['customer_id'] = (string)$customer->id;
         $return['customer_name'] = (string)$customer->customer_name;
@@ -154,6 +161,7 @@ class Authentication extends Controller {
         $return['email_status'] = (string)$customer->email_status;
         $return['referral_code'] = (string)$customer->referral_code;
         $return['referrer_code'] = (string)$customer->referrer_code;
+        $return['country_id'] = (string)$country_id;
         $return['country_name'] = (string)$customer->country_name;
         $return['country_code'] = (string)$customer->country_code;
         $return['device_id'] = (string)$customer->device_id;
