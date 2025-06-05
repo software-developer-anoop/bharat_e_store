@@ -28,7 +28,8 @@ Route::post('autologin', [Authentication::class, 'autoLogin'])->name('api.autolo
 Route::post('logout', [Authentication::class, 'logOut'])->name('api.logout');
 Route::post('edit-profile', [Authentication::class, 'editProfile'])->name('api.edit-profile');
 //Homepage 
-Route::post('banner', [Homepage::class, 'index'])->name('api.banner');
+// Route::post('banner', [Homepage::class, 'index'])->name('api.banner');
+Route::middleware('throttle:5,10')->post('banner', [Homepage::class, 'index'])->name('api.banner');
 Route::post('category-list', [Homepage::class, 'categoryList'])->name('api.category-list');
 Route::post('cms-page', [Cmspage::class, 'index'])->name('api.cms-page');
 Route::post('subcategory-list', [Homepage::class, 'subcategoryList'])->name('api.subcategory-list');
