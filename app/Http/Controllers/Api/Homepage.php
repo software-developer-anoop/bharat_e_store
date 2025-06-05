@@ -553,10 +553,14 @@ class Homepage extends Controller {
     public function myReviews() {
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
+        $product_id = trim($post['product_id']??'');
         $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
         $page_no = intval($post['page_no']??1); // Default to 1
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+        }
+        if (empty($product_id)) {
+            return response()->json(['status' => false, 'message' => 'Product ID is blank']);
         }
         $customer = DB::table('customers')->find($customer_id);
         if (!$customer) {
@@ -566,7 +570,7 @@ class Homepage extends Controller {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
         $offset = ($page_no - 1) * $per_page_limit;
-        $reviews = DB::table('reviews')->where('customer_id', $customer_id)->select('id as review_id', 'review', 'rating', 'images', 'product_id', 'customer_id')->offset($offset)->limit($per_page_limit)->get();
+        $reviews = DB::table('reviews')->where('customer_id', $customer_id)->where('product_id', $product_id)->select('id as review_id', 'review', 'rating', 'images', 'product_id', 'customer_id')->offset($offset)->limit($per_page_limit)->get();
         if ($reviews->isEmpty()) {
             return response()->json(['status' => false, 'message' => 'No records found']);
         }
