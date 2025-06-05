@@ -161,11 +161,11 @@ class Cart extends Controller{
                 'products.product_name',
                 'products.product_rating',
                 'products.product_image',
-                'products.product_colors',
                 'products.product_selling_price',
                 'products.product_cost_price',
                 'cart.quantity',
-                'cart.id as cart_id'
+                'cart.id as cart_id',
+                'cart.color as color'
             )
             ->get();
 
@@ -189,7 +189,7 @@ class Cart extends Controller{
                 'category_id'          => (string)$value->category_id,
                 'subcategory_id'       => (string)$value->subcategory_id,
                 'product_name'         => (string)$value->product_name,
-                'product_color'        => (string)($value->product_colors ?? ''),
+                'product_color'        => (string)($value->color ?? ''),
                 'product_selling_price'=> $customerCurrency . ' ' . (string)$value->product_selling_price,
                 'product_cost_price'   => $customerCurrency . ' ' . (string)$value->product_cost_price,
                 'product_image'        => $firstImageUrl,
