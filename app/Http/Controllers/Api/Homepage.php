@@ -8,7 +8,7 @@ class Homepage extends Controller {
     public function index(Request $request)
     {
         checkHeaders();
-        sleep(1);
+        sleep(2);
 
         // Fetch from DB
         $record = DB::table('banner_list')
@@ -93,7 +93,7 @@ class Homepage extends Controller {
         return response()->json($response);
     }
     public function trendingProducts() {
-        sleep(3);
+        sleep(2);
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
         $condition = trim($post['condition']??'');
@@ -252,7 +252,7 @@ class Homepage extends Controller {
         return response()->json(['status' => true, 'message' => 'API Accessed Successfully', 'data' => $returnData]);
     }
     public function hotDealsProducts() {
-        sleep(4);
+        sleep(2);
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
         $condition = trim($post['condition']??'');
