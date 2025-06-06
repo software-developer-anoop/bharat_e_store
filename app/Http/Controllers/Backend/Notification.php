@@ -94,16 +94,14 @@ class Notification extends Controller {
                 // You should pass token + message content here
                 $response = sendPushNotification([
                     'to' => $token,
-                    'notification' => [
+                    'data' => [
+                        'notification_id' => $id,
                         'title' => $msg['title'],
                         'body' => $msg['message'],
                         'notification_type' => $msg['type'],
                         'image' => $msg['message'],
                         'click_action' => 'OPEN_NOTIFICATION'
                     ],
-                    'data' => [
-                        'notification_id' => $id,
-                    ]
                 ],$jsonPath);
             }
         }
