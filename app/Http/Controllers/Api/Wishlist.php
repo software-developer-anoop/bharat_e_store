@@ -108,7 +108,7 @@ class Wishlist extends Controller
         foreach ($products as $value) {
             $isInWishlist = DB::table('wishlist')
             ->where('customer_id', $customer_id)
-            ->where('product_id', $value->id)
+            ->where('product_id', $value->product_id)
             ->exists();
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
