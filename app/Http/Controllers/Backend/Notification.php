@@ -62,7 +62,7 @@ class Notification extends Controller {
             return response()->json(['error' => 'Notification not found'], 404);
         }
         $data = ['status' => false, 'id' => (string)$id, 'start' => (string)($start + 1), 'limit' => (string)$limit, 'ids' => '', ];
-        $msg = ['title' => ucwords($notification->title), 'message' => !empty($notification->description) ? $notification->description : $notification->title, 'image' => !empty($notification->image) ? url('uploads/' . $notification->image) : '','type'=>$notification->notification_type];
+        $msg = ['title' => ucwords($notification->title), 'message' => !empty($notification->description) ? $notification->description : $notification->title, 'image' => !empty($notification->image) ? url('uploads/' . $notification->image) : '','notification_type'=>$notification->notification_type];
         $where = [['fcm_token', '!=', ''], ['profile_status', '=', 'Active'], ['email_status', '=', 'Verified']];
         $offset = $start * $limit;
         $customers = DB::table('customers')->where($where)->select('id', 'fcm_token')->orderByDesc('id')->offset($offset)->limit($limit)->get();
@@ -78,7 +78,8 @@ class Notification extends Controller {
                 $notificationLog[] = ['customer_id' => $customer->id, 
                                       'notification_id' => $id, 
                                       'title' => $msg['title'], 
-                                      'description' => $msg['message'], 
+                                      'description' => $msg['message'],
+                                      'notification_type' => $msg['notification_type'], 
                                       'image' => $msg['image'], 
                                       'created_at' => now(), ];
             }
@@ -97,7 +98,7 @@ class Notification extends Controller {
                     'notification' => [
                         'title' => $msg['title'],
                         'body' => $msg['message'],
-                        'notification_type' => $msg['type'],
+                        'notification_type' => $msg['notification_type'],
                         'image' => $msg['message'],
                         'click_action' => 'OPEN_NOTIFICATION'
                     ],
