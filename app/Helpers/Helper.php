@@ -237,20 +237,22 @@ function sendPushNotification($fields, $jsonPath) {
 
     // Properly format payload for HTTP v1 API
     $payload = [
-        'message' => [
-            'token' => $fields['to'],
+    'message' => [
+        'token' => $token,
+        'data' => [
+            'notification_id'   => $id,
+            'title'             => $msg['title'],
+            'body'              => $msg['message'],
+            'notification_type' => $msg['type'],
+            'image'             => $msg['image'] ?? '',  // assuming image should be here, not message again
+        ],
+        'android' => [
             'notification' => [
-                'title' => $fields['notification']['title'],
-                'body' => $fields['notification']['body']
-            ],
-            'data' => $fields['data'],
-            'android' => [
-                'notification' => [
-                    'click_action' => $fields['notification']['click_action']
-                ]
+                'click_action' => 'OPEN_NOTIFICATION'
             ]
         ]
-    ];
+    ]
+];
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $fcmurl);
