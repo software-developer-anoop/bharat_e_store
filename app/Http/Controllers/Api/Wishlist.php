@@ -94,11 +94,7 @@ class Wishlist extends Controller
                 'wishlist.id as wishlist_id'
             )
             ->get();
-        $isInWishlist = DB::table('wishlist')
-        ->where('customer_id', $customer_id)
-        ->where('product_id', $product->id)
-        ->exists();
-
+        
         if ($products->isEmpty()) {
             return response()->json([
                 'status' => false,
@@ -110,6 +106,10 @@ class Wishlist extends Controller
         $returnData = [];
 
         foreach ($products as $value) {
+            $isInWishlist = DB::table('wishlist')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $value->id)
+            ->exists();
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
 
