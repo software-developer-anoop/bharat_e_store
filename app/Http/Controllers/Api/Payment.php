@@ -172,6 +172,7 @@ class Payment extends Controller {
             $transactionStatus = $data['order']['order_status'] ?? 'FAILED';
             $paymentId = $data['order']['cf_payment_id'] ?? null;
 
+            \Log::info('Webhook Response: ' . json_encode($data));
             if (!$orderId) {
                 return response()->json(['status' => false, 'message' => 'Invalid payload']);
             }
