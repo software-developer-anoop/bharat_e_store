@@ -185,6 +185,7 @@ class Payment extends Controller {
             $newStatus = $transactionStatus === 'PAID' ? 'success' : 'failure';
             $orderStatus = $transactionStatus === 'PAID' ? 'paid' : 'failed';
 
+            // Update transaction and order status
             DB::table('transactions')->where('order_id', $orderId)->update([
                 'status' => $newStatus,
                 'transaction_id' => $paymentId,
@@ -197,12 +198,22 @@ class Payment extends Controller {
                 'updated_at' => now(),
             ]);
 
+            // Empty cart if payment succeeded
+            if ($newStatus === 'success' && $orderStatus === 'paid') {
+                $order = DB::table('orders')->where('order_id', $orderId)->first();
+                $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
+
+                DB::table('cart')
+                    ->where('customer_id', $order->customer_id)
+                    ->whereIn('product_id', $productIds)
+                    ->delete();
+            }
+
             return response()->json(['status' => true, 'message' => 'Webhook handled']);
         }
 
         // Handle payment status check via GET
         $orderId = $request->query('order_id');
-
         if (!$orderId) {
             return response()->json(['status' => false, 'message' => 'Missing order_id']);
         }
@@ -213,6 +224,16 @@ class Payment extends Controller {
         }
 
         $transaction = DB::table('transactions')->where('order_id', $orderId)->first();
+
+        // Extra safeguard: Remove from cart if status is already marked as paid/success
+        if ($order->status === 'paid' && $transaction->status === 'success') {
+            $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
+
+            DB::table('cart')
+                ->where('customer_id', $order->customer_id)
+                ->whereIn('product_id', $productIds)
+                ->delete();
+        }
 
         return response()->json([
             'status' => true,
