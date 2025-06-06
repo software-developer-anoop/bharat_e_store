@@ -108,6 +108,7 @@ Route::post('/getSlug', [Ajax::class, 'index'])->name('admin.getSlug');
 Route::post('/deleteItem', [Ajax::class, 'deleteItem'])->name('admin.deleteItem');
 Route::post('/changeStatus', [Ajax::class, 'changeStatus'])->name('admin.changeStatus');
 Route::post('/getStates', [Ajax::class, 'getStates'])->name('admin.getStates');
+Route::post('/getCities', [Ajax::class, 'getCities'])->name('admin.getCities');
 Route::post('/getSubcategory', [Ajax::class, 'getSubcategory'])->name('admin.getSubcategory');
 Route::post('/manageInventory', [Ajax::class, 'manageInventory'])->name('admin.manageInventory');
 Route::post('/setIsTrendingHotDeal', [Ajax::class, 'setIsTrendingHotDeal'])->name('admin.setIsTrendingHotDeal');

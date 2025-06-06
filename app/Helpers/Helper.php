@@ -241,7 +241,9 @@ function sendPushNotification($fields, $jsonPath) {
             'token' => $fields['to'],
             'notification' => [
                 'title' => $fields['notification']['title'],
-                'body' => $fields['notification']['body']
+                'body' => $fields['notification']['body'],
+                'notification_type' => $fields['notification']['notification_type'],
+                'image' => $fields['notification']['image'],
             ],
             'data' => $fields['data'],
             'android' => [

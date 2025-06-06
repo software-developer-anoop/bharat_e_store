@@ -10,14 +10,30 @@ class Address extends Controller
 {
     public function index(){
         $page_name = 'Address List';
-        $data = DB::table('addresses')->get();
+        $data = DB::table('addresses')
+            ->join('country', 'addresses.country_id', '=', 'country.id')
+            ->join('states', 'addresses.state_id', '=', 'states.id')
+            ->join('cities', 'addresses.city_id', '=', 'cities.id')
+            ->select(
+                'addresses.*',
+                'country.country_name as country_name',
+                'states.state_name as state_name',
+                'cities.city_name as city_name'
+            )
+            ->get();
+
         return view('backend.address-list',compact('page_name','data'));
     }
     public function addAddress($id=null){
-        $data = $id?DB::table('addresses')->where('id',$id)->first():'';
+        $data = $id 
+        ? DB::table('addresses')
+        ->select('*', 'country_id as country', 'state_id as state', 'city_id as city')
+        ->where('id', $id)
+        ->first(): null;
         $page_name = $id?'Edit Address':'Add Address';
         $customers = DB::table('customers')->select('customer_name','id')->where('profile_status', 'Active')->where('email_status','Verified')->get();
-        return view('backend.add-address',compact('data','page_name','customers'));
+        $countries = DB::table('country')->select('country_name','id')->where('status', 'Active')->get();
+        return view('backend.add-address',compact('data','page_name','customers','countries'));
     }
     public function saveAddress(Request $request){
         $data = $request->all();
@@ -31,6 +47,9 @@ class Address extends Controller
         $saveData['address'] = $data['address']?trim($data['address']):'';
         $saveData['pincode'] = $data['pincode']?trim($data['pincode']):'';
         $saveData['address_type'] = $data['address_type']?trim($data['address_type']):'';
+        $saveData['country_id'] = $data['country']?trim($data['country']):'';
+        $saveData['state_id'] = $data['state']?trim($data['state']):'';
+        $saveData['city_id'] = $data['city']?trim($data['city']):'';
       
         if(empty($id)){
             $saveData['created_at'] = Carbon::now();

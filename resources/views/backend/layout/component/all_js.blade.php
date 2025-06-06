@@ -199,7 +199,28 @@
                  $('#state_list').html(response.html);
              }
          });
-     }
+    }
+
+    @if(isset($data->country) && isset($data->state) && isset($data->city))
+    getCities(@json($data->country),@json($data->state),@json($data->city));
+    @endif
+    function getCities(country_id,state_id,city=null) {
+         $.ajax({
+             url: "{{route('admin.getCities')}}",
+             type: 'POST',
+             data: {
+                 'country_id': country_id,
+                 'state_id': state_id,
+                 'city': city,
+                 _token: '{{csrf_token()}}'
+             },
+             cache: false,
+             dataType: 'json',
+             success: function(response) {
+                 $('#city_list').html(response.html);
+             }
+         });
+    }
 
     @if(isset($data->category_id) && isset($data->subcategory_id))
     getSubcategory(@json($data->category_id), @json($data->subcategory_id));

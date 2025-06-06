@@ -14,6 +14,7 @@
             <thead>
               <tr>
                 <th class="text-center">Name / <br> Email / <br> Phone</th>
+                <th class="text-center">Country / <br> State / <br> City</th>
                 <th class="text-center">Address / <br> Pincode / <br> Type</th>
                 <th class="text-center">Created At / <br> Updated At</th>
                 <th class="text-center">Action</th>
@@ -24,6 +25,7 @@
               @foreach($data as $key => $value)
               <tr id="del_{{$value->id}}">
                 <td class="text-center">{{$value->name??''}} / <br>  {{$value->email??''}} / <br> {{$value->phone??''}} </td>
+                <td class="text-center">{{$value->country_name??''}} / <br>  {{$value->state_name??''}} / <br> {{$value->city_name??''}} </td>
                 <td class="text-center">{{$value->address??''}} / <br>  {{$value->pincode??''}} / <br> {{$value->address_type??''}} </td>
                 <td class="text-center">{{$value->created_at??'N/A'}} / <br>  {{$value->updated_at??'N/A'}}</td>
                 <td class="text-center">

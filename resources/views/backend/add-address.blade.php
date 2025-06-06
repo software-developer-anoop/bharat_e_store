@@ -21,8 +21,8 @@
                   <label for="customer_id">Customer</label>
                   <select name="customer_id" id="customer_id" class="form-control select2" required>
                     <option value="">Select Customer</option>
-                    @if(!empty($countries))
-                    @foreach($countries as $key=>$value)
+                    @if(!empty($customers))
+                    @foreach($customers as $key=>$value)
                     <option value="{{$value->id}}" {{!empty($data->customer_id) && ($data->customer_id==$value->id)?'selected':''}}>{{$value->customer_name}}</option>
                     @endforeach
                     @endif
@@ -38,13 +38,41 @@
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="customer_email">Email</label>
-                  <input id="customer_email" type="text" name="customer_email" placeholder="Email" class="form-control" required value="{{$data->customer_email??''}}">
+                  <input id="customer_email" type="text" name="email" placeholder="Email" class="form-control" required value="{{$data->email??''}}">
                 </div>
               </div>
               <div class="col-lg-4 col-12">
                 <div class="form-group">
                   <label for="phone">Phone</label>
                   <input id="phone" type="text" name="phone" placeholder="Phone" class="form-control" required value="{{$data->phone??''}}">
+                </div>
+              </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="country_id">Country</label>
+                  <select name="country" id="country_id" class="form-control select2" onchange="return getStates(this.value)" required>
+                    <option value="">Select Country</option>
+                    @if(!empty($countries))
+                    @foreach($countries as $key=>$value)
+                    <option value="{{$value->id}}" {{!empty($data->country) && ($data->country==$value->id)?'selected':''}}>{{$value->country_name}}</option>
+                    @endforeach
+                    @endif
+                  </select>
+                </div>
+              </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="state_list">State</label>
+                  <select name="state" id="state_list" class="form-control select2" 
+                  onchange="return getCities(@json($data->country), this.value)">
+                  </select>
+                </div>
+              </div>
+              <div class="col-lg-4 col-12">
+                <div class="form-group">
+                  <label for="city_list">City Name</label>
+                  <select name="city" id="city_list" class="form-control select2">
+                  </select>
                 </div>
               </div>
               <div class="col-lg-4 col-12">

@@ -173,6 +173,27 @@ class Ajax extends Controller
             'message' => 'Failed to update menus.'
         ]);
     }
+    public function getCities(Request $request)
+    {
+        $country_id = (int) $request->input('country_id');
+        $state_id = (int) $request->input('state_id');
+        $city_id = $request->input('city')?(int) $request->input('city'):'';
+        $cities = DB::table('cities')
+                    ->select('city_name', 'id')
+                    ->where([
+                        ['country', '=', $country_id],
+                        ['state', '=', $state_id],
+                        ['status', '=', 'Active']
+                    ])
+                    ->get();
 
+        $html = '<option value="">Select City</option>';
+        foreach ($cities as $city) {
+            $selected = !empty($city_id) && ($city_id==$city->id)?'selected':'';
+            $html .= '<option value="' . $city->id . '" '.$selected.'>' . $city->city_name . '</option>';
+        }
+        
+        return response()->json(['html' => $html]);
+    }
 
 }
