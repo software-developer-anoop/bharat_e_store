@@ -168,7 +168,7 @@ class Payment extends Controller {
     {
         // Parse the webhook JSON payload
         $raw = file_get_contents('php://input');
-        \Log::info('Cashfree Webhook Raw: ' . $raw);
+        //\Log::info('Cashfree Webhook Raw: ' . $raw);
 
         $payload = json_decode($raw, true);
 
@@ -207,6 +207,7 @@ class Payment extends Controller {
         // Update order
         DB::table('orders')->where('order_id', $orderId)->update([
             'status' => $orderStatus,
+            'order_status' => $orderStatus=='paid'?'placed':'failed',
             'updated_at' => now(),
         ]);
 
