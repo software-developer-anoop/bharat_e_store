@@ -163,7 +163,7 @@ class Payment extends Controller {
         }
     }
 
-    public function paymentHandler(Request $request)
+    public function handleWebhook(Request $request)
     {
         if ($request->isMethod('post')) {
             // Handle Cashfree Webhook
