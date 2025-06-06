@@ -115,7 +115,8 @@ class Payment extends Controller {
                     'customer_phone' => $customer->customer_phone ?? '9999999999',
                 ],
                 'order_meta' => [
-                    'return_url' => $callbackUrl . '?order_id={{order_id}}',
+                    'notify_url' => $callbackUrl . '?order_id={{order_id}}',
+                    'return_url' => ''
                 ],
             ];
 
@@ -165,7 +166,7 @@ class Payment extends Controller {
 
     public function handleWebhook(Request $request)
     {
-        if ($request->isMethod('post')) {
+        //if ($request->isMethod('post')) {
             // Handle Cashfree Webhook
             $data = $request->all();
             $orderId = $data['order']['order_id'] ?? null;
@@ -211,7 +212,7 @@ class Payment extends Controller {
             }
 
             return response()->json(['status' => true, 'message' => 'Webhook handled']);
-        }
+        //}
 
         // Handle payment status check via GET
         $orderId = $request->query('order_id');
