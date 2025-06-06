@@ -97,11 +97,12 @@ class Notification extends Controller {
                     'notification' => [
                         'title' => $msg['title'],
                         'body' => $msg['message'],
+                        'notification_type' => $msg['type'],
+                        'image' => $msg['message'],
                         'click_action' => 'OPEN_NOTIFICATION'
                     ],
                     'data' => [
                         'notification_id' => $id,
-                        'notification_type' => $msg['type']
                     ]
                 ],$jsonPath);
             }

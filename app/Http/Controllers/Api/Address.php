@@ -26,8 +26,11 @@ class Address extends Controller
         }
 
         $addressList = DB::table('addresses')
-            ->where('customer_id', $customer_id)
-            ->select('id', 'customer_id', 'name', 'email', 'phone', 'address', 'pincode', 'address_type','country_id','state_id','city_id')
+            ->where('addresses.customer_id', $customer_id)
+            ->leftJoin('country','addresses.country_id','=','country.id')
+            ->leftJoin('states','addresses.state_id','=','states.id')
+            ->leftJoin('cities','addresses.city_id','=','cities.id')
+            ->select('addresses.id', 'addresses.customer_id', 'addresses.name', 'addresses.email', 'addresses.phone', 'addresses.address', 'addresses.pincode', 'addresses.address_type','addresses.country_id','addresses.state_id','addresses.city_id','country.country_name','states.state_name','cities.city_name')
             ->get();
 
         if ($addressList->isEmpty()) {
@@ -49,8 +52,11 @@ class Address extends Controller
                 'pincode'      => (string) $value->pincode,
                 'address_type' => (string) $value->address_type,
                 'country_id'   => (string) $value->country_id,
+                'country_name' => (string) $value->country_name,
                 'state_id'     => (string) $value->state_id,
+                'state_name'   => (string) $value->state_name,
                 'city_id'      => (string) $value->city_id,
+                'city_name'    => (string) $value->city_name,
             ];
         }
 
