@@ -195,5 +195,23 @@ class Ajax extends Controller
         
         return response()->json(['html' => $html]);
     }
+    public function changeOrderStatus(Request $request){
+        $status = $request->input('status')??'';
+        $id = $request->input('id')??'';
+        $customer_id = $request->input('customer_id')??'';
+        if(empty($status)){
+            return response()->json(['status'=>false,'msg'=>'Status is blank']);
+        }
+        
+        $updated = DB::table('orders')->where('id', $id)->update(['order_status' => $status,'updated_at'=>Carbon::now()]); 
+        if($status == 'delivered'){
+            DB::table('customers')->where('id', $customer_id)->update(['wallet_points' => DB::raw('wallet_points + 100'),'updated_at'=>Carbon::now()]); 
+        }
+        if ($updated) {
+            return response()->json(['status' => true, 'msg' => 'Status Changed To ' . $status, 'name' => $status]);
+        } else {
+            return response()->json(['status' => false, 'msg' => 'Failed to update status or record not found']);
+        }
+    }
 
 }

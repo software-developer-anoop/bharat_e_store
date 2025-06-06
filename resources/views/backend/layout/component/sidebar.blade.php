@@ -460,13 +460,22 @@
         </a>
         <ul class="collapse submenu list-unstyled" id="orders" data-parent="#accordionExample">
           <li>
-            <a href="{{route('admin.home-setting')}}"> Total Orders </a>
+            <a href="{{route('admin.orders')}}"> Total Orders </a>
           </li>
           <li>
-            <a href="{{route('admin.web-setting')}}">  Pending Orders </a>
+            <a href="{{route('admin.pendingOrders')}}">  Pending Orders </a>
           </li>
           <li>
-            <a href="{{route('admin.web-setting')}}">  Delivered Orders </a>
+            <a href="{{route('admin.placedOrders')}}">  Placed Orders </a>
+          </li>
+          <li>
+            <a href="{{route('admin.shippedOrders')}}">  Shipped Orders </a>
+          </li>
+          <li>
+            <a href="{{route('admin.deliveredOrders')}}">  Delivered Orders </a>
+          </li>
+          <li>
+            <a href="{{route('admin.cancelledOrders')}}">  Cancelled Orders </a>
           </li>
         </ul>
       </li>

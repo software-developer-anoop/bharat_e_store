@@ -352,9 +352,7 @@ function viewAssigned(id) {
         window.location.href = "{{ url('admin/assign-menu') }}?id=" + id;
     }
 }
-</script>
 
-<script>
 $(document).ready(function () {
     const admin = $("#admin").val();
 
@@ -465,6 +463,39 @@ $(document).ready(function () {
     });
 });
 
+
+function changeOrderStatus(val, id,customer_id) {
+         $.ajax({
+             url: "{{route('admin.changeOrderStatus')}}",
+             type: 'POST',
+             data: {
+                 'status': val,
+                 'id': id,
+                 'customer_id': customer_id,
+                 _token: '{{csrf_token()}}'
+             },
+             dataType: 'json',
+             cache: false,
+             success: function(response) {
+                 if (response.status) {
+                     Snackbar.show({
+                         text: response.msg,
+                         pos: 'top-right',
+                         actionTextColor: '#fff',
+                         backgroundColor: '#8dbf42'
+                     });
+                     window.location.reload();
+                 } else {
+                     Snackbar.show({
+                         text: response.msg,
+                         pos: 'top-right',
+                         actionTextColor: '#fff',
+                         backgroundColor: '#e7515a'
+                     });
+                 }
+             }
+         });
+     }
 </script>
 
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->

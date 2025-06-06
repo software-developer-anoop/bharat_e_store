@@ -21,6 +21,7 @@ use App\Http\Controllers\Backend\Coupon;
 use App\Http\Controllers\Backend\Menu;
 use App\Http\Controllers\Backend\Address;
 use App\Http\Controllers\Backend\Banner;
+use App\Http\Controllers\Backend\Orders;
 use App\Http\Controllers\Cmspages;
 
 Route::get('/login', [Authentication::class, 'index'])->name('login');
@@ -103,6 +104,14 @@ Route::get('/my-profile', [Profile::class, 'index'])->name('admin.my-profile');
 Route::post('/save-profile', [Profile::class, 'saveProfile'])->name('admin.save-profile');
 //Menu
 Route::get('/assign-menu', [Menu::class, 'index'])->name('admin.assign-menu');
+//Orders
+Route::get('/total-orders', [Orders::class, 'index'])->name('admin.orders');
+Route::get('/pending-orders', [Orders::class, 'pendingOrders'])->name('admin.pendingOrders');
+Route::get('/placed-orders', [Orders::class, 'placedOrders'])->name('admin.placedOrders');
+Route::get('/shipped-orders', [Orders::class, 'shippedOrders'])->name('admin.shippedOrders');
+Route::get('/delivered-orders', [Orders::class, 'deliveredOrders'])->name('admin.deliveredOrders');
+Route::get('/cancelled-orders', [Orders::class, 'cancelledOrders'])->name('admin.cancelledOrders');
+Route::get('/order-history/{id}', [Orders::class, 'orderHistory'])->name('admin.orderHistory');
 //Ajax
 Route::post('/getSlug', [Ajax::class, 'index'])->name('admin.getSlug');
 Route::post('/deleteItem', [Ajax::class, 'deleteItem'])->name('admin.deleteItem');
@@ -114,6 +123,7 @@ Route::post('/manageInventory', [Ajax::class, 'manageInventory'])->name('admin.m
 Route::post('/setIsTrendingHotDeal', [Ajax::class, 'setIsTrendingHotDeal'])->name('admin.setIsTrendingHotDeal');
 Route::get('/logout', [Authentication::class, 'logout'])->name('admin.logout');
 Route::post('/assignmenu', [Ajax::class, 'assignMenu'])->name('admin.assignmenu');
+Route::post('/changeOrderStatus', [Ajax::class, 'changeOrderStatus'])->name('admin.changeOrderStatus');
 });
 
 //Frontend Routes

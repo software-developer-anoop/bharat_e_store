@@ -18,6 +18,7 @@ class Payment extends Controller {
 
             $product_ids = $request->input('product_id', []);
             $product_names = $request->input('product_name', []);
+            $product_sizes = $request->input('product_size', []);
             $product_colors = $request->input('product_color', []);
             $product_prices = $request->input('product_price', []);
             $quantities = $request->input('quantity', []);
@@ -69,6 +70,7 @@ class Payment extends Controller {
                     'product_id' => $product_ids[$i] ?? '',
                     'product_name' => $product_names[$i] ?? '',
                     'product_color' => $product_colors[$i] ?? '',
+                    'product_size' => $product_sizes[$i] ?? '',
                     'product_selling_price' => preg_replace('/[^\d.]/', '', $product_prices[$i] ?? ''),
                     'quantity' => $quantities[$i] ?? '',
                     'image' => $images[$i] ?? '', // Just use string/image URL
