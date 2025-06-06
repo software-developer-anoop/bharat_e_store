@@ -102,7 +102,7 @@ class Payment extends Controller {
             $appId = $payment_environment === "TEST" ? env('CASHFREE_APP_ID_TEST') : env('CASHFREE_APP_ID_PROD');
             $secretKey = $payment_environment === "TEST" ? env('CASHFREE_SECRET_KEY_TEST') : env('CASHFREE_SECRET_KEY_PROD');
             $cashfreeBaseUrl = $payment_environment === "TEST" ? env('CASHFREE_BASE_URL_TEST') : env('CASHFREE_BASE_URL_PROD');
-            $callbackUrl = route('payment.webhook');
+            $callbackUrl = url('/api/payment-webhook');
 
             $cfRequest = [
                 'order_id' => $orderId,
@@ -115,7 +115,7 @@ class Payment extends Controller {
                     'customer_phone' => $customer->customer_phone ?? '9999999999',
                 ],
                 'order_meta' => [
-                    'notify_url' => $callbackUrl . '?order_id={{order_id}}',
+                    'notify_url' => $callbackUrl,
                     'return_url' => ''
                 ],
             ];
@@ -166,85 +166,62 @@ class Payment extends Controller {
 
     public function handleWebhook(Request $request)
     {
-        //if ($request->isMethod('post')) {
-            // Handle Cashfree Webhook
-            $data = $request->all();
-            $orderId = $data['order']['order_id'] ?? null;
-            $transactionStatus = $data['order']['order_status'] ?? 'FAILED';
-            $paymentId = $data['order']['cf_payment_id'] ?? null;
+        // Parse the webhook JSON payload
+        $raw = file_get_contents('php://input');
+        \Log::info('Cashfree Webhook Raw: ' . $raw);
 
-            \Log::info('Webhook Response: ' . json_encode($data));
-            if (!$orderId) {
-                return response()->json(['status' => false, 'message' => 'Invalid payload']);
-            }
+        $payload = json_decode($raw, true);
 
-            $transaction = DB::table('transactions')->where('order_id', $orderId)->first();
-
-            if (!$transaction || $transaction->payment_gateway !== 'cashfree') {
-                return response()->json(['status' => false, 'message' => 'Not a Cashfree transaction or transaction not found']);
-            }
-
-            $newStatus = $transactionStatus === 'PAID' ? 'success' : 'failure';
-            $orderStatus = $transactionStatus === 'PAID' ? 'paid' : 'failed';
-
-            // Update transaction and order status
-            DB::table('transactions')->where('order_id', $orderId)->update([
-                'status' => $newStatus,
-                'transaction_id' => $paymentId,
-                'response' => json_encode($data),
-                'updated_at' => now(),
-            ]);
-
-            DB::table('orders')->where('order_id', $orderId)->update([
-                'status' => $orderStatus,
-                'updated_at' => now(),
-            ]);
-
-            // Empty cart if payment succeeded
-            if ($newStatus === 'success' && $orderStatus === 'paid') {
-                $order = DB::table('orders')->where('order_id', $orderId)->first();
-                $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
-
-                DB::table('cart')
-                    ->where('customer_id', $order->customer_id)
-                    ->whereIn('product_id', $productIds)
-                    ->delete();
-            }
-
-            return response()->json(['status' => true, 'message' => 'Webhook handled']);
-        //}
-
-        // Handle payment status check via GET
-        $orderId = $request->query('order_id');
-        if (!$orderId) {
-            return response()->json(['status' => false, 'message' => 'Missing order_id']);
+        if (!$payload || !isset($payload['data'])) {
+            return response()->json(['status' => false, 'message' => 'Invalid payload'], 400);
         }
 
-        $order = DB::table('orders')->where('order_id', $orderId)->first();
-        if (!$order) {
-            return response()->json(['status' => false, 'message' => 'Order not found']);
+        $data = $payload['data'];
+
+        $orderId = $data['order']['order_id'] ?? null;
+        $paymentStatus = $data['payment']['payment_status'] ?? 'FAILED';
+        $paymentId = $data['payment']['cf_payment_id'] ?? null;
+        $customerId = $data['customer_details']['customer_id'] ?? null;
+
+        if (!$orderId || !$customerId) {
+            return response()->json(['status' => false, 'message' => 'Missing order_id or customer_id'], 400);
         }
 
         $transaction = DB::table('transactions')->where('order_id', $orderId)->first();
 
-        // Extra safeguard: Remove from cart if status is already marked as paid/success
-        if ($order->status === 'paid' && $transaction->status === 'success') {
+        if (!$transaction || $transaction->payment_gateway !== 'cashfree') {
+            return response()->json(['status' => false, 'message' => 'Not a Cashfree transaction or transaction not found']);
+        }
+
+        $newStatus = $paymentStatus === 'SUCCESS' ? 'success' : 'failure';
+        $orderStatus = $paymentStatus === 'SUCCESS' ? 'paid' : 'failed';
+
+        // Update transaction
+        DB::table('transactions')->where('order_id', $orderId)->update([
+            'status' => $newStatus,
+            'transaction_id' => $paymentId,
+            'response' => json_encode($payload),
+            'updated_at' => now(),
+        ]);
+
+        // Update order
+        DB::table('orders')->where('order_id', $orderId)->update([
+            'status' => $orderStatus,
+            'updated_at' => now(),
+        ]);
+
+        // Empty cart only if payment succeeded
+        if ($newStatus === 'success' && $orderStatus === 'paid') {
             $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
 
             DB::table('cart')
-                ->where('customer_id', $order->customer_id)
+                ->where('customer_id', $customerId)
                 ->whereIn('product_id', $productIds)
                 ->delete();
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Order status fetched successfully',
-            'order_id' => $orderId,
-            'order_status' => $order->status,
-            'payment_method' => $transaction->payment_gateway ?? 'unknown',
-            'transaction_status' => $transaction->status ?? 'unknown',
-        ]);
+        return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);
     }
+
 
 }
