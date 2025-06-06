@@ -40,14 +40,7 @@ class Country extends Controller
                 if($data['old_flag_image']){
                     removeImage($data['old_flag_image']);
                 }
-                if($data['old_flag_image_webp']){
-                    removeImage($data['old_flag_image_webp']);
-                }
-                $webp_filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
-                $webp_path = public_path('uploads/' . $webp_filename);
-                $webp_image = convertImageToWebp(public_path('uploads/'), $filename, $webp_filename);
                 $saveData['flag_image'] = $filename;
-                $saveData['flag_image_webp'] = $webp_filename;
             }
         }
         

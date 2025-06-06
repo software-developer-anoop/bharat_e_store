@@ -17,7 +17,6 @@
             @csrf
             <input type="hidden" name="id" value="{{$data->id??''}}">
             <input type="hidden" name="old_flag_image" value="{{$data->flag_image??''}}">
-            <input type="hidden" name="old_flag_image_webp" value="{{$data->flag_image_webp??''}}">
             <div class="row">
               <div class="col-lg-4 col-12">
                 <div class="form-group">
