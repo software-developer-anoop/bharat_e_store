@@ -71,6 +71,7 @@ class Orders extends Controller {
                     'product_color',
                     'product_size',
                     'image',
+                    'quantity',
                     'product_selling_price'
                 ) // Exclude created_at, updated_at
                 ->get();

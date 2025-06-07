@@ -11,7 +11,15 @@ class Dashboard extends Controller
     public function index(){
         $page_name = 'Dashboard';
         $currency = getUserCurrency();
-        return view('backend.dashboard',compact('page_name','currency'));
+        $stats = DB::table('orders')
+            ->selectRaw("
+                SUM(amount) as total_amount,
+                SUM(CASE WHEN order_status = 'delivered' THEN amount ELSE 0 END) as delivered_amount,
+                SUM(CASE WHEN order_status = 'pending' THEN amount ELSE 0 END) as pending_amount
+            ")
+            ->first();
+
+        return view('backend.dashboard',compact('page_name','currency','stats'));
     }
     public function getEnquiries(){
         $page_name = 'Enquiry List';
