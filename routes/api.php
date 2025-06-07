@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Address;
 use App\Http\Controllers\Api\Cart;
 use App\Http\Controllers\Api\Notification;
 use App\Http\Controllers\Api\Payment;
+use App\Http\Controllers\Api\Orders;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -64,6 +65,10 @@ Route::post('remove-coupon', [Cart::class, 'removeCoupon'])->name('api.remove-co
 //Notification
 Route::post('my-notification', [Notification::class, 'index'])->name('api.my-notification');
 Route::post('remove-notification', [Notification::class, 'deleteMyNotification'])->name('api.remove-notification');
+//Orders
+Route::post('my-orders', [Orders::class, 'index'])->name('api.my-orders');
+
+
 
 // Payment
 
