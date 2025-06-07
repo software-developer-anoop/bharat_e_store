@@ -99,7 +99,8 @@ class Orders extends Controller {
                 'payment_mode'    => (string)($value->payment_mode ?? ''),
                 'transaction_id'  => (string)($transactionHistory->transaction_id ?? ''),
                 'payment_gateway' => (string)($transactionHistory->payment_gateway ?? ''),
-                'address'         => (string)($value->address ?? ''),
+                'billing_address' => (string)($value->address ?? ''),
+                'delivery_address'=> (string)($value->address ?? ''),
                 'order_date'      => (string)($value->created_at ?? ''),
                 'order_history'   => $allHistory
             ];
