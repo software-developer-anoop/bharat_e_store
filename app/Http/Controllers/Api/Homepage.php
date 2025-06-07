@@ -401,7 +401,7 @@ class Homepage extends Controller {
         $returnData = $products->map(function ($value) use ($customerCurrency,$customer_id) {
             $isInWishlist = DB::table('wishlist')
             ->where('customer_id', $customer_id)
-            ->where('product_id', $product->id)
+            ->where('product_id', $value->id)
             ->exists();
             $images = json_decode($value->product_image, true); // decode as array
             $imageUrls = [];
