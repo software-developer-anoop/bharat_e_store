@@ -5,7 +5,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 class Orders extends Controller {
-    public function index() {
+    public function index()
+    {
         $post = checkPayload();
         $customer_id = trim($post['customer_id'] ?? '');
         $per_page_limit = intval($post['per_page_limit'] ?? 10); // Default to 10
@@ -28,17 +29,20 @@ class Orders extends Controller {
         }
 
         $offset = ($page_no - 1) * $per_page_limit;
-        $where = [];
-        $where['customer_id'] = $customer_id;
-        if(!empty($filter)){
-        $where['order_status'] = $filter;   
-        }
-        $orders = DB::table('orders')
-            ->where($where)
-            ->orderBy('id', 'desc')
+
+        $query = DB::table('orders')
+            ->where('orders.customer_id', $customer_id)
+            ->join('addresses', 'orders.address_id', '=', 'addresses.id')
+            ->orderBy('orders.id', 'desc')
             ->limit($per_page_limit)
             ->offset($offset)
-            ->get();
+            ->select('orders.*', 'addresses.address');
+
+        if (!empty($filter)) {
+            $query->where('order_status', $filter);
+        }
+
+        $orders = $query->get();
 
         if ($orders->isEmpty()) {
             return response()->json([
@@ -60,6 +64,11 @@ class Orders extends Controller {
                 continue; // skip if no order_history found
             }
 
+            $transactionHistory = DB::table('transactions')
+                ->where('order_id', $value->order_id)
+                ->select('transaction_id', 'payment_gateway')
+                ->first();
+
             $allHistory = DB::table('order_history')
                 ->where('order_table_id', $value->id)
                 ->orderBy('id', 'asc')
@@ -73,20 +82,26 @@ class Orders extends Controller {
                     'image',
                     'quantity',
                     'product_selling_price'
-                ) // Exclude created_at, updated_at
+                )
                 ->get();
 
             $returnData[] = [
                 'order_table_id'  => (string)$value->id,
-                'product_id'      => (string)$firstHistory->product_id,
-                'product_name'    => (string)$firstHistory->product_name,
-                'product_color'   => (string)$firstHistory->product_color,
-                'product_size'    => (string)$firstHistory->product_size,
+                'order_id'        => (string)$value->order_id,
+                'product_id'      => (string)($firstHistory->product_id ?? ''),
+                'product_name'    => (string)($firstHistory->product_name ?? ''),
+                'product_color'   => (string)($firstHistory->product_color ?? ''),
+                'product_size'    => (string)($firstHistory->product_size ?? ''),
                 'amount'          => $customerCurrency . ' ' . (string)$value->amount,
-                'image'           => (string)$firstHistory->image,
-                'payment_status'  => (string)$value->status,
-                'order_status'    => (string)$value->order_status,
-                'order_history'   => $allHistory // Full history
+                'image'           => (string)($firstHistory->image ?? ''),
+                'payment_status'  => (string)($value->status ?? ''),
+                'order_status'    => (string)($value->order_status ?? ''),
+                'payment_mode'    => (string)($value->payment_mode ?? ''),
+                'transaction_id'  => (string)($transactionHistory->transaction_id ?? ''),
+                'payment_gateway' => (string)($transactionHistory->payment_gateway ?? ''),
+                'address'         => (string)($value->address ?? ''),
+                'order_date'      => (string)($value->created_at ?? ''),
+                'order_history'   => $allHistory
             ];
         }
 
