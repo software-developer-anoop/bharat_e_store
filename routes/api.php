@@ -67,7 +67,7 @@ Route::post('my-notification', [Notification::class, 'index'])->name('api.my-not
 Route::post('remove-notification', [Notification::class, 'deleteMyNotification'])->name('api.remove-notification');
 //Orders
 Route::post('my-orders', [Orders::class, 'index'])->name('api.my-orders');
-
+Route::post('summary', [Orders::class, 'summary'])->name('api.summary');
 
 
 // Payment
