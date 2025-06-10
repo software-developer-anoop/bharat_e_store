@@ -19,7 +19,7 @@ class Cart extends Controller{
         $size = trim($post['size'] ?? '');
         $color = trim($post['color'] ?? '');
 
-        // Basic validations
+        // === Validations ===
         if (empty($customer_id)) {
             return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
         }
@@ -28,7 +28,7 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Product ID is blank']);
         }
 
-        // Check if customer exists
+        // === Check Customer ===
         $customer = DB::table('customers')->where('id', $customer_id)->first();
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
@@ -38,45 +38,40 @@ class Cart extends Controller{
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
-        // Check if product exists
+        // === Check Product ===
         $product = DB::table('products')->where('id', $product_id)->first();
         if (!$product) {
             return response()->json(['status' => false, 'message' => 'Product not found']);
         }
 
-        // Derive default color
-        $defaultColor = '';
+        // === Derive Default Color ===
+        $defaultColor = 'Default';
         if (!empty($product->product_colors)) {
-            // Split by comma to get the first color
             $colorParts = explode(',', $product->product_colors);
-            $firstColor = trim($colorParts[0] ?? '');
+            $firstColor = trim($colorParts[0]); // e.g. "Saddle Brown - #8B4513"
 
-            // Now split by dash to get color name before hex code
             $colorNameParts = explode('-', $firstColor);
-            $defaultColor = trim($colorNameParts[0] ?? '');
+            if (!empty($colorNameParts[0])) {
+                $defaultColor = trim($colorNameParts[0]); // "Saddle Brown"
+            }
         }
 
-        // Derive default size
-        $defaultSize = '';
+        // === Derive Default Size ===
+        $defaultSize = 'Default';
         if (!empty($product->product_size)) {
-            // Split by comma to get the first size
             $sizeParts = explode(',', $product->product_size);
-            $firstSize = trim($sizeParts[0] ?? '');
-
-            // Now split by dash to get size name before code
-            $sizeNameParts = explode('-', $firstSize);
-            $defaultSize = trim($sizeNameParts[0] ?? '');
+            $defaultSize = trim($sizeParts[0] ?? ''); // e.g. "7"
         }
 
-        // Decide which color and size to use (passed or default)
+        // === Use provided or default values ===
         $selectedColor = !empty($color) ? $color : $defaultColor;
-        $selectedSize = !empty($size) ? $size : $defaultSize;
+        $selectedSize  = !empty($size)  ? $size  : $defaultSize;
 
-        // Fallback to ensure no blank values are stored
-        $selectedColor = !empty($selectedColor) ? $selectedColor : 'Default';
-        $selectedSize  = !empty($selectedSize) ? $selectedSize : 'Default';
+        // === Ensure nothing blank ===
+        if (empty($selectedColor)) $selectedColor = 'Default';
+        if (empty($selectedSize))  $selectedSize  = 'Default';
 
-        // Check if product already exists in the cart
+        // === Check if exists in cart ===
         $existingCart = DB::table('cart')
             ->where('customer_id', $customer_id)
             ->where('product_id', $product_id)
@@ -85,12 +80,12 @@ class Cart extends Controller{
             ->first();
 
         if ($existingCart) {
-            // Increment quantity if product already exists in cart
+            // Update quantity
             DB::table('cart')
                 ->where('id', $existingCart->id)
                 ->increment('quantity');
         } else {
-            // Insert new product into cart
+            // Insert new
             DB::table('cart')->insert([
                 'customer_id' => $customer_id,
                 'product_id'  => $product_id,
