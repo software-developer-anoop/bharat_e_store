@@ -242,20 +242,29 @@ function sendPushNotification($fields, $jsonPath) {
             'notification' => [
                 'title' => $fields['notification']['title'],
                 'body'  => $fields['notification']['body'],
-                // Only include image here if it's a valid image URL
-                'image' => $fields['notification']['image'] ?? null,
+                'image' => $fields['notification']['image'] ?? null, // optional image
             ],
             'data' => array_merge($fields['data'], [
+                'title'             => $fields['notification']['title'],
+                'body'              => $fields['notification']['body'],
                 'notification_type' => $fields['notification']['notification_type'],
-                'image' => $fields['notification']['image'],
+                'image'             => $fields['notification']['image'] ?? '', // optional image
             ]),
             'android' => [
                 'notification' => [
-                    'click_action' => $fields['notification']['click_action']
+                    'click_action' => $fields['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
+                ]
+            ],
+            'apns' => [
+                'payload' => [
+                    'aps' => [
+                        'category' => 'NEW_MESSAGE_CATEGORY'
+                    ]
                 ]
             ]
         ]
     ];
+
 
 
     $ch = curl_init();

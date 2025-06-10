@@ -95,15 +95,18 @@ class Notification extends Controller {
                 // You should pass token + message content here
                 $response = sendPushNotification([
                     'message' => [
-                        'token' => $token,  // or use 'topic' => 'news' if you're targeting a topic
+                        'token' => $token, // or 'topic' => 'news'
                         'notification' => [
                             'title' => $msg['title'],
-                            'body' => $msg['message']
+                            'body'  => $msg['message'],
+                            'image' => $msg['image'] ?? null, // optional image
                         ],
                         'data' => [
-                            'notification_id' => $id,
+                            'notification_id'   => $id,
+                            'title'             => $msg['title'],
+                            'body'              => $msg['message'],
                             'notification_type' => $msg['notification_type'],
-                            'image' => $msg['message']
+                            'image'             => $msg['image'] ?? '', // optional image
                         ],
                         'android' => [
                             'notification' => [
@@ -119,6 +122,7 @@ class Notification extends Controller {
                         ]
                     ]
                 ], $jsonPath);
+
 
             }
         }
