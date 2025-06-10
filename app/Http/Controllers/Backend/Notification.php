@@ -94,18 +94,32 @@ class Notification extends Controller {
             foreach ($tokens as $token) {
                 // You should pass token + message content here
                 $response = sendPushNotification([
-                    'to' => $token,
-                    'notification' => [
-                        'title' => $msg['title'],
-                        'body' => $msg['message'],
-                        'notification_type' => $msg['notification_type'],
-                        'image' => $msg['message'],
-                        'click_action' => 'OPEN_NOTIFICATION'
-                    ],
-                    'data' => [
-                        'notification_id' => $id,
+                    'message' => [
+                        'token' => $token,  // or use 'topic' => 'news' if you're targeting a topic
+                        'notification' => [
+                            'title' => $msg['title'],
+                            'body' => $msg['message']
+                        ],
+                        'data' => [
+                            'notification_id' => $id,
+                            'notification_type' => $msg['notification_type'],
+                            'image' => $msg['message']
+                        ],
+                        'android' => [
+                            'notification' => [
+                                'click_action' => 'OPEN_NOTIFICATION'
+                            ]
+                        ],
+                        'apns' => [
+                            'payload' => [
+                                'aps' => [
+                                    'category' => 'NEW_MESSAGE_CATEGORY'
+                                ]
+                            ]
+                        ]
                     ]
-                ],$jsonPath);
+                ], $jsonPath);
+
             }
         }
         return response()->json($data);

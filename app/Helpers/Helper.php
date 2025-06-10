@@ -241,11 +241,14 @@ function sendPushNotification($fields, $jsonPath) {
             'token' => $fields['to'],
             'notification' => [
                 'title' => $fields['notification']['title'],
-                'body' => $fields['notification']['body'],
+                'body'  => $fields['notification']['body'],
+                // Only include image here if it's a valid image URL
+                'image' => $fields['notification']['image'] ?? null,
+            ],
+            'data' => array_merge($fields['data'], [
                 'notification_type' => $fields['notification']['notification_type'],
                 'image' => $fields['notification']['image'],
-            ],
-            'data' => $fields['data'],
+            ]),
             'android' => [
                 'notification' => [
                     'click_action' => $fields['notification']['click_action']
@@ -253,6 +256,7 @@ function sendPushNotification($fields, $jsonPath) {
             ]
         ]
     ];
+
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $fcmurl);
