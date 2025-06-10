@@ -194,6 +194,18 @@ class Cart extends Controller{
         $subTotal = 0;
         $returnData = [];
 
+        $profile_status = 'complete';
+
+        if (
+            empty($customer->customer_name) ||
+            empty($customer->customer_email) ||
+            empty($customer->customer_phone) ||
+            empty($customer->customer_address)
+        ) {
+            $profile_status = 'incomplete';
+        }
+
+
         foreach ($products as $value) {
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images) && isset($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
@@ -221,6 +233,7 @@ class Cart extends Controller{
             'data'             => $returnData,
             'subTotal'         => $customerCurrency . ' ' . (string)$subTotal,
             'coins_available'  => (string)$customer->wallet_points,
+            'profile_status'   => (string)$profile_status,
             'message'          => "API Accessed Successfully!"
         ];
 
