@@ -32,7 +32,7 @@ class Notification extends Controller
 
         $notificationList = DB::table('push_notifications')
             ->where('customer_id', $customer_id)
-            ->select('id', 'notification_id', 'customer_id', 'title', 'description', 'image','created_at')
+            ->select('id', 'notification_id', 'customer_id', 'title', 'description', 'image','created_at','notification_type')
             ->offset($offset)
             ->limit($per_page_limit)
             ->get();
@@ -49,6 +49,7 @@ class Notification extends Controller
                 'title'           => (string) $value->title,
                 'description'     => (string) $value->description,
                 'image'           => (string) $value->image,
+                'notification_type' => (string) $value->notification_type,
                 'date'            => Carbon::parse($value->created_at)->format('Y-m-d'),
                 'time'            => Carbon::parse($value->created_at)->format('H:i'),
             ];
