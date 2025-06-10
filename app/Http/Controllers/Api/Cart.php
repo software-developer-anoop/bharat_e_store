@@ -13,57 +13,95 @@ class Cart extends Controller{
     public function index()
     {
         $post = checkPayload();
+
         $customer_id = trim($post['customer_id'] ?? '');
         $product_id = trim($post['product_id'] ?? '');
         $size = trim($post['size'] ?? '');
         $color = trim($post['color'] ?? '');
 
+        // Basic validations
         if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
+            return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
         }
 
         if (empty($product_id)) {
-            return response()->json(['status' => false, 'message' => 'Product Id Is Blank']);
+            return response()->json(['status' => false, 'message' => 'Product ID is blank']);
         }
 
-        // Validate customer
-        $customer = DB::table('customers')->find($customer_id);
+        // Check if customer exists
+        $customer = DB::table('customers')->where('id', $customer_id)->first();
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'Customer not found']);
         }
 
-        if ($customer->profile_status === "Inactive") {
+        if ($customer->profile_status === 'Inactive') {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
 
-        // Validate product
-        $product = DB::table('products')->find($product_id);
+        // Check if product exists
+        $product = DB::table('products')->where('id', $product_id)->first();
         if (!$product) {
             return response()->json(['status' => false, 'message' => 'Product not found']);
         }
-        $defaultcolor = !empty($product->product_colors) && is_string($product->product_colors) ? trim(explode('-', $product->product_colors)[0] ?? '') : '';
-        $defaultsize = !empty($product->product_size) && is_string($product->product_size) ? trim(explode('-', $product->product_size)[0] ?? '') : '';
-        // Check if item already exists in cart
-        $fetchCart = DB::table('cart')
-            ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
-            ->first();
 
-        if (is_null($fetchCart)) {
-            DB::table('cart')->insert([
-                'customer_id' => $customer_id,
-                'product_id' => $product_id,
-                'size' => $size??$defaultsize,
-                'color' => $color??$defaultcolor,
-                'quantity' => 1,
-                'created_at' => Carbon::now(),
-            ]);
-        } else {
-            DB::table('cart')
-                ->where(['customer_id' => $customer_id, 'product_id' => $product_id])
-                ->increment('quantity');
+        // Derive default color
+        $defaultColor = '';
+        if (!empty($product->product_colors)) {
+            // Split by comma to get the first color
+            $colorParts = explode(',', $product->product_colors);
+            $firstColor = trim($colorParts[0] ?? '');
+
+            // Now split by dash to get color name before hex code
+            $colorNameParts = explode('-', $firstColor);
+            $defaultColor = trim($colorNameParts[0] ?? '');
         }
 
-        return response()->json(['status' => true, 'message' => 'Added To Cart']);
+        // Derive default size
+        $defaultSize = '';
+        if (!empty($product->product_size)) {
+            // Split by comma to get the first size
+            $sizeParts = explode(',', $product->product_size);
+            $firstSize = trim($sizeParts[0] ?? '');
+
+            // Now split by dash to get size name before code
+            $sizeNameParts = explode('-', $firstSize);
+            $defaultSize = trim($sizeNameParts[0] ?? '');
+        }
+
+        // Decide which color and size to use (passed or default)
+        $selectedColor = !empty($color) ? $color : $defaultColor;
+        $selectedSize = !empty($size) ? $size : $defaultSize;
+
+        // Fallback to ensure no blank values are stored
+        $selectedColor = !empty($selectedColor) ? $selectedColor : 'Default';
+        $selectedSize  = !empty($selectedSize) ? $selectedSize : 'Default';
+
+        // Check if product already exists in the cart
+        $existingCart = DB::table('cart')
+            ->where('customer_id', $customer_id)
+            ->where('product_id', $product_id)
+            ->where('size', $selectedSize)
+            ->where('color', $selectedColor)
+            ->first();
+
+        if ($existingCart) {
+            // Increment quantity if product already exists in cart
+            DB::table('cart')
+                ->where('id', $existingCart->id)
+                ->increment('quantity');
+        } else {
+            // Insert new product into cart
+            DB::table('cart')->insert([
+                'customer_id' => $customer_id,
+                'product_id'  => $product_id,
+                'size'        => $selectedSize,
+                'color'       => $selectedColor,
+                'quantity'    => 1,
+                'created_at'  => Carbon::now(),
+            ]);
+        }
+
+        return response()->json(['status' => true, 'message' => 'Added to cart']);
     }
     public function removeFromCart()
     {
