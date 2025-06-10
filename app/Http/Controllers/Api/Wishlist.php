@@ -75,10 +75,10 @@ class Wishlist extends Controller
         }
 
         $products = DB::table('wishlist')
+            ->join('products', 'products.id', '=', 'wishlist.product_id') // INNER JOIN ensures product must exist
+            ->join('categories', 'products.category_id', '=', 'categories.id') // INNER JOIN for categories
+            ->join('subcategories', 'products.subcategory_id', '=', 'subcategories.id') // INNER JOIN for subcategories
             ->where('wishlist.customer_id', $customer_id)
-            ->leftJoin('products', 'products.id', '=', 'wishlist.product_id')
-            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-            ->leftJoin('subcategories', 'products.subcategory_id', '=', 'subcategories.id')
             ->select(
                 'products.id as product_id',
                 'products.category_id',
@@ -94,7 +94,7 @@ class Wishlist extends Controller
                 'wishlist.id as wishlist_id'
             )
             ->get();
-        
+
         if ($products->isEmpty()) {
             return response()->json([
                 'status' => false,
@@ -106,10 +106,6 @@ class Wishlist extends Controller
         $returnData = [];
 
         foreach ($products as $value) {
-            $isInWishlist = DB::table('wishlist')
-            ->where('customer_id', $customer_id)
-            ->where('product_id', $value->product_id)
-            ->exists();
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
 
@@ -121,7 +117,7 @@ class Wishlist extends Controller
                 'product_name'          => (string) $value->product_name,
                 'product_rating'        => (string) $value->product_rating,
                 'product_image'         => $firstImageUrl,
-                'added_to_wishlist'     => $isInWishlist,
+                'added_to_wishlist'     => true, // since only valid products are fetched
                 'product_selling_price' => $customerCurrency .' '. (string) $value->product_selling_price,
                 'product_cost_price'    => $customerCurrency .' '. (string) $value->product_cost_price,
                 'category_name'         => (string) $value->category_name,
@@ -135,7 +131,6 @@ class Wishlist extends Controller
             'message' => 'API accessed successfully!'
         ]);
     }
-
     public function removeFromWishlist(){
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
