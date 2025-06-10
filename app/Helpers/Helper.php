@@ -234,38 +234,35 @@ function sendPushNotification($fields, $jsonPath) {
         'Authorization: Bearer ' . $accessToken,
         'Content-Type: application/json'
     ];
-
     // Properly format payload for HTTP v1 API
     $payload = [
-    'message' => [
-        'token' => $fields['token'], // token should be direct, not inside 'message'
-        'notification' => [
-            'title' => $fields['title'],
-            'body'  => $fields['message'],
-            'image' => $fields['image'] ?? null, // optional image
-        ],
-        'data' => [
-            'notification_id'   => $fields['notification_id'], // this was missing before
-            'title'             => $fields['title'],
-            'body'              => $fields['message'],
-            'notification_type' => $fields['notification_type'],
-            'image'             => $fields['image'] ?? '', // optional image
-        ],
-        'android' => [
+        'message' => [
+            'token' => $fields['message']['to'],
             'notification' => [
-                'click_action' => $fields['click_action'] ?? 'OPEN_NOTIFICATION'
-            ]
-        ],
-        'apns' => [
-            'payload' => [
-                'aps' => [
-                    'category' => 'NEW_MESSAGE_CATEGORY'
+                'title' => $fields['message']['notification']['title'],
+                'body'  => $fields['message']['notification']['body'],
+                'image' => $fields['message']['notification']['image'] ?? null, // optional image
+            ],
+            'data' => array_merge($fields['message']['data'], [
+                'title'             => $fields['message']['notification']['title'],
+                'body'              => $fields['message']['notification']['body'],
+                'notification_type' => $fields['message']['data']['notification_type'],
+                'image'             => $fields['message']['notification']['image'] ?? '', // optional image
+            ]),
+            'android' => [
+                'notification' => [
+                    'click_action' => $fields['message']['android']['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
+                ]
+            ],
+            'apns' => [
+                'payload' => [
+                    'aps' => [
+                        'category' => 'NEW_MESSAGE_CATEGORY'
+                    ]
                 ]
             ]
         ]
-    ]
-];
-
+    ];
 
 
 

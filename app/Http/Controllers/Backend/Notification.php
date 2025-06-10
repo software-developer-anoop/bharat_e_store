@@ -95,7 +95,7 @@ class Notification extends Controller {
                 // You should pass token + message content here
                 $response = sendPushNotification([
                     'message' => [
-                        'token' => $token, // or 'topic' => 'news'
+                        'to' => $token, // or 'topic' => 'news'
                         'notification' => [
                             'title' => $msg['title'],
                             'body'  => $msg['message'],
