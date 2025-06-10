@@ -237,33 +237,35 @@ function sendPushNotification($fields, $jsonPath) {
 
     // Properly format payload for HTTP v1 API
     $payload = [
-        'message' => [
-            'token' => $fields['token'],
+    'message' => [
+        'token' => $fields['token'], // token should be direct, not inside 'message'
+        'notification' => [
+            'title' => $fields['title'],
+            'body'  => $fields['message'],
+            'image' => $fields['image'] ?? null, // optional image
+        ],
+        'data' => [
+            'notification_id'   => $fields['notification_id'], // this was missing before
+            'title'             => $fields['title'],
+            'body'              => $fields['message'],
+            'notification_type' => $fields['notification_type'],
+            'image'             => $fields['image'] ?? '', // optional image
+        ],
+        'android' => [
             'notification' => [
-                'title' => $fields['notification']['title'],
-                'body'  => $fields['notification']['body'],
-                'image' => $fields['notification']['image'] ?? null, // optional image
-            ],
-            'data' => array_merge($fields['data'], [
-                'title'             => $fields['notification']['title'],
-                'body'              => $fields['notification']['body'],
-                'notification_type' => $fields['notification']['notification_type'],
-                'image'             => $fields['notification']['image'] ?? '', // optional image
-            ]),
-            'android' => [
-                'notification' => [
-                    'click_action' => $fields['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
-                ]
-            ],
-            'apns' => [
-                'payload' => [
-                    'aps' => [
-                        'category' => 'NEW_MESSAGE_CATEGORY'
-                    ]
+                'click_action' => $fields['click_action'] ?? 'OPEN_NOTIFICATION'
+            ]
+        ],
+        'apns' => [
+            'payload' => [
+                'aps' => [
+                    'category' => 'NEW_MESSAGE_CATEGORY'
                 ]
             ]
         ]
-    ];
+    ]
+];
+
 
 
 
