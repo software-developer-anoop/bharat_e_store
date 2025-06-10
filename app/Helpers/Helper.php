@@ -238,7 +238,7 @@ function sendPushNotification($fields, $jsonPath) {
     // Properly format payload for HTTP v1 API
     $payload = [
         'message' => [
-            'token' => $fields['to'],
+            'token' => $fields['token'],
             'notification' => [
                 'title' => $fields['notification']['title'],
                 'body'  => $fields['notification']['body'],
