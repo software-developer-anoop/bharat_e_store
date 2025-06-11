@@ -69,22 +69,6 @@ class Orders extends Controller {
                 ->select('transaction_id', 'payment_gateway')
                 ->first();
 
-            $allHistory = DB::table('order_history')
-                ->where('order_table_id', $value->id)
-                ->orderBy('id', 'asc')
-                ->select(
-                    'id',
-                    'order_table_id',
-                    'product_id',
-                    'product_name',
-                    'product_color',
-                    'product_size',
-                    'image',
-                    'quantity',
-                    'product_selling_price'
-                )
-                ->get();
-
             $returnData[] = [
                 'order_table_id'  => (string)$value->id,
                 'order_id'        => (string)$value->order_id,
@@ -101,8 +85,7 @@ class Orders extends Controller {
                 'payment_gateway' => (string)($transactionHistory->payment_gateway ?? ''),
                 'billing_address' => (string)($value->address ?? ''),
                 'delivery_address'=> (string)($value->address ?? ''),
-                'order_date'      => (string)($value->created_at ?? ''),
-                'order_history'   => $allHistory
+                'order_date'      => (string)($value->created_at ?? '')
             ];
         }
 
@@ -165,4 +148,70 @@ class Orders extends Controller {
             'data'    => $returnData
         ]);
     }
+    public function orderHistory()
+    {
+        $post = checkPayload();
+        $order_table_id = trim($post['order_table_id'] ?? '');
+
+        if (empty($order_table_id)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Order ID is blank"
+            ]);
+        }
+
+        $order = DB::table('orders')
+            ->where('orders.id', $order_table_id)
+            ->join('addresses', 'orders.address_id', '=', 'addresses.id')
+            ->select('orders.created_at', 'orders.amount', 'orders.customer_id', 'addresses.address', 'orders.payment_mode')
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'status' => false,
+                'message' => "No order found"
+            ]);
+        }
+
+        $orderHistory = DB::table('order_history')
+            ->where('order_table_id', $order_table_id)
+            ->get();
+
+        if ($orderHistory->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => "No record found"
+            ]);
+        }
+
+        $customerCurrency = getUserCurrency($order->customer_id) ?? '';
+        $returnData = []; // Initialize the array to avoid undefined variable warning
+
+        foreach ($orderHistory as $value) {
+            $returnData[] = [
+                'order_history_id'    => (string)($value->id ?? ''),
+                'order_table_id'      => (string)($value->order_table_id ?? ''),
+                'order_id'            => (string)($value->order_id ?? ''),
+                'product_id'          => (string)($value->product_id ?? ''),
+                'product_name'        => (string)($value->product_name ?? ''),
+                'product_color'       => (string)($value->product_color ?? ''),
+                'product_size'        => (string)($value->product_size ?? ''),
+                'product_selling_price' => $customerCurrency . ' ' . (string)($value->product_selling_price ?? '0'),
+                'image'               => (string)($value->image ?? ''),
+                'quantity'            => (string)($value->quantity ?? '1'),
+                'order_date'          => (string)($order->created_at ?? ''),
+                'order_total'         => (string)($order->amount ?? '0'),
+                'delivery_address'    => (string)($order->address ?? ''),
+                'billing_address'     => (string)($order->address ?? ''),
+                'payment_mode'        => (string)($order->payment_mode ?? ''),
+            ];
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => "Order history fetched successfully",
+            'data' => $returnData
+        ]);
+    }
+
 }
