@@ -78,6 +78,7 @@ class Orders extends Controller {
                 'product_size'    => (string)($firstHistory->product_size ?? ''),
                 'amount'          => $customerCurrency . ' ' . (string)$value->amount,
                 'image'           => (string)($firstHistory->image ?? ''),
+                'quantity'        => (string)($firstHistory->quantity ?? ''),
                 'payment_status'  => (string)($value->status ?? ''),
                 'order_status'    => (string)($value->order_status ?? ''),
                 'payment_mode'    => (string)($value->payment_mode ?? ''),
