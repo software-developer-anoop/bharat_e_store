@@ -166,7 +166,16 @@ class Authentication extends Controller {
         $country_id = DB::table('country')
             ->where('country_code', $customer->country_code)
             ->value('id');
-
+        // Check if customer has used any valid coupon in orders table
+        $couponUsed = DB::table('orders')
+        ->where('customer_id', $customer->id)
+        ->whereNotNull('coupon_id') // order has a coupon applied
+        ->whereExists(function($query) {
+            $query->select(DB::raw(1))
+                  ->from('coupons')
+                  ->whereColumn('coupons.id', 'orders.coupon_id');
+        })
+        ->exists();
         $return = [];
         $return['customer_id'] = (string)$customer->id;
         $return['customer_name'] = (string)$customer->customer_name;
@@ -188,6 +197,7 @@ class Authentication extends Controller {
         $return['profile_image'] = $customer->customer_profile_image 
                 ? url('uploads/' . $customer->customer_profile_image) 
                 : '';
+        $return['coupon_used'] = $couponUsed ? true : false;
         return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return]);
     }
     public function customerLogin(Request $request) {
