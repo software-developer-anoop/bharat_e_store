@@ -86,12 +86,29 @@ class Authentication extends Controller {
         $customerCurrency = getUserCurrency($customerId) ??'';
         // Handle referral if exists
         if (!empty($customer->referral_code)) {
-            $referralCustomer = DB::table('customers')->where('referrer_code', $customer->referral_code)->first();
-            if ($referralCustomer) {
-                DB::table('referral_history')->insert(['referrer_customer_id' => $customer->id, 'referrer_code' => $customer->referrer_code, 'referral_customer_id' => $referralCustomer->id, 'referral_code' => $referralCustomer->referrer_code, 'points' => 10, ]);
-                DB::table('customers')->where('id', $referralCustomer->id)->increment('wallet_points', 10);
+            // Find the referrer (the customer who shared the referral code)
+            $referrerCustomer = DB::table('customers')
+                ->where('referrer_code', $customer->referral_code)
+                ->first();
+
+            if ($referrerCustomer) {
+                // Insert referral history
+                DB::table('referral_history')->insert([
+                    'referrer_customer_id' => $referrerCustomer->id, // The one who gave the code
+                    'referrer_code'        => $referrerCustomer->referrer_code,
+                    'referral_customer_id' => $customer->id, // The one who used the code
+                    'referral_code'        => $customer->referral_code,
+                    'points'               => 10,
+                ]);
+
+                // Add 10 points to referrer's wallet
+                DB::table('customers')
+    ->where('id', $referrerCustomer->id)
+    ->update(['wallet_points' => DB::raw('COALESCE(wallet_points, 0) + 10')]);
+
             }
         }
+
         // Update customer status and device info
         DB::table('customers')->where('id', $customerId)->update(['profile_status' => 'Active', 'email_status' => 'Verified', 'otp' => '', 'device_id' => $deviceId, 'fcm_token' => $fcmToken, ]);
         // Fetch updated customer info
