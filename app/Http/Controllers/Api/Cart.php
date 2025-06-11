@@ -479,4 +479,56 @@ class Cart extends Controller{
             ]);
         }
     }
+    public function applyCoin() {
+    $post = checkPayload();
+    $customer_id = trim($post['customer_id'] ?? '');
+
+    if (empty($customer_id)) {
+        return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+    }
+
+    // Fetch customer
+    $customer = DB::table('customers')->find($customer_id);
+    if (!$customer) {
+        return response()->json(['status' => false, 'message' => 'Customer not found']);
+    }
+
+    // Fetch cart products
+    $products = DB::table('cart')
+        ->join('products', 'products.id', '=', 'cart.product_id')
+        ->where('cart.customer_id', $customer_id)
+        ->select('products.product_selling_price', 'cart.quantity')
+        ->get();
+
+    if ($products->isEmpty()) {
+        return response()->json(['status' => false, 'message' => 'Cart is empty']);
+    }
+
+    // Calculate subtotal
+    $subTotal = 0;
+    foreach ($products as $item) {
+        $price = floatval($item->product_selling_price);
+        $quantity = intval($item->quantity);
+        $subTotal += $price * $quantity;
+    }
+
+    $subTotal = round($subTotal, 2);
+
+    // Apply wallet points (assuming 1 point = 1 currency unit)
+    $walletPoints = floatval($customer->wallet_points ?? 0);
+
+    if ($walletPoints > 0) {
+        // Don't allow subtotal to go below zero
+        $deduction = min($walletPoints, $subTotal);
+        $subTotal -= $deduction;
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Coins Applied',
+        'total' => round($subTotal, 2),
+        'wallet_points_used' => min($walletPoints, $subTotal)
+    ]);
+}
+
 }
