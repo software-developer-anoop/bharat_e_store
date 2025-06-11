@@ -43,6 +43,7 @@
                       <option value="">Change Status</option>
                       <option value="shipped" {{ ($row->order_status ?? '') == 'shipped' ? 'selected' : '' }}>Shipped</option>
                       <option value="delivered" {{ ($row->order_status ?? '') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                      <option value="cancelled" {{ ($row->order_status ?? '') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                   </td>
                   @endif

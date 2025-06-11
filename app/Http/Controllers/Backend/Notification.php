@@ -96,30 +96,31 @@ class Notification extends Controller {
                 $response = sendPushNotification([
                     'message' => [
                         'to' => $token, // or 'topic' => 'news'
-                        'notification' => [
-                            'title' => $msg['title'],
-                            'body'  => $msg['message'],
-                            'image' => $msg['image'] ?? null, // optional image
-                        ],
+                        // 'notification' => [
+                        //     'title' => $msg['title'],
+                        //     'body'  => $msg['message'],
+                        //     'image' => $msg['image'] ?? null, // optional image
+                        // ],
                         'data' => [
                             'notification_id'   => $id,
                             'title'             => $msg['title'],
                             'body'              => $msg['message'],
                             'notification_type' => $msg['notification_type'],
                             'image'             => $msg['image'] ?? '', // optional image
+                            'click_action' => 'OPEN_NOTIFICATION'
                         ],
-                        'android' => [
-                            'notification' => [
-                                'click_action' => 'OPEN_NOTIFICATION'
-                            ]
-                        ],
-                        'apns' => [
-                            'payload' => [
-                                'aps' => [
-                                    'category' => 'NEW_MESSAGE_CATEGORY'
-                                ]
-                            ]
-                        ]
+                        // 'android' => [
+                        //     'notification' => [
+                        //         'click_action' => 'OPEN_NOTIFICATION'
+                        //     ]
+                        // ],
+                        // 'apns' => [
+                        //     'payload' => [
+                        //         'aps' => [
+                        //             'category' => 'NEW_MESSAGE_CATEGORY'
+                        //         ]
+                        //     ]
+                        // ]
                     ]
                 ], $jsonPath);
 
