@@ -238,11 +238,11 @@ function sendPushNotification($fields, $jsonPath) {
     $payload = [
         'to' => $fields['message']['to'],
         'data' => [
-            'title' => $fields['message']['notification']['title'],
-            'body' => $fields['message']['notification']['body'],
-            'image' => $fields['message']['notification']['image'] ?? '',
+            'title' => $fields['message']['data']['title'],
+            'body' => $fields['message']['data']['body'],
+            'image' => $fields['message']['data']['image'] ?? '',
             'notification_type' => $fields['message']['data']['notification_type'] ?? 'normal',
-            'click_action' => $fields['message']['android']['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
+            'click_action' => $fields['message']['data']['click_action'] ?? 'OPEN_NOTIFICATION'
         ]
     ];
 
