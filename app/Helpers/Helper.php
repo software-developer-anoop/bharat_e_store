@@ -236,15 +236,38 @@ function sendPushNotification($fields, $jsonPath) {
     ];
     // Properly format payload for HTTP v1 API
     $payload = [
-        'to' => $fields['message']['to'],
-        'data' => [
-            'title' => $fields['message']['data']['title'],
-            'body' => $fields['message']['data']['body'],
-            'image' => $fields['message']['data']['image'] ?? '',
-            'notification_type' => $fields['message']['data']['notification_type'] ?? 'normal',
-            'click_action' => $fields['message']['data']['click_action'] ?? 'OPEN_NOTIFICATION'
+    'message' => [
+        'token' => $fields['message']['to'],
+        'notification' => [
+            'title' => $fields['message']['notification']['title'],
+            'body'  => $fields['message']['notification']['body'],
+            'image' => $fields['message']['notification']['image'] ?? null, // optional image
+            'click_action' => $fields['message']['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
+        ],
+        'data' => array_merge($fields['message']['data'], [
+            'title'             => $fields['message']['notification']['title'],
+            'body'              => $fields['message']['notification']['body'],
+            'notification_type' => $fields['message']['data']['notification_type'],
+            'image'             => $fields['message']['notification']['image'] ?? '', // optional image
+            'click_action'      => $fields['message']['data']['click_action'] ?? 'OPEN_NOTIFICATION'
+        ]),
+        'android' => [
+            'notification' => [
+                'click_action' => $fields['message']['android']['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
+            ]
+        ],
+        'apns' => [
+            'payload' => [
+                'aps' => [
+                    'category' => 'NEW_MESSAGE_CATEGORY'
+                ]
+            ]
         ]
-    ];
+    ]
+];
+
+
+
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $fcmurl);

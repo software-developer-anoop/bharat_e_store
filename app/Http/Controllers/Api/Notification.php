@@ -35,6 +35,7 @@ class Notification extends Controller
             ->select('id', 'notification_id', 'customer_id', 'title', 'description', 'image','created_at','notification_type')
             ->offset($offset)
             ->limit($per_page_limit)
+            ->orderBy('id','desc')
             ->get();
 
         if ($notificationList->isEmpty()) {

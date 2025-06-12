@@ -96,11 +96,12 @@ class Notification extends Controller {
                 $response = sendPushNotification([
                     'message' => [
                         'to' => $token, // or 'topic' => 'news'
-                        // 'notification' => [
-                        //     'title' => $msg['title'],
-                        //     'body'  => $msg['message'],
-                        //     'image' => $msg['image'] ?? null, // optional image
-                        // ],
+                        'notification' => [
+                            'title' => $msg['title'],
+                            'body'  => $msg['message'],
+                            'image' => $msg['image'] ?? null, // optional image
+                            'click_action' => $msg['notification_type']=="normal"?'OPEN_NOTIFICATION':"OPEN_SCRATCH"
+                        ],
                         'data' => [
                             'notification_id'   => $id,
                             'title'             => $msg['title'],
@@ -108,19 +109,20 @@ class Notification extends Controller {
                             'notification_type' => $msg['notification_type'],
                             'image'             => $msg['image'] ?? '', // optional image
                             'click_action' => $msg['notification_type']=="normal"?'OPEN_NOTIFICATION':"OPEN_SCRATCH"
+
                         ],
-                        // 'android' => [
-                        //     'notification' => [
-                        //         'click_action' => 'OPEN_NOTIFICATION'
-                        //     ]
-                        // ],
-                        // 'apns' => [
-                        //     'payload' => [
-                        //         'aps' => [
-                        //             'category' => 'NEW_MESSAGE_CATEGORY'
-                        //         ]
-                        //     ]
-                        // ]
+                        'android' => [
+                            'notification' => [
+                                'click_action' => $msg['notification_type']=="normal"?'OPEN_NOTIFICATION':"OPEN_SCRATCH"
+                            ]
+                        ],
+                        'apns' => [
+                            'payload' => [
+                                'aps' => [
+                                    'category' => 'NEW_MESSAGE_CATEGORY'
+                                ]
+                            ]
+                        ]
                     ]
                 ], $jsonPath);
 
