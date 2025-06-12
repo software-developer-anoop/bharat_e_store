@@ -242,7 +242,6 @@ function sendPushNotification($fields, $jsonPath) {
             'title' => $fields['message']['notification']['title'],
             'body'  => $fields['message']['notification']['body'],
             'image' => $fields['message']['notification']['image'] ?? null, // optional image
-            'click_action' => $fields['message']['notification']['click_action'] ?? 'OPEN_NOTIFICATION'
         ],
         'data' => array_merge($fields['message']['data'], [
             'title'             => $fields['message']['notification']['title'],

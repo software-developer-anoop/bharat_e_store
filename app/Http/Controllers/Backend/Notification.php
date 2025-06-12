@@ -100,7 +100,6 @@ class Notification extends Controller {
                             'title' => $msg['title'],
                             'body'  => $msg['message'],
                             'image' => $msg['image'] ?? null, // optional image
-                            'click_action' => $msg['notification_type']=="normal"?'OPEN_NOTIFICATION':"OPEN_SCRATCH"
                         ],
                         'data' => [
                             'notification_id'   => $id,
