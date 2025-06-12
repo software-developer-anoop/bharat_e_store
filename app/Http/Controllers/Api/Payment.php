@@ -209,7 +209,7 @@ class Payment extends Controller {
         // Update order
         DB::table('orders')->where('order_id', $orderId)->update([
             'status' => $orderStatus,
-            'order_status' => $orderStatus=='paid'?'placed':'pending',
+            'order_status' => 'placed',
             'updated_at' => now(),
         ]);
 
