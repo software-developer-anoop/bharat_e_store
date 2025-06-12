@@ -16,12 +16,11 @@ class Menu extends Controller
         $data = $id ? DB::table('users')->where('id', $id)->first() : null;
 
         $users = DB::table('users')
-            ->where([
-                'status' => 'Active',
-                'role' => 'Admin'
-            ])
+            ->where('status', 'Active')
+            ->where('role', '!=', 'super_admin')
             ->select('id', 'name')
             ->get();
+
 
         $assigned_menus = !empty($data?->assigned_menus)
             ? explode(',', $data->assigned_menus)
