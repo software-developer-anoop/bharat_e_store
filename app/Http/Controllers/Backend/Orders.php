@@ -50,7 +50,7 @@ class Orders extends Controller
                 'coupons.coupon_title'
             )
             ->where('orders.order_status', 'pending')
-            ->orderBy('orders.id', 'desc')
+            ->orderBy('orders.id', 'created_at')
             ->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
@@ -73,7 +73,7 @@ class Orders extends Controller
                 'coupons.coupon_title'
             )
             ->where('orders.order_status', 'placed')
-            ->orderBy('orders.id', 'desc')
+            ->orderBy('orders.id', 'created_at')
             ->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
@@ -96,7 +96,7 @@ class Orders extends Controller
                 'coupons.coupon_title'
             )
             ->where('orders.order_status', 'shipped')
-            ->orderBy('orders.id', 'desc')
+            ->orderBy('orders.id', 'created_at')
             ->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
@@ -119,7 +119,7 @@ class Orders extends Controller
                 'coupons.coupon_title'
             )
             ->where('orders.order_status', 'delivered')
-            ->orderBy('orders.id', 'desc')
+            ->orderBy('orders.id', 'created_at')
             ->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
@@ -142,7 +142,7 @@ class Orders extends Controller
                 'coupons.coupon_title'
             )
             ->where('orders.order_status', 'cancelled')
-            ->orderBy('orders.id', 'desc')
+            ->orderBy('orders.id', 'created_at')
             ->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
