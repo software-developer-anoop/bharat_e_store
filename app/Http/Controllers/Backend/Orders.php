@@ -28,7 +28,7 @@ class Orders extends Controller
             $query->where('orders.order_status', $_GET['order_status']);
         }
 
-        $data = $query->orderBy('orders.id', 'desc')->get();
+        $data = $query->orderBy('orders.id', 'created_at')->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
     }
