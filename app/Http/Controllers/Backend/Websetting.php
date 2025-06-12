@@ -35,14 +35,8 @@ class Websetting extends Controller
                 if($data['old_logo']){
                     removeImage($data['old_logo']);
                 }
-                if($data['old_logo_webp']){
-                    removeImage($data['old_logo_webp']);
-                }
-                $webp_filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
-                $webp_path = public_path('uploads/' . $webp_filename);
-                $webp_image = convertImageToWebp(public_path('uploads/'), $filename, $webp_filename);
                 $saveData['logo'] = $filename;
-                $saveData['logo_webp'] = $webp_filename;
+                
             }
         }
         if ($file = $request->file('favicon')) {

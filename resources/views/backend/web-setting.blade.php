@@ -16,7 +16,6 @@
           	@csrf
           	<input type="hidden" name="id" value="{{$web->id??''}}">
           	<input type="hidden" name="old_logo" value="{{$web->logo??''}}">
-          	<input type="hidden" name="old_logo_webp" value="{{$web->logo_webp??''}}">
           	<input type="hidden" name="old_favicon" value="{{$web->favicon??''}}">
             <input type="hidden" name="old_banner" value="{{$web->banner??''}}">
             <div class="row">
