@@ -581,7 +581,7 @@ class Homepage extends Controller {
                     $imageUrls[] = url('uploads/' . $imageArray['image']);
                 }
             }
-            $returnData[] = ['review_id' => (string)$review->review_id, 'review' => (string)$review->review, 'rating' => (string)$review->rating, 'customer_id' => (string)$review->customer_id, 'product_id' => (string)$review->product_id, 'images' => $imageUrls];
+            $returnData[] = ['review_id' => (string)$review->review_id, 'review' => (string)$review->review, 'rating' => (string)$review->rating, 'customer_id' => (string)$review->customer_id, 'product_id' => (string)$review->product_id, 'images' => $imageUrls,'customer_name'=>(string)$customer->customer_name,'address'=>(string)$customer->customer_address];
         }
         return response()->json(['status' => true, 'data' => $returnData, 'message' => 'API accessed successfully!']);
     }
