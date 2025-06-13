@@ -129,13 +129,6 @@ class Orders extends Controller {
         $deliveredOrders = $stats->delivered_orders ?? 0;
         $cancelledOrders = $stats->cancelled_orders ?? 0;
 
-        if ($totalOrders == 0 && $deliveredOrders == 0 && $cancelledOrders == 0) {
-            return response()->json([
-                'status' => false,
-                'message' => 'No record found'
-            ]);
-        }
-
         $returnData = [
             'orders'    => (string)$totalOrders,
             'delivered' => (string)$deliveredOrders,
