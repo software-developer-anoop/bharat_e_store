@@ -27,26 +27,24 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'Invalid Country Selected', ]);
         }
         $isIndia = $country->country_name === 'India';
-        if ($isIndia && empty($mobileNumber)) {
-            return response()->json(['status' => false, 'message' => 'Please Enter Mobile Number', ]);
-        }
-        if (!$isIndia && empty($email)) {
+        // if ($isIndia && empty($mobileNumber)) {
+        //     return response()->json(['status' => false, 'message' => 'Please Enter Mobile Number', ]);
+        // }
+        if (empty($email)) {
             return response()->json(['status' => false, 'message' => 'Please Enter Email', ]);
         }
-        $checkField = $isIndia ? ['customer_phone' => $mobileNumber] : ['customer_email' => $email];
+        $checkField = ['customer_email' => $email];
         $duplicate = DB::table('customers')->where($checkField)->first();
         if ($duplicate) {
             return response()->json(['status' => false, 'message' => 'Duplicate Entry']);
         }
-        //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $otp = 1234;
+        $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        //$otp = 1234;
         $saveData = array_merge($checkField, ['referral_code' => $referralCode, 'referrer_code' => random_alphanumeric_string(10), 'profile_status' => 'Inactive', 'created_at' => Carbon::now(), 'otp' => $otp, 'otp_sent_at' => Carbon::now(), 'country_code' => $country->country_code, 'country_name' => $country->country_name]);
         $customer_id = DB::table('customers')->insertGetId($saveData);
-        if ($isIndia) {
-            //sendOtpPhone($mobileNumber, $otp); 
-        } else {
-            Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
-        }
+        
+        Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
+        
         return response()->json(['status' => true, 'message' => 'You are now registered. Please Verify With OTP', 'customer_id' => (string)$customer_id]);
     }
     public function verifyOtp(Request $request) {
@@ -128,18 +126,18 @@ class Authentication extends Controller {
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
-        $isIndia = $customer->country_name === 'India';
-        //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $otp = 1234;
+        //$isIndia = $customer->country_name === 'India';
+        $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        //$otp = 1234;
         $updateData['otp'] = $otp;
         $updateData['otp_sent_at'] = date('Y-m-d H:i:s');
         DB::table('customers')->where('id', $customer_id)->update($updateData);
-        if ($isIndia) {
-            sendOtpPhone($customer->customer_phone, $otp);
+        //if ($isIndia) {
+          //  sendOtpPhone($customer->customer_phone, $otp);
             
-        } else {
+        //} else {
             Mail::to($customer->customer_email)->send(new CustomerVerificationMail(['otp' => $otp]));
-        }
+        //}
         return response()->json(['status' => true, 'message' => 'OTP Resent']);
     }
     public function autoLogin() {
@@ -214,14 +212,14 @@ class Authentication extends Controller {
         if (!$country) {
             return response()->json(['status' => false, 'message' => 'Invalid Country Selected']);
         }
-        $isIndia = $country->country_name === 'India';
-        if ($isIndia && empty($mobileNumber)) {
-            return response()->json(['status' => false, 'message' => 'Please Enter Mobile Number']);
-        }
-        if (!$isIndia && empty($email)) {
+        // $isIndia = $country->country_name === 'India';
+        // if ($isIndia && empty($mobileNumber)) {
+        //     return response()->json(['status' => false, 'message' => 'Please Enter Mobile Number']);
+        // }
+        if (empty($email)) {
             return response()->json(['status' => false, 'message' => 'Please Enter Email']);
         }
-        $checkField = $isIndia ? ['customer_phone' => $mobileNumber] : ['customer_email' => $email];
+        $checkField = ['customer_email' => $email];
         $customer = DB::table('customers')->where($checkField)->first();
         if (empty($customer)) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
@@ -229,17 +227,17 @@ class Authentication extends Controller {
         if ($customer->profile_status == "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
-        //$otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
-        $otp = 1234;
+        $otp = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        //$otp = 1234;
         $updateData['otp'] = $otp;
         $updateData['otp_sent_at'] = date('Y-m-d H:i:s');
         DB::table('customers')->where('id', $customer->id)->update($updateData);
-        if ($isIndia) {
-            sendOtpPhone($mobileNumber, $otp);
+        // if ($isIndia) {
+        //     sendOtpPhone($mobileNumber, $otp);
             
-        } else {
+        // } else {
             Mail::to($email)->send(new CustomerVerificationMail(['otp' => $otp]));
-        }
+        //}
         return response()->json(['status' => true, 'message' => 'OTP Sent Successfully','customer_id'=>(string)$customer->id]);
     }
     public function logOut(Request $request) {

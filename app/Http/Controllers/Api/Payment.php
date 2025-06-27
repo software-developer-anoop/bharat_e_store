@@ -49,7 +49,7 @@ class Payment extends Controller {
             }
 
             // Create Order
-            $orderId = 'BES' . date('YmdHis');
+            $orderId = 'BES_' . date('YmdHis');
             $order_table_id = DB::table('orders')->insertGetId([
                 'order_id' => $orderId,
                 'customer_id' => $customer_id,
