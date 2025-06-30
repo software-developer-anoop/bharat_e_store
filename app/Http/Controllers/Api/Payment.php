@@ -56,7 +56,7 @@ class Payment extends Controller {
                 'address_id' => $address_id,
                 'amount' => $amount,
                 'payment_mode' => $payment_mode,
-                'status' => 'pending',
+                'status' => $payment_mode === 'cod' ?'placed':'pending',
                 'coupon_id' => $coupon_id,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -98,6 +98,12 @@ class Payment extends Controller {
                     'order_table_id' => $order_table_id,
                     'order_id' => $orderId,
                 ]);
+                $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
+
+            DB::table('cart')
+                ->where('customer_id', $customer_id)
+                ->whereIn('product_id', $productIds)
+                ->delete();
             }
 
             // Online Payment (Cashfree)
