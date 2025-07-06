@@ -359,3 +359,50 @@ if (!function_exists('validateApiRequest')) {
         return null;
     }
 }
+function sendFast2SmsOtp($otp,$phone){
+
+    $apiKey = env('FAST2SMS_API_KEY');
+    $senderId = env('FAST2SMS_SENDER_ID');
+    $msgId = env('FAST2SMS_MSG_ID');
+    $fields = array(
+        "sender_id" => $senderId,
+        "message" => $msgId,
+        "variables_values" => $otp,
+        "route" => "dlt",
+        "numbers" => $phone,
+    );
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+      CURLOPT_URL => "https://www.fast2sms.com/dev/bulkV2",
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_ENCODING => "",
+      CURLOPT_MAXREDIRS => 10,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_SSL_VERIFYHOST => 0,
+      CURLOPT_SSL_VERIFYPEER => 0,
+      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+      CURLOPT_CUSTOMREQUEST => "POST",
+      CURLOPT_POSTFIELDS => json_encode($fields),
+      CURLOPT_HTTPHEADER => array(
+        "authorization: $apiKey",
+        "accept: */*",
+        "cache-control: no-cache",
+        "content-type: application/json"
+      ),
+    ));
+
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+
+    curl_close($curl);
+
+    if ($err) {
+      echo "cURL Error #:" . $err;
+    } 
+    // else {
+    //   echo json_encode($response);
+      
+    // }
+}
