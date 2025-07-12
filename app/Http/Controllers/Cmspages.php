@@ -18,4 +18,8 @@ class Cmspages extends Controller
         $page = DB::table('cms_pages')->where('page_name','Terms And Conditions')->select('page_name','description')->first();
         return view('cms_page',compact('page'));
     }
+    public function privacy_policy(){
+        $page = DB::table('cms_pages')->where('page_name','Privacy Policy')->select('page_name','description')->first();
+        return view('cms_page',compact('page'));
+    }
 }
