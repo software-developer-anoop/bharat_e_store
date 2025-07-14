@@ -199,8 +199,7 @@ class Cart extends Controller{
         if (
             empty($customer->customer_name) ||
             empty($customer->customer_email) ||
-            empty($customer->customer_phone) ||
-            empty($customer->customer_address)
+            empty($customer->customer_phone) 
         ) {
             $profile_status = 'incomplete';
         }
