@@ -335,9 +335,9 @@ class Authentication extends Controller {
         if (empty($customer_phone)) {
             return response()->json(['status' => false, 'message' => 'Customer Phone Is Blank']);
         }
-        if (empty($customer_address)) {
-            return response()->json(['status' => false, 'message' => 'Customer Address Is Blank']);
-        }
+        // if (empty($customer_address)) {
+        //     return response()->json(['status' => false, 'message' => 'Customer Address Is Blank']);
+        // }
         if (empty($customer_gender)) {
             return response()->json(['status' => false, 'message' => 'Customer Gender Is Blank']);
         }
