@@ -33,8 +33,9 @@ class Payment extends Controller {
                 return response()->json(['status' => false, 'message' => 'Invalid amount']);
             }
 
-            if (empty($product_ids) || !is_array($product_ids)) {
-                return response()->json(['status' => false, 'message' => 'No products found']);
+            // Check if cart is empty
+            if (empty($product_ids) || !is_array($product_ids) || count($product_ids) == 0) {
+                return response()->json(['status' => false, 'message' => 'Your cart is empty']);
             }
 
             // Customer and Address Checks
@@ -56,7 +57,7 @@ class Payment extends Controller {
                 'address_id' => $address_id,
                 'amount' => $amount,
                 'payment_mode' => $payment_mode,
-                'status' => $payment_mode === 'cod' ?'placed':'pending',
+                'status' => $payment_mode === 'cod' ? 'placed' : 'pending',
                 'coupon_id' => $coupon_id,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -90,6 +91,14 @@ class Payment extends Controller {
 
             // Cash on Delivery
             if ($payment_mode === 'cod') {
+                // Clear the cart after order placement
+                $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
+
+                DB::table('cart')
+                    ->where('customer_id', $customer_id)
+                    ->whereIn('product_id', $productIds)
+                    ->delete();
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -98,12 +107,6 @@ class Payment extends Controller {
                     'order_table_id' => $order_table_id,
                     'order_id' => $orderId,
                 ]);
-                $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
-
-            DB::table('cart')
-                ->where('customer_id', $customer_id)
-                ->whereIn('product_id', $productIds)
-                ->delete();
             }
 
             // Online Payment (Cashfree)
@@ -171,7 +174,6 @@ class Payment extends Controller {
             return response()->json(['status' => false, 'message' => 'An error occurred: ' . $e->getMessage()]);
         }
     }
-
     public function handleWebhook(Request $request)
     {
         // Parse the webhook JSON payload
