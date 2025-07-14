@@ -57,7 +57,7 @@ class Payment extends Controller {
                 'address_id' => $address_id,
                 'amount' => $amount,
                 'payment_mode' => $payment_mode,
-                'status' => $payment_mode === 'cod' ? 'placed' : 'pending',
+                'status' =>  'placed' ,
                 'coupon_id' => $coupon_id,
                 'created_at' => now(),
                 'updated_at' => now(),
