@@ -309,77 +309,92 @@ class Authentication extends Controller {
         DB::table('customers')->where('id', $customer_id)->update(['fcm_token' => '', 'device_id' => '']);
         return response()->json(['status' => true, 'message' => 'Logout Successfully']);
     }
-    public function editProfile(Request $request) {
-        // Reusable request validation
-        if ($error = validateApiRequest($request)) {
-            return $error;
+    public function editProfile(Request $request)
+    {
+        // Step 1: Validate Request
+        $validator = Validator::make($request->all(), [
+            'customer_id' => 'required|exists:customers,id',
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'customer_gender' => 'required|in:Male,Female,Other',
+            'customer_profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first(),
+            ]);
         }
-        $customer_id = $request->input('customer_id');
-        $customer_name = $request->input('customer_name');
-        $customer_email = $request->input('customer_email');
-        $customer_phone = $request->input('customer_phone');
-        //$customer_address = $request->input('customer_address');
-        $customer_gender = $request->input('customer_gender');
-        $old_customer_profile_image = $request->input('old_customer_profile_image');
-        $customer_profile_image = $request->file('customer_profile_image');
-        // Basic input validation
-        if (empty($customer_id)) {
-            return response()->json(['status' => false, 'message' => 'Customer Id Is Blank']);
-        }
-        if (empty($customer_name)) {
-            return response()->json(['status' => false, 'message' => 'Customer Name Is Blank']);
-        }
-        if (empty($customer_email)) {
-            return response()->json(['status' => false, 'message' => 'Customer Email Is Blank']);
-        }
-        if (empty($customer_phone)) {
-            return response()->json(['status' => false, 'message' => 'Customer Phone Is Blank']);
-        }
-        // if (empty($customer_address)) {
-        //     return response()->json(['status' => false, 'message' => 'Customer Address Is Blank']);
-        // }
-        if (empty($customer_gender)) {
-            return response()->json(['status' => false, 'message' => 'Customer Gender Is Blank']);
-        }
-        // Fetch customer
-        $customer = DB::table('customers')->where('id', $customer_id)->first();
-        if (!$customer) {
-            return response()->json(['status' => false, 'message' => 'No Record Found']);
-        }
+
+        $data = $validator->validated();
+        $customer = DB::table('customers')->where('id', $data['customer_id'])->first();
+
         if ($customer->profile_status === "Inactive") {
             return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
         }
-        // Duplication check
-        $emailExists = DB::table('customers')->where('customer_email', $customer_email)->where('id', '!=', $customer_id)->exists();
-        if ($emailExists) {
+
+        // Step 2: Duplication checks
+        if (
+            DB::table('customers')->where('customer_email', $data['customer_email'])->where('id', '!=', $data['customer_id'])->exists()
+        ) {
             return response()->json(['status' => false, 'message' => 'Email already in use by another customer']);
         }
-        $phoneExists = DB::table('customers')->where('customer_phone', $customer_phone)->where('id', '!=', $customer_id)->exists();
-        if ($phoneExists) {
+
+        if (
+            DB::table('customers')->where('customer_phone', $data['customer_phone'])->where('id', '!=', $data['customer_id'])->exists()
+        ) {
             return response()->json(['status' => false, 'message' => 'Phone number already in use by another customer']);
         }
-        // Prepare update data
-        $updateData = ['customer_name' => $customer_name, 'customer_email' => $customer_email, 'customer_phone' => $customer_phone, 'customer_gender' => $customer_gender, ];
-        if ($customer_profile_image && $customer_profile_image->isValid()) {
-            $filename = $customer_profile_image->hashName();
-            if ($old_customer_profile_image && is_file(public_path('uploads/' . $old_customer_profile_image))) {
-                @unlink(public_path('uploads/' . $old_customer_profile_image));
+
+        // Step 3: Prepare Update Data
+        $updateData = [
+            'customer_name' => $data['customer_name'],
+            'customer_email' => $data['customer_email'],
+            'customer_phone' => $data['customer_phone'],
+            'customer_gender' => $data['customer_gender'],
+        ];
+
+        if ($request->hasFile('customer_profile_image') && $request->file('customer_profile_image')->isValid()) {
+            $image = $request->file('customer_profile_image');
+            $filename = $image->hashName();
+
+            // Delete old image
+            if (!empty($request->old_customer_profile_image)) {
+                $oldPath = public_path('uploads/' . $request->old_customer_profile_image);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
             }
-            $customer_profile_image->move(public_path('uploads/'), $filename);
+
+            $image->move(public_path('uploads/'), $filename);
             $updateData['customer_profile_image'] = $filename;
         }
-        // Update customer
-        $updated = DB::table('customers')->where('id', $customer_id)->update($updateData);
-        $updatedCustomer = DB::table('customers')->where('id', $customer_id)->first();
+
+        // Step 4: Update Customer
+        DB::table('customers')->where('id', $data['customer_id'])->update($updateData);
+
+        $updatedCustomer = DB::table('customers')->where('id', $data['customer_id'])->first();
+
+        // Step 5: Prepare Response
         $returnData = [
-            'customer_id' => (string)($updatedCustomer->id??''), 
-            'customer_name' => (string)($updatedCustomer->customer_name??''), 
-            'customer_email' => (string)($updatedCustomer->customer_email??''),
-            'customer_phone' => (string)($updatedCustomer->customer_phone??''),
-            'customer_address' => (string)($updatedCustomer->customer_address??''), 
-            'customer_gender' => (string)($updatedCustomer->customer_gender??''), 
-            'customer_profile_image' => (string)url('uploads/' . ($updatedCustomer->customer_profile_image??'')), 
-            ];
-        return response()->json(['status' => $updated ? true : false, 'data' => $returnData, 'message' => $updated ? 'Profile Updated Successfully' : 'Something Went Wrong']);
+            'customer_id' => (string)($updatedCustomer->id ?? ''),
+            'customer_name' => (string)($updatedCustomer->customer_name ?? ''),
+            'customer_email' => (string)($updatedCustomer->customer_email ?? ''),
+            'customer_phone' => (string)($updatedCustomer->customer_phone ?? ''),
+            'customer_address' => (string)($updatedCustomer->customer_address ?? ''),
+            'customer_gender' => (string)($updatedCustomer->customer_gender ?? ''),
+            'customer_profile_image' => $updatedCustomer->customer_profile_image
+                ? url('uploads/' . $updatedCustomer->customer_profile_image)
+                : '',
+        ];
+
+        return response()->json([
+            'status' => true,
+            'data' => $returnData,
+            'message' => 'Profile Updated Successfully'
+        ]);
     }
+
 }
