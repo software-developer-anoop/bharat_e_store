@@ -359,7 +359,7 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'Phone number already in use by another customer']);
         }
         // Prepare update data
-        $updateData = ['customer_name' => $customer_name, 'customer_email' => $customer_email, 'customer_phone' => $customer_phone, 'customer_address' => $customer_address, 'customer_gender' => $customer_gender, ];
+        $updateData = ['customer_name' => $customer_name, 'customer_email' => $customer_email, 'customer_phone' => $customer_phone, 'customer_gender' => $customer_gender, ];
         if ($customer_profile_image && $customer_profile_image->isValid()) {
             $filename = $customer_profile_image->hashName();
             if ($old_customer_profile_image && is_file(public_path('uploads/' . $old_customer_profile_image))) {
