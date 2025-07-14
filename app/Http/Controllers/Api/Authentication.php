@@ -318,7 +318,7 @@ class Authentication extends Controller {
         $customer_name = $request->input('customer_name');
         $customer_email = $request->input('customer_email');
         $customer_phone = $request->input('customer_phone');
-        $customer_address = $request->input('customer_address');
+        //$customer_address = $request->input('customer_address');
         $customer_gender = $request->input('customer_gender');
         $old_customer_profile_image = $request->input('old_customer_profile_image');
         $customer_profile_image = $request->file('customer_profile_image');
