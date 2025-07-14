@@ -129,6 +129,7 @@ Route::post('/changeOrderStatus', [Ajax::class, 'changeOrderStatus'])->name('adm
 //Frontend Routes
 Route::get('contact-us', [Cmspages::class, 'index']);
 Route::get('refund-policy', [Cmspages::class, 'refund_policy']);
+Route::get('privacy-policy', [Cmspages::class, 'privacy_policy']);
 Route::get('terms-and-conditions', [Cmspages::class, 't_and_c']);
 Route::get('delete-account', [Cmspages::class, 'deleteAccountPage'])->name('delete.account.page');
 Route::post('deleteaccount', [Cmspages::class, 'deleteAccount'])->name('delete.account');
