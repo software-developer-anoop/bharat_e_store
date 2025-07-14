@@ -205,7 +205,7 @@ class Ajax extends Controller
         
         $updated = DB::table('orders')->where('id', $id)->update(['order_status' => $status,'updated_at'=>Carbon::now()]); 
         if($status == 'delivered'){
-            DB::table('customers')->where('id', $customer_id)->update(['wallet_points' => DB::raw('wallet_points + 100'),'updated_at'=>Carbon::now()]); 
+            DB::table('customers')->where('id', $customer_id)->update(['wallet_points' => DB::raw('COALESCE(wallet_points, 0) + 100'),'updated_at'=>Carbon::now()]); 
         }
         if ($updated) {
             return response()->json(['status' => true, 'msg' => 'Status Changed To ' . $status, 'name' => $status]);
