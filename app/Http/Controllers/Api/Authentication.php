@@ -120,7 +120,7 @@ class Authentication extends Controller {
             if ($referrerCustomer) {
                 // Insert referral history
                 DB::table('referral_history')->insert(
-                    ['referrer_customer_id' => $customer->id
+                    ['referrer_customer_id' => $customer->id,
                      'referrer_code' =>  $customer->referrer_code,
                      'referral_customer_id' => $referrerCustomer->id,
                      'referral_code' => $referrerCustomer->referrer_code, 
