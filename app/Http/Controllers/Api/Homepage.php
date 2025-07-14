@@ -179,73 +179,31 @@ class Homepage extends Controller {
         $suggestions = collect()->merge($products->pluck('product_name'))->merge($products->pluck('category_name'))->merge($products->pluck('subcategory_name'))->merge($categories->pluck('category_name'))->merge($subcategories->pluck('subcategory_name'))->filter()->unique()->values()->take(10);
         return response()->json(['status' => true, 'message' => 'Search results found', 'data' => $productData->merge($categoryData)->merge($subcategoryData)->values(), 'suggestions' => $suggestions, ]);
     }
-    public function referralHistory()
-{
-    $post = checkPayload();
-
-    $customer_id = trim($post['customer_id'] ?? '');
-    $per_page_limit = intval($post['per_page_limit'] ?? 10);
-    $page_no = max(1, intval($post['page_no'] ?? 1)); // Ensure minimum page number is 1
-
-    if (empty($customer_id)) {
-        return response()->json([
-            'status' => false,
-            'message' => "Customer ID is blank",
-        ]);
+    public function referralHistory() {
+        $post = checkPayload();
+        $customer_id = trim($post['customer_id']??'');
+        $per_page_limit = intval($post['per_page_limit']??10); // Default to 10
+        $page_no = intval($post['page_no']??1); // Default to 1
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => "Customer ID Is Blank", ]);
+        }
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
+        if ($customer->profile_status === "Inactive") {
+            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        }
+        $offset = ($page_no - 1) * $per_page_limit;
+        $referralHistory = DB::table('referral_history')->join('customers', 'referral_history.referral_customer_id', '=', 'customers.id')->where('referral_history.referral_customer_id', $customer_id)->select('referral_history.id as referral_id', 'customers.customer_name', 'referral_history.points')->offset($offset)->limit($per_page_limit)->get();
+        if ($referralHistory->isEmpty()) {
+            return response()->json(['status' => false, 'message' => "No records found", ]);
+        }
+        $returnData = $referralHistory->map(function ($value) {
+            return ['referral_history_id' => (string)$value->referral_id, 'customer_name' => (string)$value->customer_name, 'points' => (string)$value->points, ];
+        });
+        return response()->json(['status' => true, 'data' => $returnData, 'message' => "API Accessed Successfully!", ]);
     }
-
-    $customer = DB::table('customers')->where('id', $customer_id)->first();
-
-    if (!$customer) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Customer not found',
-        ]);
-    }
-
-    if ($customer->profile_status === "Inactive") {
-        return response()->json([
-            'status' => false,
-            'message' => 'Your profile is currently inactive',
-        ]);
-    }
-
-    $offset = ($page_no - 1) * $per_page_limit;
-
-    $referralHistory = DB::table('referral_history')
-        ->join('customers', 'referral_history.referred_by_customer_id', '=', 'customers.id')
-        ->where('referral_history.referred_by_customer_id', $customer_id)
-        ->select(
-            'referral_history.id as referral_id',
-            'customers.customer_name',
-            'referral_history.points'
-        )
-        ->offset($offset)
-        ->limit($per_page_limit)
-        ->get();
-
-    if ($referralHistory->isEmpty()) {
-        return response()->json([
-            'status' => false,
-            'message' => "No records found",
-        ]);
-    }
-
-    $returnData = $referralHistory->map(function ($value) {
-        return [
-            'referral_history_id' => (string)$value->referral_id,
-            'customer_name'       => (string)$value->customer_name,
-            'points'              => (string)$value->points,
-        ];
-    });
-
-    return response()->json([
-        'status'  => true,
-        'data'    => $returnData,
-        'message' => "API accessed successfully!",
-    ]);
-}
-
     public function productDetail() {
         $post = checkPayload();
         $product_id = trim($post['product_id']??'');
