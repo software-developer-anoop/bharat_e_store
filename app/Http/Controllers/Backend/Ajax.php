@@ -204,7 +204,7 @@ class Ajax extends Controller
         if (empty($status)) {
             return response()->json(['status' => false, 'msg' => 'Status is blank']);
         }
-
+        $orderID = DB::table('orders')->where('id',$id)->value('order_id');
         $updated = DB::table('orders')->where('id', $id)->update([
             'order_status' => $status,
             'updated_at' => Carbon::now()
@@ -224,7 +224,8 @@ class Ajax extends Controller
 
             if ($customer && !empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
                 $title = "Order Status Updated";
-                $description = "Your order #$id has been updated to '$status'.";
+                $status = ucfirst($status);
+                $description = "Your order #$orderID has been updated to '$status'.";
 
                 $notificationType = 'order_status';
 
