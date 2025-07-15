@@ -207,5 +207,47 @@ class Orders extends Controller {
             'data' => $returnData
         ]);
     }
+    public function cancelOrder(){
+        $post = checkPayload();
+        $order_table_id = trim($post['order_table_id'] ?? '');
+        $customer_id = trim($post['customer_id'] ?? '');
+        $listed_reason = trim($post[''] ?? '');
+        $explain_reason = trim($post[''] ?? '');
+
+        if (empty($order_table_id)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Order ID is blank"
+            ]);
+        }
+        if (empty($customer_id)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Customer ID is blank"
+            ]);
+        }
+        if (empty($listed_reason)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Reason is blank"
+            ]);
+        }
+        if (empty($explain_reason)) {
+            return response()->json([
+                'status' => false,
+                'message' => "Reason description is blank"
+            ]);
+        }
+        $saveData = ['order_table_id'=>$order_table_id,
+                     'customer_id'=>$customer_id,
+                     'listed_reason'=>$listed_reason,
+                     'explain_reason'=>$explain_reason,
+                     'created_at'=>Carbon::now()];
+        DB::table('cancelled_orders')->insert($saveData);
+        return response()->json([
+                'status' => true,
+                'message' => "Reason Added Successfully"
+            ]);
+    }
 
 }

@@ -70,7 +70,7 @@ Route::post('remove-notification', [Notification::class, 'deleteMyNotification']
 Route::post('my-orders', [Orders::class, 'index'])->name('api.my-orders');
 Route::post('summary', [Orders::class, 'summary'])->name('api.summary');
 Route::post('order-history', [Orders::class, 'orderHistory'])->name('api.order-history');
-
+Route::post('cancel-order', [Orders::class, 'cancelOrder'])->name('api.cancel-order');
 // Payment
 
 Route::post('initiatePayment', [Payment::class, 'index']);
