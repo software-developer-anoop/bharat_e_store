@@ -225,7 +225,7 @@ class Ajax extends Controller
             if ($customer && !empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
                 $title = "Order Status Updated";
                 $status = ucfirst($status);
-                $description = "Your order #$orderID has been updated to '$status'.";
+                $description = "Your order #$orderID has been updated to $status.";
 
                 $notificationType = 'order_status';
 
