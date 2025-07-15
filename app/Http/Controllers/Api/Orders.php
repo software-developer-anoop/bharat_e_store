@@ -244,6 +244,7 @@ class Orders extends Controller {
                      'explain_reason'=>$explain_reason,
                      'created_at'=>Carbon::now()];
         DB::table('cancelled_orders')->insert($saveData);
+        DB::table('orders')->where('id',$order_table_id)->update(['order_status'=>'cancelled']);
         return response()->json([
                 'status' => true,
                 'message' => "Reason Added Successfully"
