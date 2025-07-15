@@ -56,8 +56,8 @@ class Orders extends Controller {
 
         foreach ($orders as $value) {
             $firstHistory = DB::table('order_history')
-                ->where('order_table_id', $value->id)
-                ->orderBy('id', 'asc')
+                ->where('order_id', $value->order_id)
+                ->orderBy('id', 'desc')
                 ->first();
 
             if (!$firstHistory) {
