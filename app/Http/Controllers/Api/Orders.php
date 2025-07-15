@@ -211,8 +211,8 @@ class Orders extends Controller {
         $post = checkPayload();
         $order_table_id = trim($post['order_table_id'] ?? '');
         $customer_id = trim($post['customer_id'] ?? '');
-        $listed_reason = trim($post[''] ?? '');
-        $explain_reason = trim($post[''] ?? '');
+        $listed_reason = trim($post['listed_reason'] ?? '');
+        $explain_reason = trim($post['explain_reason'] ?? '');
 
         if (empty($order_table_id)) {
             return response()->json([
