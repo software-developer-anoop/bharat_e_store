@@ -118,7 +118,7 @@ class Orders extends Controller {
 
         $stats = DB::table('orders')
             ->selectRaw("
-                COUNT(*) as total_orders,
+                SUM(CASE WHEN order_status = 'placed' THEN 1 ELSE 0 END) as total_orders,
                 SUM(CASE WHEN order_status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
                 SUM(CASE WHEN order_status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders
             ")
