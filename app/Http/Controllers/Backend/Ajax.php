@@ -195,23 +195,87 @@ class Ajax extends Controller
         
         return response()->json(['html' => $html]);
     }
-    public function changeOrderStatus(Request $request){
-        $status = $request->input('status')??'';
-        $id = $request->input('id')??'';
-        $customer_id = $request->input('customer_id')??'';
-        if(empty($status)){
-            return response()->json(['status'=>false,'msg'=>'Status is blank']);
+    public function changeOrderStatus(Request $request)
+    {
+        $status = $request->input('status') ?? '';
+        $id = $request->input('id') ?? '';
+        $customer_id = $request->input('customer_id') ?? '';
+
+        if (empty($status)) {
+            return response()->json(['status' => false, 'msg' => 'Status is blank']);
         }
-        
-        $updated = DB::table('orders')->where('id', $id)->update(['order_status' => $status,'updated_at'=>Carbon::now()]); 
-        if($status == 'delivered'){
-            DB::table('customers')->where('id', $customer_id)->update(['wallet_points' => DB::raw('COALESCE(wallet_points, 0) + 100'),'updated_at'=>Carbon::now()]); 
+
+        $updated = DB::table('orders')->where('id', $id)->update([
+            'order_status' => $status,
+            'updated_at' => Carbon::now()
+        ]);
+
+        // Reward wallet points on delivery
+        if ($status == 'delivered') {
+            DB::table('customers')->where('id', $customer_id)->update([
+                'wallet_points' => DB::raw('COALESCE(wallet_points, 0) + 100'),
+                'updated_at' => Carbon::now()
+            ]);
         }
+
         if ($updated) {
+            // ✅ Fetch customer FCM token
+            $customer = DB::table('customers')->where('id', $customer_id)->select('id', 'fcm_token')->first();
+
+            if ($customer && !empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
+                $title = "Order Status Updated";
+                $description = "Your order #$id has been updated to '$status'.";
+
+                $notificationType = 'order_status';
+
+                $jsonPath = realpath('../firebase_credentials.json'); // Adjust if needed
+
+                // Send push notification
+                sendPushNotification([
+                    'message' => [
+                        'to' => $customer->fcm_token,
+                        'notification' => [
+                            'title' => $title,
+                            'body'  => $description
+                        ],
+                        'data' => [
+                            'notification_type' => $notificationType,
+                            'title' => $title,
+                            'body' => $description,
+                            'click_action' => 'OPEN_ORDER'
+                        ],
+                        'android' => [
+                            'notification' => [
+                                'click_action' => 'OPEN_ORDER'
+                            ]
+                        ],
+                        'apns' => [
+                            'payload' => [
+                                'aps' => [
+                                    'category' => 'ORDER_UPDATE'
+                                ]
+                            ]
+                        ]
+                    ]
+                ], $jsonPath);
+
+                // Optional: Log it
+                DB::table('push_notifications')->insert([
+                    'customer_id' => $customer_id,
+                    'notification_id' => null,
+                    'title' => $title,
+                    'description' => $description,
+                    'notification_type' => $notificationType,
+                    'image' => null,
+                    'created_at' => now()
+                ]);
+            }
+
             return response()->json(['status' => true, 'msg' => 'Status Changed To ' . $status, 'name' => $status]);
         } else {
             return response()->json(['status' => false, 'msg' => 'Failed to update status or record not found']);
         }
     }
+
 
 }
