@@ -58,6 +58,7 @@ class Payment extends Controller {
                 'amount' => $amount,
                 'payment_mode' => $payment_mode,
                 'status' =>  'placed' ,
+                'order_status'=>$payment_mode === 'cod'?'placed':'pending',
                 'coupon_id' => $coupon_id,
                 'created_at' => now(),
                 'updated_at' => now(),
