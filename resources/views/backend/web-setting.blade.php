@@ -28,7 +28,7 @@
               <div class="col-lg-3 col-12">
                 <div class="form-group">
                   <label for="mobile_number">Mobile Number</label>
-                  <input id="mobile_number" type="tel" name="mobile_number" placeholder="Mobile Number" class="form-control numbersWithZeroOnlyInput" maxlength="10" minlength="10" autocomplete="off" required value="{{$web->mobile_number??''}}">
+                  <input id="mobile_number" type="tel" name="mobile_number" placeholder="Mobile Number" class="form-control numbersWithZeroOnlyInput" maxlength="12" minlength="12" autocomplete="off" required value="{{$web->mobile_number??''}}">
                 </div>
               </div>
               <div class="col-lg-3 col-12">

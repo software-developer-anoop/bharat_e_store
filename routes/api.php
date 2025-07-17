@@ -63,6 +63,7 @@ Route::post('coupon-list', [Couponlist::class, 'index'])->name('api.coupon-list'
 Route::post('apply-coupon', [Cart::class, 'applyCoupon'])->name('api.apply-coupon');
 Route::post('remove-coupon', [Cart::class, 'removeCoupon'])->name('api.remove-coupon');
 Route::post('apply-coin', [Cart::class, 'applyCoin'])->name('api.apply-coin');
+Route::post('cart-count', [Cart::class, 'cartCount'])->name('api.cart-count');
 //Notification
 Route::post('my-notification', [Notification::class, 'index'])->name('api.my-notification');
 Route::post('remove-notification', [Notification::class, 'deleteMyNotification'])->name('api.remove-notification');
