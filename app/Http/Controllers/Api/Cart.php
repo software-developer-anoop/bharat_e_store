@@ -147,6 +147,12 @@ class Cart extends Controller {
             $profile_status = 'incomplete';
         }
 
+        $couponUsed = DB::table('orders')
+            ->join('coupons', 'orders.coupon_id', '=', 'coupons.id')
+            ->where('orders.customer_id', $customer_id)
+            ->where('orders.order_status', 'delivered')
+            ->first();
+
         foreach ($products as $value) {
             $images = $value->product_image ? json_decode($value->product_image, true) : [];
             $firstImageUrl = !empty($images) && isset($images[0]['image']) ? url('uploads/' . $images[0]['image']) : null;
@@ -164,7 +170,8 @@ class Cart extends Controller {
                 'product_selling_price' => $customerCurrency . ' ' . (string)$value->product_selling_price, 
                 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 
                 'product_image' => $firstImageUrl, 
-                'product_quantity' => (string)$value->quantity, ];
+                'product_quantity' => (string)$value->quantity,
+                'coupon_used' => empty($couponUsed)?false:true, ];
         }
 
         $response = ['status' => true, 'data' => $returnData, 'subTotal' => $customerCurrency . ' ' . (string)$subTotal, 'coins_available' => (string)$customer->wallet_points, 'profile_status' => (string)$profile_status, 'message' => "API Accessed Successfully!"];
