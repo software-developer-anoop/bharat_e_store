@@ -36,7 +36,7 @@
                   <td class="text-center">{{ $row->address ?? 'N/A' }} /<br> {{ $row->pincode ?? 'N/A' }}</td>
                   <td class="text-center">{{ ucfirst($row->payment_mode ?? 'N/A') }} /<br> {{ $row->amount ?? 'N/A' }} /<br> {{ $row->coupon_title ?? 'N/A' }}</td>
                   <td class="text-center">{{ ucfirst($row->status ?? 'N/A') }} /<br> {{ ucfirst($row->order_status ?? 'N/A') }}</td>
-                  <td class="text-center">{{ $row->created_at ?? 'N/A' }}</td>
+                  <td class="text-center">{{ $row->order_created_at ?? 'N/A' }}</td>
                   @if(isset($key) && $key == "total")
                   <td class="text-center">
                     <select class="form-control select2" onchange="changeOrderStatus(this.value, {{ $row->order_tbl_id }}, {{ $row->order_customer_id }})">

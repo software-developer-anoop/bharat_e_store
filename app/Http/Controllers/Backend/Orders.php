@@ -22,13 +22,14 @@ class Orders extends Controller
                 'coupons.coupon_title',
                 'orders.id as order_tbl_id',
                 'orders.customer_id as order_customer_id'
+                'orders.created_at as order_created_at'
             );
 
         if (isset($_GET['order_status']) && !empty($_GET['order_status'])) {
             $query->where('orders.order_status', $_GET['order_status']);
         }
 
-        $data = $query->orderBy('orders.created_at', 'desc')->get();
+        $data = $query->orderBy('order_created_at', 'desc')->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
     }
