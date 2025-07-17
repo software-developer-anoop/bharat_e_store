@@ -357,14 +357,14 @@ class Cart extends Controller {
         $post = checkPayload();
         $customer_id = trim($post['customer_id']??'');
 
-        // if (empty($customer_id)) {
-        //     return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
-        // }
-        // // Fetch customer
-        // $customer = DB::table('customers')->find($customer_id);
-        // if (!$customer) {
-        //     return response()->json(['status' => false, 'message' => 'Customer not found']);
-        // }
+        if (empty($customer_id)) {
+            return response()->json(['status' => false, 'message' => 'Customer ID is blank']);
+        }
+        // Fetch customer
+        $customer = DB::table('customers')->find($customer_id);
+        if (!$customer) {
+            return response()->json(['status' => false, 'message' => 'Customer not found']);
+        }
 
         $count=DB::table('cart')->where('customer_id',$customer_id)->count();
 
