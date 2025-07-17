@@ -21,7 +21,7 @@ class Orders extends Controller
                 'addresses.pincode',
                 'coupons.coupon_title',
                 'orders.id as order_tbl_id',
-                'orders.customer_id as order_customer_id'
+                'orders.customer_id as order_customer_id',
                 'orders.created_at as order_created_at'
             );
 
