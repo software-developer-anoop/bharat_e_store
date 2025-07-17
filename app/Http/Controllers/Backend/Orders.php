@@ -29,7 +29,7 @@ class Orders extends Controller
             $query->where('orders.order_status', $_GET['order_status']);
         }
 
-        $data = $query->orderBy('order_created_at', 'desc')->get();
+        $data = $query->orderBy('orders.id', 'desc')->get();
 
         return view('backend.orders', compact('page_name', 'data','key'));
     }
