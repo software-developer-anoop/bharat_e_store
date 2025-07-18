@@ -14,6 +14,7 @@ class State extends Controller
         $data = DB::table('states')
                 ->join('country', 'states.country', '=', 'country.id')
                 ->select('states.*', 'country.country_name as country_name')
+                ->orderBy('states.state_name','asc')
                 ->get();
         return view('backend.state-list',compact('page_name','data'));
     }

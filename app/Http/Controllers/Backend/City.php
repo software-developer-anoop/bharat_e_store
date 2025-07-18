@@ -15,6 +15,7 @@ class City extends Controller
                 ->join('country', 'cities.country', '=', 'country.id')
                 ->join('states', 'cities.state', '=', 'states.id')
                 ->select('cities.*', 'country.country_name as country_name','states.state_name as state_name')
+                ->orderBy('cities.city_name','asc')
                 ->get();
         return view('backend.city-list',compact('page_name','data'));
     }

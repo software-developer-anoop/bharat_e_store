@@ -10,7 +10,7 @@ class Country extends Controller
 {
     public function index(){
         $page_name = 'Country List';
-        $data = DB::table('country')->get();
+        $data = DB::table('country')->orderBy('country_name','asc')->get();
         return view('backend.country-list',compact('page_name','data'));
     }
     public function addCountry($id=null){
