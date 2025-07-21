@@ -41,7 +41,7 @@ class Countrylist extends Controller
         $where = [];
         $where['country']=$country_id;
         $where['status']='Active';
-        $statelist = DB::table('states')->where($where)->select('state_name','country','id')->get();
+        $statelist = DB::table('states')->where($where)->select('state_name','country','id')->orderBy('state_name','asc')->get();
         if ($statelist->isEmpty()) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
@@ -78,7 +78,7 @@ class Countrylist extends Controller
         $where['country']=$country_id;
         $where['state']=$state_id;
         $where['status']='Active';
-        $citylist = DB::table('cities')->where($where)->select('state','country','id','city_name','locality')->get();
+        $citylist = DB::table('cities')->where($where)->select('state','country','id','city_name','locality')->orderBy('city_name','asc')->get();
         if ($citylist->isEmpty()) {
             $response['status'] = false;
             $response['message'] = "No Records Found";
