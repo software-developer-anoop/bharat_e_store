@@ -465,7 +465,10 @@ $(document).ready(function () {
 });
 
 
-function changeOrderStatus(val, id,customer_id) {
+function changeOrderStatus(val, id,customer_id,el) {
+    if (val === 'delivered' || val === 'cancelled') {
+        $(el).prop('disabled', true);
+    }
          $.ajax({
              url: "{{route('admin.changeOrderStatus')}}",
              type: 'POST',
@@ -485,7 +488,8 @@ function changeOrderStatus(val, id,customer_id) {
                          actionTextColor: '#fff',
                          backgroundColor: '#8dbf42'
                      });
-                     window.location.reload();
+                     
+                     //window.location.reload();
                  } else {
                      Snackbar.show({
                          text: response.msg,

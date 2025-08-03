@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Mail\OrderNotification;
+use Illuminate\Support\Facades\Mail;
 class Ajax extends Controller
 {
     public function index(Request $request) {
@@ -221,8 +223,7 @@ class Ajax extends Controller
             if ($customer && !empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
                 $title = "Bonus: 100 Coins Unlocked!";
                 $status = ucfirst($status);
-                $description = "You’ve received 100 coins for placing your  order. Redeem them now and save on your next order!
-";
+                $description = "You’ve received 100 coins for placing your  order. Redeem them now and save on your next order!";
 
                 $notificationType = 'coin';
 
@@ -274,6 +275,7 @@ class Ajax extends Controller
             // ✅ Fetch customer FCM token
             
 
+
             if ($customer && !empty($customer->fcm_token) && strlen($customer->fcm_token) > 30) {
                 $title = "Order Status Updated";
                 $status = ucfirst($status);
@@ -323,6 +325,12 @@ class Ajax extends Controller
                     'created_at' => now()
                 ]);
             }
+            $order = DB::table('orders')
+                ->join('customers', 'orders.customer_id', '=', 'customers.id')
+                ->where('orders.id', $id)
+                ->select('orders.id','orders.order_status','orders.order_id','customers.customer_name','customers.customer_email')
+                ->first();
+            Mail::to($order->customer_email)->send(new OrderNotification($order));
 
             return response()->json(['status' => true, 'msg' => 'Status Changed To ' . $status, 'name' => $status]);
         } else {
