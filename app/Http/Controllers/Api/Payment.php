@@ -103,6 +103,7 @@ class Payment extends Controller {
                     ->delete();
                 $order = (object)[
                     'order_id' => $orderId,
+                    'customer_name'=>$customer->customer_name,
                     'order_status' => 'placed'
                 ];
                 Mail::to($customer->customer_email)->send(new OrderNotification($order));
@@ -236,8 +237,12 @@ class Payment extends Controller {
                 ->where('customer_id', $customerId)
                 ->whereIn('product_id', $productIds)
                 ->delete();
+            $customerName = DB::table('customers')
+                ->where('id',$customerId)
+                ->value('customer_name');
             $order = (object)[
                     'order_id' => $orderId,
+                    'customer_name'=>$customerName,
                     'order_status' => 'placed'
                 ];
                 Mail::to($customer->customer_email)->send(new OrderNotification($order));
