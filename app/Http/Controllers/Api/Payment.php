@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use App\Mail\OrderNotification;
+use Illuminate\Support\Facades\Mail;
 class Payment extends Controller {
     public function index(Request $request)
     {
@@ -99,7 +101,11 @@ class Payment extends Controller {
                     ->where('customer_id', $customer_id)
                     ->whereIn('product_id', $productIds)
                     ->delete();
-
+                $order = (object)[
+                    'order_id' => $orderId,
+                    'order_status' => 'placed'
+                ] 
+                Mail::to($customer->customer_email)->send(new OrderNotification($order));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -230,6 +236,11 @@ class Payment extends Controller {
                 ->where('customer_id', $customerId)
                 ->whereIn('product_id', $productIds)
                 ->delete();
+            $order = (object)[
+                    'order_id' => $orderId,
+                    'order_status' => 'placed'
+                ] 
+                Mail::to($customer->customer_email)->send(new OrderNotification($order));
         }
 
         return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);
