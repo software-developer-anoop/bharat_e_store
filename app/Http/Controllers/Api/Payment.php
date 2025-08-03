@@ -104,7 +104,7 @@ class Payment extends Controller {
                 $order = (object)[
                     'order_id' => $orderId,
                     'order_status' => 'placed'
-                ] 
+                ];
                 Mail::to($customer->customer_email)->send(new OrderNotification($order));
                 return response()->json([
                     'status' => true,
@@ -239,7 +239,7 @@ class Payment extends Controller {
             $order = (object)[
                     'order_id' => $orderId,
                     'order_status' => 'placed'
-                ] 
+                ];
                 Mail::to($customer->customer_email)->send(new OrderNotification($order));
         }
 
