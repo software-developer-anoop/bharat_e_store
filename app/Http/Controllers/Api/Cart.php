@@ -171,10 +171,10 @@ class Cart extends Controller {
                 'product_cost_price' => $customerCurrency . ' ' . (string)$value->product_cost_price, 
                 'product_image' => $firstImageUrl, 
                 'product_quantity' => (string)$value->quantity,
-                'coupon_used' => empty($couponUsed)?false:true, ];
+                 ];
         }
 
-        $response = ['status' => true, 'data' => $returnData, 'subTotal' => $customerCurrency . ' ' . (string)$subTotal, 'coins_available' => (string)$customer->wallet_points, 'profile_status' => (string)$profile_status, 'message' => "API Accessed Successfully!"];
+        $response = ['status' => true, 'data' => $returnData, 'subTotal' => $customerCurrency . ' ' . (string)$subTotal, 'coins_available' => (string)$customer->wallet_points, 'profile_status' => (string)$profile_status, 'coupon_used' => empty($couponUsed)?false:true,'message' => "API Accessed Successfully!"];
         return response()->json($response);
     }
     public function applyCoupon() {
