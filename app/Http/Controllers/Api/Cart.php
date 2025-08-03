@@ -148,10 +148,18 @@ class Cart extends Controller {
         }
 
         $couponUsed = DB::table('orders')
-            ->join('coupons', 'orders.coupon_id', '=', 'coupons.id')
+            ->leftJoin('coupons', 'orders.coupon_id', '=', 'coupons.id') // LEFT JOIN (to avoid missing rows if no coupon)
             ->where('orders.customer_id', $customer_id)
             ->where('orders.order_status', 'delivered')
+            ->select(
+                'orders.id as order_id',
+                'orders.coupon_id',
+                'orders.order_status',
+                'coupons.coupon_title',
+                'coupons.coupon_code'
+            )
             ->first();
+
 
         foreach ($products as $value) {
             $images = $value->product_image ? json_decode($value->product_image, true) : [];

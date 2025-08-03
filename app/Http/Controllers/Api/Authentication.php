@@ -111,7 +111,18 @@ class Authentication extends Controller {
         if (Carbon::now()->greaterThan($otpSentAt->addMinutes(10))) {
             return response()->json(['status' => false, 'message' => 'OTP expired']);
         }
-
+        $couponUsed = DB::table('orders')
+            ->leftJoin('coupons', 'orders.coupon_id', '=', 'coupons.id') // LEFT JOIN (to avoid missing rows if no coupon)
+            ->where('orders.customer_id', $customerId)
+            ->where('orders.order_status', 'delivered')
+            ->select(
+                'orders.id as order_id',
+                'orders.coupon_id',
+                'orders.order_status',
+                'coupons.coupon_title',
+                'coupons.coupon_code'
+            )
+            ->first();
         $customerCurrency = getUserCurrency($customerId) ??'';
         // Handle referral if exists
         if (!empty($customer->referral_code)) {
@@ -149,7 +160,8 @@ class Authentication extends Controller {
                  'wallet_points' => (string)$customer->wallet_points, 
                  'currency' => $customerCurrency, 
                  'profile_image' => $customer->customer_profile_image ? url('uploads/' . $customer->customer_profile_image) : '', 
-                 'country_id' => (string)$country_id];
+                 'country_id' => (string)$country_id,
+                'coupon_used'] = $couponUsed ? true : false];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
     public function resendOtp(Request $request) {
@@ -208,10 +220,18 @@ class Authentication extends Controller {
 
         $country_id = DB::table('country')->where('country_code', $customer->country_code)->value('id');
 
-        $couponUsed = DB::table('orders')->where('customer_id', $customer->id)->whereNotNull('coupon_id')
-        ->whereExists(function ($query) {
-            $query->select(DB::raw(1))->from('coupons')->whereColumn('coupons.id', 'orders.coupon_id');
-        })->exists();
+        $couponUsed = DB::table('orders')
+            ->leftJoin('coupons', 'orders.coupon_id', '=', 'coupons.id') // LEFT JOIN (to avoid missing rows if no coupon)
+            ->where('orders.customer_id', $customer->id)
+            ->where('orders.order_status', 'delivered')
+            ->select(
+                'orders.id as order_id',
+                'orders.coupon_id',
+                'orders.order_status',
+                'coupons.coupon_title',
+                'coupons.coupon_code'
+            )
+            ->first();
 
         $return = [];
         $return['customer_id'] = (string)$customer->id;
