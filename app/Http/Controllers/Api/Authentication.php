@@ -161,7 +161,8 @@ class Authentication extends Controller {
                  'currency' => $customerCurrency, 
                  'profile_image' => $customer->customer_profile_image ? url('uploads/' . $customer->customer_profile_image) : '', 
                  'country_id' => (string)$country_id,
-                'coupon_used'] = $couponUsed ? true : false];
+                'coupon_used' => empty($couponUsed)?false:true
+            ];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
     public function resendOtp(Request $request) {
@@ -252,7 +253,7 @@ class Authentication extends Controller {
         $return['wallet_points'] = (string)$customer->wallet_points;
         $return['currency'] = (string)$customerCurrency;
         $return['profile_image'] = $customer->customer_profile_image ? url('uploads/' . $customer->customer_profile_image) : '';
-        $return['coupon_used'] = $couponUsed ? true : false;
+        $return['coupon_used'] = empty($couponUsed)?false:true;
         return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return]);
     }
     public function customerLogin(Request $request) {
