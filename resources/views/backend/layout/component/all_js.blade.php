@@ -501,6 +501,65 @@ function changeOrderStatus(val, id,customer_id,el) {
              }
          });
      }
+
+     function deleteImage(image,product_id) {
+         Swal.fire({
+             title: 'Are you sure?',
+             text: "You won't be able to revert this!",
+             icon: 'warning',
+             showCancelButton: true,
+             confirmButtonText: 'Delete',
+             cancelButtonText: 'Cancel',
+             padding: '2em'
+         }).then((result) => {
+             if (result.isConfirmed) {
+                 $.ajax({
+                     url: "{{ route('admin.deleteImage') }}",
+                     type: 'POST',
+                     data: {
+                         image: image,
+                         product_id: product_id,
+                         _token: '{{ csrf_token() }}'
+                     },
+                     dataType: 'json',
+                     cache: false,
+                     beforeSend: function() {
+                         Swal.fire({
+                             title: 'Processing...',
+                             text: 'Please wait.',
+                             allowOutsideClick: false,
+                             showConfirmButton: false,
+                             didOpen: () => {
+                                 Swal.showLoading();
+                             }
+                         });
+                     },
+                     success: function(response) {
+                         Swal.close(); // Close the loader
+                         Snackbar.show({
+                             text: response.msg,
+                             pos: 'top-right',
+                             actionTextColor: '#fff',
+                             backgroundColor: response.status ? '#8dbf42' : '#e7515a'
+                         });
+
+                         if (response.status) {
+                             $('#img_'+product_id).remove();
+                         }
+                     },
+                     error: function() {
+                         Swal.close();
+                         Snackbar.show({
+                             text: 'Something went wrong.',
+                             pos: 'top-right',
+                             actionTextColor: '#fff',
+                             backgroundColor: '#e7515a'
+                         });
+                     }
+                 });
+             }
+         });
+     }
 </script>
 
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->

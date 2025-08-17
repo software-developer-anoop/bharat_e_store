@@ -115,6 +115,7 @@ Route::get('/order-history/{id}', [Orders::class, 'orderHistory'])->name('admin.
 //Ajax
 Route::post('/getSlug', [Ajax::class, 'index'])->name('admin.getSlug');
 Route::post('/deleteItem', [Ajax::class, 'deleteItem'])->name('admin.deleteItem');
+Route::post('/deleteImage', [Ajax::class, 'deleteImage'])->name('admin.deleteImage');
 Route::post('/changeStatus', [Ajax::class, 'changeStatus'])->name('admin.changeStatus');
 Route::post('/getStates', [Ajax::class, 'getStates'])->name('admin.getStates');
 Route::post('/getCities', [Ajax::class, 'getCities'])->name('admin.getCities');

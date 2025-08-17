@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Mail\OrderNotification;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\File;
 class Ajax extends Controller
 {
     public function index(Request $request) {
@@ -337,6 +338,41 @@ class Ajax extends Controller
             return response()->json(['status' => false, 'msg' => 'Failed to update status or record not found']);
         }
     }
+    public function deleteImage(Request $request)
+    {
+        $product_id = $request->input('product_id') ?? '';
+        $image_name = $request->input('image') ?? '';
 
+        // Find product
+        $product = DB::table('products')->where('id', $product_id)->first();
+
+        if (!$product) {
+            return response()->json(['status' => false, 'message' => 'Product not found']);
+        }
+
+        // Decode JSON array
+        $images = json_decode($product->product_image, true);
+
+        if (!$images || !is_array($images)) {
+            return response()->json(['status' => false, 'message' => 'No images found']);
+        }
+
+        // Filter out the image to delete
+        $updatedImages = array_filter($images, function ($img) use ($image_name) {
+            return $img['image'] !== $image_name;
+        });
+
+        // Delete physical file
+        $path = public_path('uploads/' . $image_name);
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+
+        // Update DB with new images JSON
+        DB::table('products')->where('id', $product_id)
+            ->update(['product_image' => json_encode(array_values($updatedImages))]);
+
+        return response()->json(['status' => true, 'msg' => 'Image deleted successfully']);
+    }
 
 }

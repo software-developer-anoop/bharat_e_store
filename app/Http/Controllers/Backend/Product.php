@@ -29,6 +29,11 @@ class Product extends Controller {
         $saveData = $checkData;
         // Handle product images
         $img_data = [];
+
+        // check if previous images exist
+        $oldImages = !empty($duplicate->product_image) ? json_decode($duplicate->product_image, true) : [];
+
+        // handle new images
         if ($request->hasFile('product_image')) {
             foreach ($request->file('product_image') as $file) {
                 if ($file->isValid()) {
@@ -37,8 +42,13 @@ class Product extends Controller {
                     $img_data[] = ['image' => $filename];
                 }
             }
-            $saveData['product_image'] = !empty($img_data) ? json_encode($img_data) : null;
         }
+
+        // merge old + new images
+        $finalImages = array_merge($oldImages, $img_data);
+
+        // save back
+        $saveData['product_image'] = !empty($finalImages) ? json_encode($finalImages) : null;
         // Additional fields
         $saveData['product_description'] = trim($data['product_description']??'');
         $saveData['product_size'] = trim($data['product_size']??'');
