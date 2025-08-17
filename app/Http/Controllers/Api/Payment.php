@@ -121,7 +121,7 @@ class Payment extends Controller {
                     ->get();
                 $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems, $pdf,$web));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems,$pdf,$web));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
