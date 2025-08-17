@@ -544,7 +544,8 @@ function changeOrderStatus(val, id,customer_id,el) {
                          });
 
                          if (response.status) {
-                             $('#img_'+product_id).remove();
+                             let safeId = image.replace(/\./g, '_'); 
+                             $('#img_' + safeId).remove();
                          }
                      },
                      error: function() {

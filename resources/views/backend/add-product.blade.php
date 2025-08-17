@@ -214,7 +214,7 @@
                   <!-- Image -->
                   <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
                   <img src="{{ asset('uploads/' . $image['image']) }}" height="70" width="100" alt="Logo" 
-                    class="border rounded" id="img_{{$data->id ??''}}">
+                    class="border rounded" id="img_{{ str_replace('.', '_', $image['image']) }}">
                   </a>
                 </div>
                 @endforeach
