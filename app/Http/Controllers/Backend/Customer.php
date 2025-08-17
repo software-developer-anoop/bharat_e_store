@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Exports\CustomersExport;
+use Maatwebsite\Excel\Facades\Excel;
 class Customer extends Controller
 {
     public function index(){
@@ -62,5 +64,9 @@ class Customer extends Controller
             $msg = 'Customer Updated Successfully';
         }
         return redirect(route('admin.customer-list'))->with('success',$msg);
+    }
+    public function exportCustomers()
+    {
+        return Excel::download(new CustomersExport, 'customers_'.date('Y-m-d').'.xlsx');
     }
 }

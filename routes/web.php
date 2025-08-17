@@ -43,6 +43,8 @@ Route::get('/customer-list', [Customer::class, 'index'])->name('admin.customer-l
 Route::get('/add-customer', [Customer::class, 'addCustomer'])->name('admin.add-customer');
 Route::get('/edit-customer/{id}', [Customer::class, 'addCustomer'])->name('admin.edit-customer');
 Route::post('/save-customer', [Customer::class, 'saveCustomer'])->name('admin.save-customer');
+Route::get('/customers/export', [Customer::class, 'exportCustomers'])->name('admin.customers.export');
+
 //Country Master
 Route::get('/country-list', [Country::class, 'index'])->name('admin.country-list');
 Route::get('/add-country', [Country::class, 'addCountry'])->name('admin.add-country');

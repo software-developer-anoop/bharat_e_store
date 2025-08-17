@@ -9,6 +9,7 @@
   <div class="row" id="cancel-row">
     <div class="col-xl-12 col-lg-12 col-sm-12  layout-spacing">
       <div class="widget-content widget-content-area br-6">
+        <a href="{{route('admin.customers.export')}}" class="btn btn-primary">Export Customers</a>
         <div class="table-responsive mb-4 mt-4">
           <table id="alter_pagination" class="table table-hover" style="width:100%">
             <thead>
