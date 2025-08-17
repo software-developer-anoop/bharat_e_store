@@ -195,34 +195,31 @@
               $images = !empty($data->product_image) ? json_decode($data->product_image, true) : [];
               @endphp
               @if (!empty($images))
-<div class="col-sm-12 mt-2 d-flex flex-wrap gap-2">
-    @foreach ($images as $image)
-        <div class="position-relative d-inline-block">
-            <!-- Trash Icon -->
-            <a href="javascript:void(0);" 
-   class="position-absolute top-0 end-0 m-1 text-danger" 
-   onclick="return deleteImage('{{ $image['image'] }}', {{ $data->id ?? '0' }})">
-
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" 
-                     fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                     style="background:#fff; border-radius:50%; padding:2px;">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <line x1="10" x2="10" y1="11" y2="17" />
-                    <line x1="14" x2="14" y1="11" y2="17" />
-                </svg>
-            </a>
-
-            <!-- Image -->
-            <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
-                <img src="{{ asset('uploads/' . $image['image']) }}" height="70" width="100" alt="Logo" 
-                     class="border rounded" id="img_{{$data->id ??''}}">
-            </a>
-        </div>
-    @endforeach
-</div>
-@endif
-
+              <div class="col-sm-12 mt-2 d-flex flex-wrap gap-2">
+                @foreach ($images as $image)
+                <div class="position-relative d-inline-block">
+                  <!-- Trash Icon -->
+                  <a href="javascript:void(0);" 
+                    class="position-absolute top-0 end-0 m-1 text-danger" 
+                    onclick="return deleteImage('{{ $image['image'] }}', {{ $data->id ?? '0' }})">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" 
+                      fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      style="background:#fff; border-radius:50%; padding:2px;">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" x2="10" y1="11" y2="17" />
+                      <line x1="14" x2="14" y1="11" y2="17" />
+                    </svg>
+                  </a>
+                  <!-- Image -->
+                  <a href="{{ asset('uploads/' . $image['image']) }}" target="_blank">
+                  <img src="{{ asset('uploads/' . $image['image']) }}" height="70" width="100" alt="Logo" 
+                    class="border rounded" id="img_{{$data->id ??''}}">
+                  </a>
+                </div>
+                @endforeach
+              </div>
+              @endif
             </div>
             <input type="submit" name="txt" class="mt-4 btn btn-primary">
           </form>

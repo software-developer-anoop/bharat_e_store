@@ -560,6 +560,24 @@ function changeOrderStatus(val, id,customer_id,el) {
              }
          });
      }
+
+
+    function calculateOff() {
+        let costPrice = parseFloat(document.getElementById("product_cost_price").value) || 0;
+        let sellingPrice = parseFloat(document.getElementById("product_selling_price").value) || 0;
+
+        if (costPrice > 0 && sellingPrice > 0 && sellingPrice < costPrice) {
+            let off = ((costPrice - sellingPrice) / costPrice) * 100;
+            document.getElementById("product_off").value = off.toFixed(2);
+        } else {
+            document.getElementById("product_off").value = "";
+        }
+    }
+
+    // Trigger on input
+    document.getElementById("product_cost_price").addEventListener("input", calculateOff);
+    document.getElementById("product_selling_price").addEventListener("input", calculateOff);
+
 </script>
 
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->
