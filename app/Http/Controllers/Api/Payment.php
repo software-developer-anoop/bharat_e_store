@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use App\Mail\OrderNotification;
 use Illuminate\Support\Facades\Mail;
+use PDF;
 class Payment extends Controller {
     public function index(Request $request)
     {
@@ -106,7 +107,21 @@ class Payment extends Controller {
                     'customer_name'=>$customer->customer_name,
                     'order_status' => 'placed'
                 ];
-                Mail::to($customer->customer_email)->send(new OrderNotification($order));
+                // Mail::to($customer->customer_email)->send(new OrderNotification($order));
+                $orderDetail = DB::table('orders')
+                    ->join('addresses', 'orders.address_id', '=', 'addresses.id')
+                    ->join('cities', 'addresses.city_id', '=', 'cities.id')
+                    ->join('states', 'addresses.state_id', '=', 'states.id')
+                    ->where('orders.order_id', $orderId)
+                    ->select('orders.*', 'addresses.*','cities.city_name','cities.locality','states.state_name')
+                    ->first();
+
+                $orderItems = DB::table('order_history')
+                    ->where('order_table_id', $orderDetail->id)
+                    ->get();
+
+                $pdf = PDF::loadView('invoice', compact('order','orderItems'));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -247,7 +262,21 @@ class Payment extends Controller {
                     'customer_name'=>$customerName,
                     'order_status' => 'placed'
                 ];
-                Mail::to($customer->customer_email)->send(new OrderNotification($order));
+                // Mail::to($customer->customer_email)->send(new OrderNotification($order));
+                $orderDetail = DB::table('orders')
+                    ->join('addresses', 'orders.address_id', '=', 'addresses.id')
+                    ->join('cities', 'addresses.city_id', '=', 'cities.id')
+                    ->join('states', 'addresses.state_id', '=', 'states.id')
+                    ->where('orders.order_id', $orderId)
+                    ->select('orders.*', 'addresses.*','cities.city_name','cities.locality','states.state_name')
+                    ->first();
+
+                $orderItems = DB::table('order_history')
+                    ->where('order_table_id', $orderDetail->id)
+                    ->get();
+
+                $pdf = PDF::loadView('invoice', compact('order','orderItems'));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf));
         }
 
         return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);
