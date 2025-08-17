@@ -169,8 +169,8 @@ class Orders extends Controller
         $orderItems = DB::table('order_history')
             ->where('order_table_id', $id)
             ->get();
-
-        $pdf = PDF::loadView('invoice', compact('order','orderItems'));
+        $web = webSetting('logo');
+        $pdf = PDF::loadView('invoice', compact('order','orderItems','web'));
         return $pdf->download('invoice_'.$order->order_id.'.pdf');
     }
 

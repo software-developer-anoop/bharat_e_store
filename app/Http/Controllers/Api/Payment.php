@@ -119,9 +119,9 @@ class Payment extends Controller {
                 $orderItems = DB::table('order_history')
                     ->where('order_table_id', $orderDetail->id)
                     ->get();
-
+                $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf,$web));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -274,9 +274,9 @@ class Payment extends Controller {
                 $orderItems = DB::table('order_history')
                     ->where('order_table_id', $orderDetail->id)
                     ->get();
-
+                $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf,$web));
         }
 
         return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);

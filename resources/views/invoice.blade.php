@@ -18,6 +18,16 @@
 </head>
 <body>
 
+    {{-- Header with Logo --}}
+
+    <div class="header text-center" style="margin-bottom: 20px; text-align:center;">
+    <img src="{{ public_path('uploads/'.$web->logo) }}" 
+         alt="Company Logo" 
+         style="max-height:100px; width:auto; display:block; margin:0 auto 10px auto;">
+    <h2 style="margin:0; font-weight:bold; color:#333;">Bharat E Store</h2>
+</div>
+
+
     <h2>Order {{ ucfirst($order->order_status) }} - #{{ $order->order_id }}</h2>
     <p><strong>Date:</strong> {{ \Carbon\Carbon::parse($order->created_at)->format('d-m-Y') }}</p>
 
