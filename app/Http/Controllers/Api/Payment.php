@@ -102,13 +102,13 @@ class Payment extends Controller {
                     ->where('customer_id', $customer_id)
                     ->whereIn('product_id', $productIds)
                     ->delete();
-                $order = (object)[
-                    'order_id' => $orderId,
-                    'customer_name'=>$customer->customer_name,
-                    'order_status' => 'placed'
-                ];
+                // $order = (object)[
+                //     'order_id' => $orderId,
+                //     'customer_name'=>$customer->customer_name,
+                //     'order_status' => 'placed'
+                // ];
                 // Mail::to($customer->customer_email)->send(new OrderNotification($order));
-                $orderDetail = DB::table('orders')
+                $order = DB::table('orders')
                     ->join('addresses', 'orders.address_id', '=', 'addresses.id')
                     ->join('cities', 'addresses.city_id', '=', 'cities.id')
                     ->join('states', 'addresses.state_id', '=', 'states.id')
@@ -117,11 +117,11 @@ class Payment extends Controller {
                     ->first();
 
                 $orderItems = DB::table('order_history')
-                    ->where('order_table_id', $orderDetail->id)
+                    ->where('order_table_id', $order->id)
                     ->get();
                 $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf,$web));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order, $pdf,$web));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -257,13 +257,13 @@ class Payment extends Controller {
             $customerName = DB::table('customers')
                 ->where('id',$customerId)
                 ->value('customer_name');
-            $order = (object)[
-                    'order_id' => $orderId,
-                    'customer_name'=>$customerName,
-                    'order_status' => 'placed'
-                ];
+            // $order = (object)[
+            //         'order_id' => $orderId,
+            //         'customer_name'=>$customerName,
+            //         'order_status' => 'placed'
+            //     ];
                 // Mail::to($customer->customer_email)->send(new OrderNotification($order));
-                $orderDetail = DB::table('orders')
+                $order = DB::table('orders')
                     ->join('addresses', 'orders.address_id', '=', 'addresses.id')
                     ->join('cities', 'addresses.city_id', '=', 'cities.id')
                     ->join('states', 'addresses.state_id', '=', 'states.id')
@@ -272,11 +272,11 @@ class Payment extends Controller {
                     ->first();
 
                 $orderItems = DB::table('order_history')
-                    ->where('order_table_id', $orderDetail->id)
+                    ->where('order_table_id', $order->id)
                     ->get();
                 $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($orderDetail, $pdf,$web));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order, $pdf,$web));
         }
 
         return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);
