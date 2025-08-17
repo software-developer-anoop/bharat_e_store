@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
-use App\Mail\OrderNotification;
+use App\Mail\InvoiceMail;
 use Illuminate\Support\Facades\Mail;
 use PDF;
 class Payment extends Controller {
@@ -121,7 +121,7 @@ class Payment extends Controller {
                     ->get();
                 $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order, $pdf,$web));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems, $pdf,$web));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -276,7 +276,7 @@ class Payment extends Controller {
                     ->get();
                 $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order, $pdf,$web));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems, $pdf,$web));
         }
 
         return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);
