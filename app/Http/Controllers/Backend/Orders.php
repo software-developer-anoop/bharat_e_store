@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PDF;
 class Orders extends Controller
 {
     public function index(Request $request){
@@ -154,6 +155,23 @@ class Orders extends Controller
             ->where('order_table_id', $orderID)
             ->get();
         return view('backend.order-history', compact('page_name', 'data'));
+    }
+    public function downloadInvoice($id)
+    {
+        $order = DB::table('orders')
+            ->join('addresses', 'orders.address_id', '=', 'addresses.id')
+            ->join('cities', 'addresses.city_id', '=', 'cities.id')
+            ->join('states', 'addresses.state_id', '=', 'states.id')
+            ->where('orders.id', $id)
+            ->select('orders.*', 'addresses.*','cities.city_name','cities.locality','states.state_name')
+            ->first();
+
+        $orderItems = DB::table('order_history')
+            ->where('order_table_id', $id)
+            ->get();
+
+        $pdf = PDF::loadView('invoice', compact('order','orderItems'));
+        return $pdf->download('invoice_'.$order->order_id.'.pdf');
     }
 
 }

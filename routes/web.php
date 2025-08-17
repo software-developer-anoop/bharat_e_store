@@ -112,6 +112,8 @@ Route::get('/shipped-orders', [Orders::class, 'shippedOrders'])->name('admin.shi
 Route::get('/delivered-orders', [Orders::class, 'deliveredOrders'])->name('admin.deliveredOrders');
 Route::get('/cancelled-orders', [Orders::class, 'cancelledOrders'])->name('admin.cancelledOrders');
 Route::get('/order-history/{id}', [Orders::class, 'orderHistory'])->name('admin.orderHistory');
+Route::get('/orders/{id}/invoice', [Orders::class, 'downloadInvoice'])->name('admin.invoice');
+
 //Ajax
 Route::post('/getSlug', [Ajax::class, 'index'])->name('admin.getSlug');
 Route::post('/deleteItem', [Ajax::class, 'deleteItem'])->name('admin.deleteItem');
