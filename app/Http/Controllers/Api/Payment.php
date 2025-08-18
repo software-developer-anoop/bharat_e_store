@@ -112,7 +112,7 @@ class Payment extends Controller {
 
                 if ($checkPrevCustOrder && $customer->wallet_points > 100) {
                     DB::table('customers')
-                        ->where('id', $customerId)
+                        ->where('id', $customer_id)
                         ->update([
                             'wallet_points' => DB::raw('GREATEST(COALESCE(wallet_points, 0) - 100, 0)')
                         ]);
