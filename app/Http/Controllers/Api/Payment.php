@@ -112,12 +112,12 @@ class Payment extends Controller {
                     ->join('addresses', 'orders.address_id', '=', 'addresses.id')
                     ->join('cities', 'addresses.city_id', '=', 'cities.id')
                     ->join('states', 'addresses.state_id', '=', 'states.id')
-                    ->where('orders.order_id', $orderId)
+                    ->where('orders.id', $order_table_id)
                     ->select('orders.*', 'addresses.*','cities.city_name','cities.locality','states.state_name')
                     ->first();
 
                 $orderItems = DB::table('order_history')
-                    ->where('order_table_id', $order->id)
+                    ->where('order_table_id', $order_table_id)
                     ->get();
                 $web = webSetting('logo');
                 $pdf = PDF::loadView('invoice', compact('order','orderItems'));
