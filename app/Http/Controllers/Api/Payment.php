@@ -102,6 +102,19 @@ class Payment extends Controller {
                     ->where('customer_id', $customer_id)
                     ->whereIn('product_id', $productIds)
                     ->delete();
+                $checkPrevCustOrder = DB::table('orders')
+                    ->where('customer_id', $customer_id)
+                    ->where(function($q) {
+                        $q->where('order_status', 'paid')
+                          ->orWhere('order_status', 'placed');
+                    })
+                    ->first();
+
+                if ($checkPrevCustOrder && $customer->wallet_points > 100) {
+                    $customer->update([
+                        'wallet_points' => DB::raw('COALESCE(wallet_points, 0) - 100')
+                    ]);
+                }
                 // $order = (object)[
                 //     'order_id' => $orderId,
                 //     'customer_name'=>$customer->customer_name,
@@ -246,6 +259,24 @@ class Payment extends Controller {
             'updated_at' => now(),
         ]);
 
+        //Update points after use of wallet points
+        $checkPrevCustOrder = DB::table('orders')
+    ->where('customer_id', $customerId)
+    ->where(function ($q) {
+                $q->where('order_status', 'paid')
+                  ->orWhere('order_status', 'placed');
+            })
+            ->exists(); // better than first() if you just check existence
+
+        if ($checkPrevCustOrder && $customer->wallet_points > 100) {
+            DB::table('customers')
+                ->where('id', $customerId)
+                ->update([
+                    'wallet_points' => DB::raw('GREATEST(COALESCE(wallet_points, 0) - 100, 0)')
+                ]);
+        }
+
+
         // Empty cart only if payment succeeded
         if ($newStatus === 'success' && $orderStatus === 'paid') {
             $productIds = DB::table('order_history')->where('order_id', $orderId)->pluck('product_id');
@@ -254,9 +285,9 @@ class Payment extends Controller {
                 ->where('customer_id', $customerId)
                 ->whereIn('product_id', $productIds)
                 ->delete();
-            $customerName = DB::table('customers')
-                ->where('id',$customerId)
-                ->value('customer_name');
+            // $customerName = DB::table('customers')
+            //     ->where('id',$customerId)
+            //     ->value('customer_name');
             // $order = (object)[
             //         'order_id' => $orderId,
             //         'customer_name'=>$customerName,
