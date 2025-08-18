@@ -111,9 +111,11 @@ class Payment extends Controller {
                     ->first();
 
                 if ($checkPrevCustOrder && $customer->wallet_points > 100) {
-                    $customer->update([
-                        'wallet_points' => DB::raw('COALESCE(wallet_points, 0) - 100')
-                    ]);
+                    DB::table('customers')
+                        ->where('id', $customerId)
+                        ->update([
+                            'wallet_points' => DB::raw('GREATEST(COALESCE(wallet_points, 0) - 100, 0)')
+                        ]);
                 }
                 // $order = (object)[
                 //     'order_id' => $orderId,
@@ -259,14 +261,18 @@ class Payment extends Controller {
             'updated_at' => now(),
         ]);
 
-        //Update points after use of wallet points
+        $customer = DB::table('customers')
+            ->where('id', $customerId)
+            ->first();
+
+        // Update points after use of wallet points
         $checkPrevCustOrder = DB::table('orders')
-    ->where('customer_id', $customerId)
-    ->where(function ($q) {
+            ->where('customer_id', $customerId)
+            ->where(function ($q) {
                 $q->where('order_status', 'paid')
                   ->orWhere('order_status', 'placed');
             })
-            ->exists(); // better than first() if you just check existence
+            ->exists();
 
         if ($checkPrevCustOrder && $customer->wallet_points > 100) {
             DB::table('customers')
