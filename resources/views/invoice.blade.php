@@ -96,6 +96,8 @@
             </td>
         </tr>
     </table>
+    <p class="text-center mt-4">A 325, New Panchwati, Block I, A-Block, Govindpuram, Ghaziabad, Uttar Pradesh 201013
+Contact No: 9266208206</p>
     <div class="footer text-center mt-4">
     &copy; {{ date('Y') }} Bharat E Store. All rights reserved.
     </div>
