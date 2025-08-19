@@ -406,13 +406,13 @@ function sendFast2SmsOtp($otp,$phone){
       
     // }
 }
-public static function getCity($city_id)
+ function getCity($city_id)
 {
     $city = DB::table('cities')->where('id', $city_id)->first();
 
     return $city->city_name ?? null;
 }
-public static function getState($state_id)
+ function getState($state_id)
 {
     $state = DB::table('states')->where('id', $state_id)->first();
 
