@@ -162,7 +162,7 @@ class Payment extends Controller {
                     'customer_name' => $customer->customer_name ?: 'Guest User',
                     'customer_email' => $customer->customer_email ?? 'test@example.com',
                     'customer_phone' => $customer->customer_phone ?? '9999999999',
-                    'customer_address'=>$customer->customer_address ??'',
+                    'customer_address'=>$address->address ??'N/A',
                     'payment_mode' => $payment_mode,
                 ],
                 'order_meta' => [
