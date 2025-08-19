@@ -153,6 +153,8 @@ class Payment extends Controller {
             $cashfreeBaseUrl = $payment_environment === "TEST" ? env('CASHFREE_BASE_URL_TEST') : env('CASHFREE_BASE_URL_PROD');
             $callbackUrl = url('/api/payment-webhook');
 
+            $cityName = getCity($address->city_id);
+            $stateName = getState($address->state_id);
             $cfRequest = [
             'order_id' => $orderId,
             'order_amount' => $amount,
@@ -165,8 +167,8 @@ class Payment extends Controller {
                 'customer_address' => [
                     'customer_address_line1' => $address->address ?? 'N/A',
                     'customer_address_line2' => $address->address?? '',
-                    'customer_city'         => $address->city ?getCity($address->city): 'Unknown',
-                    'customer_state'        => $address->state ?getState($address->state): 'Unknown',
+                    'customer_city'         => $cityName ?? 'Unknown',
+                    'customer_state'        => $stateName ?? 'Unknown',
                     'customer_pincode'      => $address->pincode ?? '000000',
                     'customer_country'      => 'India',
                 ],
