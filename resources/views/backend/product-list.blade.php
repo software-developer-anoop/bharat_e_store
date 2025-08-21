@@ -54,7 +54,7 @@
                 @endphp
                 <td class="text-center">
                     <span id="size_{{$value->id}}">{{ $value->product_size ?? '' }}</span>
-                    <select id="sizeDropdown" onchange="return removeSize(this.value,{{$value->id}})" class="form-control select2" required>
+                    <select id="sizeDropdown_{{$value->id}}" onchange="return removeSize(this.value,{{$value->id}})" class="form-control select2" required>
                         <option value="">Select Size</option>
                         @foreach($productSizes as $size)
                             <option value="{{ $size }}">{{ $size }}</option>

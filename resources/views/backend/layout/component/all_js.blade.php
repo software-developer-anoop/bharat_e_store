@@ -600,7 +600,7 @@ function changeOrderStatus(val, id,customer_id,el) {
                 });
 
                 // Safely remove the option from the dropdown
-                $('#sizeDropdown option[value="' + size + '"]').remove();
+                $('#sizeDropdown_' + product_id + ' option[value="' + size + '"]').remove();
 
                 // Update visible size string if needed
                 $('#size_' + product_id).text(response.updated_sizes);
