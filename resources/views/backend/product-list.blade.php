@@ -33,7 +33,8 @@
               <tr>
                 <th class="text-center">Category / <br> Subcategory/ <br> Product</th>
                 <th class="text-center">Cost Price / <br> Selling Price</th>
-                <th class="text-center">Size / <br> Colors</th>
+                <th class="text-center">Size</th>
+                <th class="text-center">Colors</th>
                 <th class="text-center">Quantity / <br> Availability</th>
                 <th class="text-center">Status</th>
                 <th class="text-center">Inventory</th>
@@ -48,7 +49,19 @@
               <tr id="del_{{$value->id}}">
                 <td class="text-center">{{$value->category_name??''}} / <br> {{$value->subcategory_name??''}} / <br> {{$value->product_name??''}} </td>
                 <td class="text-center">{{$value->product_cost_price??''}} / <br> {{$value->product_selling_price??''}}</td>
-                <td class="text-center">{{$value->product_size??''}} / <br> {{$value->product_colors??''}}</td>
+                @php
+                  $productSizes = $value->product_size ? explode(',', $value->product_size) : [];
+                @endphp
+                <td class="text-center">
+                    <span id="size_{{$value->id}}">{{ $value->product_size ?? '' }}</span>
+                    <select id="sizeDropdown" onchange="return removeSize(this.value,{{$value->id}})" class="form-control select2" required>
+                        <option value="">Select Size</option>
+                        @foreach($productSizes as $size)
+                            <option value="{{ $size }}">{{ $size }}</option>
+                        @endforeach
+                    </select>
+                </td>
+                <td class="text-center">{{$value->product_colors??''}}</td>
                 <td class="text-center">{{$value->product_quantity??''}} / <br> {{$value->product_availability??''}}</td>
                 <td class="text-center">
                   <a href="javascript:void(0)" 

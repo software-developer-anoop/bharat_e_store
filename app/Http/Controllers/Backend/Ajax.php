@@ -374,5 +374,46 @@ class Ajax extends Controller
 
         return response()->json(['status' => true, 'msg' => 'Image deleted successfully']);
     }
+    public function removeSize(Request $request)
+    {
+        $product_id = $request->input('product_id');
+        $size = $request->input('size');
+
+        // Get the current product_size string
+        $productSizesString = DB::table('products')
+            ->where('id', $product_id)
+            ->value('product_size');
+
+        $productSizes = [];
+
+        // Convert to array if not empty
+        if (!empty($productSizesString)) {
+            $productSizes = strpos($productSizesString, ',') !== false
+                ? explode(',', $productSizesString)
+                : [$productSizesString];
+        }
+
+        // Remove the specified size if it exists
+        if (in_array($size, $productSizes)) {
+            $productSizes = array_filter($productSizes, function ($item) use ($size) {
+                return trim($item) !== trim($size);
+            });
+
+            // Re-index array and implode to string
+            $updatedSizesString = implode(',', array_values($productSizes));
+
+            // Update the product_size in the database
+            DB::table('products')
+                ->where('id', $product_id)
+                ->update(['product_size' => $updatedSizesString]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'msg' => 'Size removed successfully.',
+            'updated_sizes' => $updatedSizesString
+        ]);
+    }
+
 
 }

@@ -129,7 +129,9 @@ Route::post('/setIsTrendingHotDeal', [Ajax::class, 'setIsTrendingHotDeal'])->nam
 Route::get('/logout', [Authentication::class, 'logout'])->name('admin.logout');
 Route::post('/assignmenu', [Ajax::class, 'assignMenu'])->name('admin.assignmenu');
 Route::post('/changeOrderStatus', [Ajax::class, 'changeOrderStatus'])->name('admin.changeOrderStatus');
+Route::post('/removeSize', [Ajax::class, 'removeSize'])->name('admin.removeSize');
 });
+
 
 //Frontend Routes
 Route::get('contact-us', [Cmspages::class, 'index']);

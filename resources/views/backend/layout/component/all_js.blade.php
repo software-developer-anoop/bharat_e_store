@@ -579,6 +579,51 @@ function changeOrderStatus(val, id,customer_id,el) {
     document.getElementById("product_cost_price").addEventListener("input", calculateOff);
     document.getElementById("product_selling_price").addEventListener("input", calculateOff);
 
+    function removeSize(size, product_id) {
+    $.ajax({
+        url: "{{ route('admin.removeSize') }}",
+        type: 'POST',
+        data: {
+            size: size,
+            product_id: product_id,
+            _token: '{{ csrf_token() }}'
+        },
+        dataType: 'json',
+        cache: false,
+        success: function(response) {
+            if (response.status) {
+                Snackbar.show({
+                    text: response.msg,
+                    pos: 'top-right',
+                    actionTextColor: '#fff',
+                    backgroundColor: '#8dbf42'
+                });
+
+                // Safely remove the option from the dropdown
+                $('#sizeDropdown option[value="' + size + '"]').remove();
+
+                // Update visible size string if needed
+                $('#size_' + product_id).text(response.updated_sizes);
+            } else {
+                Snackbar.show({
+                    text: response.msg,
+                    pos: 'top-right',
+                    actionTextColor: '#fff',
+                    backgroundColor: '#e7515a'
+                });
+            }
+        },
+        error: function(xhr) {
+            Snackbar.show({
+                text: 'Something went wrong.',
+                pos: 'top-right',
+                actionTextColor: '#fff',
+                backgroundColor: '#e7515a'
+            });
+        }
+    });
+}
+
 </script>
 
     <!-- BEGIN PAGE LEVEL PLUGINS/CUSTOM SCRIPTS -->
