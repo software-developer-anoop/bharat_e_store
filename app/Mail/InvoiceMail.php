@@ -17,16 +17,18 @@ class InvoiceMail extends Mailable
     public $pdf;
     public $orderItems;
     public $web;
+    public $couponApplied;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($order,$orderItems,$pdf,$web)
+    public function __construct($order,$orderItems,$pdf,$web,$couponApplied)
     {
         $this->order = $order;
         $this->orderItems = $orderItems;
         $this->pdf   = $pdf;
         $this->web   = $web;
+        $this->couponApplied   = $couponApplied;
     }
 
     /**
@@ -50,6 +52,7 @@ class InvoiceMail extends Mailable
                 'order' => $this->order,
                 'orderItems' => $this->orderItems,
                 'web' => $this->web,
+                'couponApplied' => $this->couponApplied,
             ],
         );
     }
