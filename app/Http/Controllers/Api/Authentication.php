@@ -114,7 +114,7 @@ class Authentication extends Controller {
         $firstOrder = DB::table('orders')
         ->where('customer_id', $customerId)
         //->where('order_status', 'placed')
-        ->orderBy('id', 'DESC') // ASC to get first order
+        ->orderBy('id', 'ASC') // ASC to get first order
         ->first();
 
         $couponUsed = false;
@@ -160,7 +160,7 @@ class Authentication extends Controller {
                  'currency' => $customerCurrency, 
                  'profile_image' => $customer->customer_profile_image ? url('uploads/' . $customer->customer_profile_image) : '', 
                  'country_id' => (string)$country_id,
-                'coupon_used' => $couponUsed
+                 'coupon_used' => $couponUsed
             ];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
@@ -223,7 +223,7 @@ class Authentication extends Controller {
         $firstOrder = DB::table('orders')
         ->where('customer_id', $customer->id)
         //->where('order_status', 'placed')
-        ->orderBy('id', 'DESC') // ASC to get first order
+        ->orderBy('id', 'ASC') // ASC to get first order
         ->first();
 
         $couponUsed = false;
