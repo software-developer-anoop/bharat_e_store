@@ -113,8 +113,8 @@ class Authentication extends Controller {
         }
         $firstOrder = DB::table('orders')
         ->where('customer_id', $customer_id)
-        ->where('order_status', 'placed')
-        ->orderBy('id', 'ASC') // ASC to get first order
+        //->where('order_status', 'placed')
+        ->orderBy('id', 'DESC') // ASC to get first order
         ->first();
 
         $couponUsed = false;
@@ -222,8 +222,8 @@ class Authentication extends Controller {
 
         $firstOrder = DB::table('orders')
         ->where('customer_id', $customer_id)
-        ->where('order_status', 'placed')
-        ->orderBy('id', 'ASC') // ASC to get first order
+        //->where('order_status', 'placed')
+        ->orderBy('id', 'DESC') // ASC to get first order
         ->first();
 
         $couponUsed = false;
