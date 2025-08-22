@@ -104,10 +104,8 @@ class Payment extends Controller {
                     ->delete();
                 $checkPrevCustOrder = DB::table('orders')
                     ->where('customer_id', $customer_id)
-                    ->where(function($q) {
-                        $q->where('order_status', 'paid')
-                          ->orWhere('order_status', 'placed');
-                    })
+                    ->where('order_status', 'placed')
+                    ->orderBy('id','DESC')
                     ->first();
 
                 if ($checkPrevCustOrder && $customer->wallet_points > 100) {
@@ -286,12 +284,10 @@ class Payment extends Controller {
 
         // Update points after use of wallet points
         $checkPrevCustOrder = DB::table('orders')
-            ->where('customer_id', $customerId)
-            ->where(function ($q) {
-                $q->where('order_status', 'paid')
-                  ->orWhere('order_status', 'placed');
-            })
-            ->exists();
+                    ->where('customer_id', $customer_id)
+                    ->where('order_status', 'placed')
+                    ->orderBy('id','DESC')
+                    ->first();
 
         if ($checkPrevCustOrder && $customer->wallet_points > 100) {
             DB::table('customers')
