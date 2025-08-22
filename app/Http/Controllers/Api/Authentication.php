@@ -112,7 +112,7 @@ class Authentication extends Controller {
             return response()->json(['status' => false, 'message' => 'OTP expired']);
         }
         $firstOrder = DB::table('orders')
-        ->where('customer_id', $customer_id)
+        ->where('customer_id', $customerId)
         //->where('order_status', 'placed')
         ->orderBy('id', 'DESC') // ASC to get first order
         ->first();
@@ -221,7 +221,7 @@ class Authentication extends Controller {
         $country_id = DB::table('country')->where('country_code', $customer->country_code)->value('id');
 
         $firstOrder = DB::table('orders')
-        ->where('customer_id', $customer_id)
+        ->where('customer_id', $customer->id)
         //->where('order_status', 'placed')
         ->orderBy('id', 'DESC') // ASC to get first order
         ->first();
