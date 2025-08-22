@@ -155,30 +155,32 @@ class Payment extends Controller {
 
             $cityName = getCity($address->city_id);
             $stateName = getState($address->state_id);
+
             $cfRequest = [
-            'order_id' => $orderId,
-            'order_amount' => $amount,
-            'order_currency' => 'INR',
-            'customer_details' => [
-                'customer_id' => $customer_id,
-                'customer_name' => $customer->customer_name ?: 'Guest User',
-                'customer_email' => $customer->customer_email ?? 'test@example.com',
-                'customer_phone' => $customer->customer_phone ?? '9999999999',
-                'customer_address' => [
-                    'customer_address_line1' => $address->address ?? 'N/A',
-                    'customer_address_line2' => $address->address?? '',
-                    'customer_city'         => $cityName ?? 'Unknown',
-                    'customer_state'        => $stateName ?? 'Unknown',
-                    'customer_pincode'      => $address->pincode ?? '000000',
-                    'customer_country'      => 'India',
+                'order_id' => $orderId,
+                'order_amount' => $amount,
+                'order_currency' => 'INR',
+                'customer_details' => [
+                    'customer_id' => $customer_id,
+                    'customer_name' => $customer->customer_name ?: 'Guest User',
+                    'customer_email' => $customer->customer_email ?? 'test@example.com',
+                    'customer_phone' => $customer->customer_phone ?? '9999999999',
+                    'customer_address' => [
+                        'customer_address_line1' => $address->address ?? 'N/A',
+                        'customer_address_line2' => $address->address ?? '',
+                        'customer_city'         => $cityName ?? 'Unknown',
+                        'customer_state'        => $stateName ?? 'Unknown',
+                        'customer_pincode'      => $address->pincode ?? '000000',
+                        'customer_country'      => 'India',
+                    ],
+                    'payment_mode' => $payment_mode,
                 ],
-                'payment_mode' => $payment_mode,
-            ],
-            'order_meta' => [
-                'notify_url' => $callbackUrl,
-                'return_url' => ''
-            ],
-        ];
+                'order_meta' => [
+                    'notify_url' => $callbackUrl,
+                    'return_url' => ''
+                ],
+            ];
+
 
             $payload = json_encode($cfRequest);
             $ch = curl_init("$cashfreeBaseUrl/pg/orders");

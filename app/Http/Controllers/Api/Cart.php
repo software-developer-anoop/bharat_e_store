@@ -158,6 +158,7 @@ class Cart extends Controller {
                 'coupons.coupon_title',
                 'coupons.coupon_code'
             )
+            ->orderBy('id','DESC')
             ->first();
 
 
