@@ -122,7 +122,7 @@ class Authentication extends Controller {
                 'coupons.coupon_title',
                 'coupons.coupon_code'
             )
-            ->orderBy('id','DESC')
+            ->orderBy('orders.id','DESC')
             ->first();
         $customerCurrency = getUserCurrency($customerId) ??'';
         // Handle referral if exists
@@ -233,7 +233,7 @@ class Authentication extends Controller {
                 'coupons.coupon_title',
                 'coupons.coupon_code'
             )
-            ->orderBy('id','DESC')
+            ->orderBy('orders.id','DESC')
             ->first();
 
         $return = [];
