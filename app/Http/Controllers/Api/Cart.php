@@ -229,11 +229,16 @@ class Cart extends Controller {
             return response()->json(['status' => false, 'message' => 'This coupon is currently inactive']);
         }
 
-        // Check if already applied
-        $checkApplied = DB::table('orders')->where(['customer_id' => $customer_id, 'coupon_id' => $coupon_id, 'status' => 'success'])->first();
-        if ($checkApplied) {
+
+        $checkApplied = DB::table('orders')
+        ->where('customer_id', $customer_id)
+        ->orderBy('id', 'DESC') // ASC to get first order
+        ->first();
+
+        if ($checkApplied && $checkApplied->coupon_id == $coupon_id) {
             return response()->json(['status' => false, 'message' => 'Coupon already applied']);
         }
+        
 
         // Apply coupon logic
         $discount = 0;
