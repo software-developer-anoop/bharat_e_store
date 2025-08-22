@@ -149,7 +149,7 @@ class Cart extends Controller {
 
         $firstOrder = DB::table('orders')
         ->where('customer_id', $customer_id)
-        ->where('order_status', 'delivered')
+        ->where('order_status', 'placed')
         ->orderBy('id', 'ASC') // ASC to get first order
         ->first();
 
