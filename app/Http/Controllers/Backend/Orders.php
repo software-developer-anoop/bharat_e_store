@@ -169,8 +169,17 @@ class Orders extends Controller
         $orderItems = DB::table('order_history')
             ->where('order_table_id', $id)
             ->get();
+        $couponApplied = null;
+
+        if (!empty($order->coupon_id)) {
+            $couponApplied = DB::table('coupons')
+                ->where('id', $order->coupon_id)
+                ->select('coupon_title', 'coupon_type', 'coupon_value')
+                ->first();
+        }
+        
         $web = webSetting('logo');
-        $pdf = PDF::loadView('invoice', compact('order','orderItems','web'));
+        $pdf = PDF::loadView('invoice', compact('order','orderItems','web','couponApplied'));
         return $pdf->download('invoice_'.$order->order_id.'.pdf');
     }
 

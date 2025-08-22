@@ -134,9 +134,17 @@ class Payment extends Controller {
                 $orderItems = DB::table('order_history')
                     ->where('order_table_id', $order_table_id)
                     ->get();
+                $couponApplied = null;
+
+                if (!empty($order->coupon_id)) {
+                    $couponApplied = DB::table('coupons')
+                        ->where('id', $order->coupon_id)
+                        ->select('coupon_title', 'coupon_type', 'coupon_value')
+                        ->first();
+                }
                 $web = webSetting('logo');
-                $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems,$pdf,$web));
+                $pdf = PDF::loadView('invoice', compact('order','orderItems','web','couponApplied'));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems,$pdf,$web,$couponApplied));
                 return response()->json([
                     'status' => true,
                     'message' => 'Cash on Delivery order placed successfully',
@@ -322,9 +330,18 @@ class Payment extends Controller {
                 $orderItems = DB::table('order_history')
                     ->where('order_table_id', $order->id)
                     ->get();
+                $couponApplied = null;
+
+                if (!empty($order->coupon_id)) {
+                    $couponApplied = DB::table('coupons')
+                        ->where('id', $order->coupon_id)
+                        ->select('coupon_title', 'coupon_type', 'coupon_value')
+                        ->first();
+                }
                 $web = webSetting('logo');
-                $pdf = PDF::loadView('invoice', compact('order','orderItems'));
-                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems, $pdf,$web));
+                $pdf = PDF::loadView('invoice', compact('order','orderItems','web','couponApplied'));
+                \Mail::to($customer->customer_email)->send(new \App\Mail\InvoiceMail($order,$orderItems,$pdf,$web,$couponApplied));
+                
         }
 
         return response()->json(['status' => true, 'message' => 'Webhook handled'], 200);
