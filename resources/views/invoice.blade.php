@@ -37,7 +37,7 @@
         @foreach($orderItems as $item)
         @php 
         $lineTotal = $item->product_selling_price * $item->quantity;
-        $totalSelling += $lineTotal;
+        $totalSelling = $order->amount;
         @endphp
         <tr>
           <td>
