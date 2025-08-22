@@ -147,19 +147,17 @@ class Cart extends Controller {
             $profile_status = 'incomplete';
         }
 
-        $couponUsed = DB::table('orders')
-            ->leftJoin('coupons', 'orders.coupon_id', '=', 'coupons.id') // LEFT JOIN (to avoid missing rows if no coupon)
-            ->where('orders.customer_id', $customer_id)
-            ->where('orders.order_status', 'delivered')
-            ->select(
-                'orders.id as order_id',
-                'orders.coupon_id',
-                'orders.order_status',
-                'coupons.coupon_title',
-                'coupons.coupon_code'
-            )
-            ->orderBy('orders.id','DESC')
-            ->first();
+        $firstOrder = DB::table('orders')
+        ->where('customer_id', $customer_id)
+        ->where('order_status', 'delivered')
+        ->orderBy('id', 'ASC') // ASC to get first order
+        ->first();
+
+        $couponUsed = false;
+
+        if ($firstOrder && $firstOrder->coupon_id) {
+            $couponUsed = true;
+        }
 
 
         foreach ($products as $value) {
@@ -183,7 +181,7 @@ class Cart extends Controller {
                  ];
         }
 
-        $response = ['status' => true, 'data' => $returnData, 'subTotal' => $customerCurrency . ' ' . (string)$subTotal, 'coins_available' => (string)$customer->wallet_points, 'profile_status' => (string)$profile_status, 'coupon_used' => empty($couponUsed)?false:true,'message' => "API Accessed Successfully!"];
+        $response = ['status' => true, 'data' => $returnData, 'subTotal' => $customerCurrency . ' ' . (string)$subTotal, 'coins_available' => (string)$customer->wallet_points, 'profile_status' => (string)$profile_status, 'coupon_used' => $couponUsed,'message' => "API Accessed Successfully!"];
         return response()->json($response);
     }
     public function applyCoupon() {

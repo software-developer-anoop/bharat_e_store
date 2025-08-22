@@ -111,19 +111,17 @@ class Authentication extends Controller {
         if (Carbon::now()->greaterThan($otpSentAt->addMinutes(10))) {
             return response()->json(['status' => false, 'message' => 'OTP expired']);
         }
-        $couponUsed = DB::table('orders')
-            ->leftJoin('coupons', 'orders.coupon_id', '=', 'coupons.id') // LEFT JOIN (to avoid missing rows if no coupon)
-            ->where('orders.customer_id', $customerId)
-            ->where('orders.order_status', 'delivered')
-            ->select(
-                'orders.id as order_id',
-                'orders.coupon_id',
-                'orders.order_status',
-                'coupons.coupon_title',
-                'coupons.coupon_code'
-            )
-            ->orderBy('orders.id','DESC')
-            ->first();
+        $firstOrder = DB::table('orders')
+        ->where('customer_id', $customer_id)
+        ->where('order_status', 'delivered')
+        ->orderBy('id', 'ASC') // ASC to get first order
+        ->first();
+
+        $couponUsed = false;
+
+        if ($firstOrder && $firstOrder->coupon_id) {
+            $couponUsed = true;
+        }
         $customerCurrency = getUserCurrency($customerId) ??'';
         // Handle referral if exists
         if (!empty($customer->referral_code)) {
@@ -162,7 +160,7 @@ class Authentication extends Controller {
                  'currency' => $customerCurrency, 
                  'profile_image' => $customer->customer_profile_image ? url('uploads/' . $customer->customer_profile_image) : '', 
                  'country_id' => (string)$country_id,
-                'coupon_used' => empty($couponUsed)?false:true
+                'coupon_used' => $couponUsed
             ];
         return response()->json(['status' => true, 'message' => 'OTP verified', 'data' => $data, ]);
     }
@@ -222,19 +220,17 @@ class Authentication extends Controller {
 
         $country_id = DB::table('country')->where('country_code', $customer->country_code)->value('id');
 
-        $couponUsed = DB::table('orders')
-            ->leftJoin('coupons', 'orders.coupon_id', '=', 'coupons.id') // LEFT JOIN (to avoid missing rows if no coupon)
-            ->where('orders.customer_id', $customer->id)
-            ->where('orders.order_status', 'delivered')
-            ->select(
-                'orders.id as order_id',
-                'orders.coupon_id',
-                'orders.order_status',
-                'coupons.coupon_title',
-                'coupons.coupon_code'
-            )
-            ->orderBy('orders.id','DESC')
-            ->first();
+        $firstOrder = DB::table('orders')
+        ->where('customer_id', $customer_id)
+        ->where('order_status', 'delivered')
+        ->orderBy('id', 'ASC') // ASC to get first order
+        ->first();
+
+        $couponUsed = false;
+
+        if ($firstOrder && $firstOrder->coupon_id) {
+            $couponUsed = true;
+        }
 
         $return = [];
         $return['customer_id'] = (string)$customer->id;
@@ -255,7 +251,7 @@ class Authentication extends Controller {
         $return['wallet_points'] = (string)$customer->wallet_points;
         $return['currency'] = (string)$customerCurrency;
         $return['profile_image'] = $customer->customer_profile_image ? url('uploads/' . $customer->customer_profile_image) : '';
-        $return['coupon_used'] = empty($couponUsed)?false:true;
+        $return['coupon_used'] = $couponUsed;
         return response()->json(['status' => true, 'message' => 'Login Successfully', 'data' => $return]);
     }
     public function customerLogin(Request $request) {
