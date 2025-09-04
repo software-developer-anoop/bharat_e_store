@@ -288,9 +288,9 @@ class Authentication extends Controller {
         if (empty($customer)) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
-        if ($customer->profile_status == "Inactive") {
-            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
-        }
+        // if ($customer->profile_status == "Inactive") {
+        //     return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        // }
 
         $otp = $mobileNumber == "9810656265"?"1234":str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
 
