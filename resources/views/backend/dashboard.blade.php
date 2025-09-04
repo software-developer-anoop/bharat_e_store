@@ -8,7 +8,7 @@
           <div class="w-content">
             <div class="w-info">
               <h6 class="value">{{$currency}} {{$stats->total_amount??''}}</h6>
-              <p class="">Total Orders</p>
+              <p class="">Total Orders ({{$stats->total_orders??'N/A'}})</p>
             </div>
             <div class="">
               <div class="w-icon">
@@ -42,7 +42,7 @@
           <div class="w-content">
             <div class="w-info">
               <h6 class="value">{{$currency}} {{$stats->pending_amount??''}}</h6>
-              <p class="">Pending Orders</p>
+              <p class="">Pending Orders ({{$stats->pending_count??'N/A'}})</p>
             </div>
             <div class="">
               <div class="w-icon">
@@ -75,7 +75,7 @@
           <div class="w-content">
             <div class="w-info">
               <h6 class="value">{{$currency}} {{$stats->delivered_amount??''}}</h6>
-              <p class="">Delivered Orders</p>
+              <p class="">Delivered Orders ({{$stats->delivered_count??'N/A'}})</p>
             </div>
             <div class="">
               <div class="w-icon">
