@@ -321,9 +321,9 @@ class Authentication extends Controller {
         if (empty($customer)) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
-        if ($customer->profile_status == "Inactive") {
-            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
-        }
+        // if ($customer->profile_status == "Inactive") {
+        //     return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        // }
 
         DB::table('customers')->where('id', $customer_id)->update(['fcm_token' => '', 'device_id' => '']);
         return response()->json(['status' => true, 'message' => 'Logout Successfully']);
@@ -365,9 +365,9 @@ class Authentication extends Controller {
         if (!$customer) {
             return response()->json(['status' => false, 'message' => 'No Record Found']);
         }
-        if ($customer->profile_status === "Inactive") {
-            return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
-        }
+        // if ($customer->profile_status === "Inactive") {
+        //     return response()->json(['status' => false, 'message' => 'Your profile is currently inactive']);
+        // }
         // Duplication check
         $emailExists = DB::table('customers')->where('customer_email', $customer_email)->where('id', '!=', $customer_id)->exists();
         if ($emailExists) {
